@@ -1,418 +1,345 @@
-export class PenduloInvertido {
-
-constructor(canvas, params={}){
-
-    this.canvas = canvas;
-    this.ctx = canvas.getContext("2d");
-
-
-    this.params = {
-
-        g:9.81,
-        m:1,
-        M:2,
-        l:1,
-        A:0,
-        w:2,
-        theta0:0.05,
-
-        ...params
-    };
-
-
-    this.dt = 10/1500;
-    this.N = 1500;
-
-
-    this.t = [];
-    this.theta=[];
-    this.omega=[];
-    this.x=[];
-    this.v=[];
-
-
-    this.frame=0;
-
-
-    this.solve();
-}
-
-
-
-f(r,t){
-
-
-    let theta = r[0];
-    let omega = r[1];
-    let xpos = r[2];
-    let vel = r[3];
-
-
-    let {
-        g,m,M,l,A,w
-    } = this.params;
-
-
-    let F = A*Math.cos(w*t);
-
-
-    let A_mat = [
-
-        [
-            l,
-            -Math.cos(theta)
-        ],
-
-        [
-            -m*l*Math.cos(theta),
-            M+m
-        ]
-
-    ];
-
-
-    let b = [
-
-        g*Math.sin(theta),
-
-        F - m*l*omega*omega*Math.sin(theta)
-
-    ];
-
-
-    let det =
-        A_mat[0][0]*A_mat[1][1]
-        -
-        A_mat[0][1]*A_mat[1][0];
-
-
-    let a_theta =
-    (
-        b[0]*A_mat[1][1]
-        -
-        A_mat[0][1]*b[1]
-    )/det;
-
-
-    let a_x =
-    (
-        A_mat[0][0]*b[1]
-        -
-        b[0]*A_mat[1][0]
-    )/det;
-
-
-
-    return [
-
-        omega,
-        a_theta,
-        vel,
-        a_x
-
-    ];
-
-}
-
-
-
-
-RK4(r,t,h){
-
-
-    let k1 =
-        this.f(r,t)
-        .map(x=>h*x);
-
-
-    let k2 =
-        this.f(
-            r.map((x,i)=>x+k1[i]/2),
-            t+h/2
-        )
-        .map(x=>h*x);
-
-
-
-    let k3 =
-        this.f(
-            r.map((x,i)=>x+k2[i]/2),
-            t+h/2
-        )
-        .map(x=>h*x);
-
-
-
-    let k4 =
-        this.f(
-            r.map((x,i)=>x+k3[i]),
-            t+h
-        )
-        .map(x=>h*x);
-
-
-
-    return r.map(
-        (x,i)=>
-        x+
-        (k1[i]+2*k2[i]+2*k3[i]+k4[i])/6
-    );
-
-}
-
-
-
-
-
-solve(){
-
-
-    let h = 10/this.N;
-
-
-    let r = [
-
-        this.params.theta0,
-        0,
-        0,
-        0
-
-    ];
-
-
-    this.t=[];
-    this.theta=[];
-    this.omega=[];
-    this.x=[];
-    this.v=[];
-
-
-
-    for(let i=0;i<=this.N;i++){
-
-
-        let time=i*h;
-
-
-        this.t.push(time);
-
-        this.theta.push(r[0]);
-        this.omega.push(r[1]);
-        this.x.push(r[2]);
-        this.v.push(r[3]);
-
-
-
-        r=this.RK4(r,time,h);
+class InvertedPendulum {
+
+    constructor(params = {}) {
+
+        this.params = {
+            g: 9.81,
+            m: 1.0,
+            M: 2.0,
+            l: 1.0,
+            A: 0.0,
+            w: 2.0,
+            theta0: 0.05,
+            ...params
+        };
+
+
+        this.t = [];
+        this.theta = [];
+        this.omega = [];
+        this.x = [];
+        this.v = [];
+
+        this.xMass = [];
+        this.yMass = [];
 
     }
 
 
-}
 
+    // ===========================
+    // SISTEMA DINÂMICO
+    // ===========================
 
+    f(r, t) {
 
 
+        let theta = r[0];
+        let omega = r[1];
 
-atualizar(){
 
+        let g = this.params.g;
+        let m = this.params.m;
+        let M = this.params.M;
+        let l = this.params.l;
 
-    this.frame++;
+        let A = this.params.A;
+        let w = this.params.w;
 
 
-    if(this.frame>=this.N)
-        this.frame=0;
+        let F = A * Math.cos(w*t);
 
 
-}
 
+        let a11 = l;
+        let a12 = -Math.cos(theta);
 
+        let a21 = -m*l*Math.cos(theta);
+        let a22 = M + m;
 
 
-desenhar(){
 
+        let b1 = g*Math.sin(theta);
 
-let ctx=this.ctx;
+        let b2 =
+            F -
+            m*l*
+            omega*omega*
+            Math.sin(theta);
 
-ctx.clearRect(
-0,
-0,
-this.canvas.width,
-this.canvas.height
-);
 
 
+        let det =
+            a11*a22 -
+            a12*a21;
 
-let i=this.frame;
 
 
+        let alpha =
+            (b1*a22 - a12*b2)
+            /
+            det;
 
-let scale=120;
 
 
-let cartX =
-this.canvas.width/2
-+
-this.x[i]*scale;
+        let acceleration =
+            (a11*b2 - b1*a21)
+            /
+            det;
 
 
 
-let cartY=300;
+        return [
 
+            omega,
+            alpha,
+            r[3],
+            acceleration
 
-let cartW=80;
-let cartH=40;
+        ];
 
+    }
 
 
-// carrinho
 
-ctx.fillStyle="black";
+    // ===========================
+    // RK4
+    // ===========================
 
-ctx.fillRect(
-cartX-cartW/2,
-cartY,
-cartW,
-cartH
-);
+    RK4(a, b, N, initial) {
 
 
+        let h = (b-a)/N;
 
-// rodas
 
-ctx.fillStyle="gray";
+        let r = [...initial];
 
 
-ctx.beginPath();
+        let t = [];
 
-ctx.arc(
-cartX-25,
-cartY+45,
-10,
-0,
-2*Math.PI
-);
+        let theta = [];
+        let omega = [];
 
-ctx.fill();
+        let x = [];
+        let v = [];
 
 
 
-ctx.beginPath();
+        for(let i=0; i<=N; i++) {
 
-ctx.arc(
-cartX+25,
-cartY+45,
-10,
-0,
-2*Math.PI
-);
 
-ctx.fill();
+            let time = a+i*h;
 
 
+            t.push(time);
 
+            theta.push(r[0]);
+            omega.push(r[1]);
 
-// haste
+            x.push(r[2]);
+            v.push(r[3]);
 
 
-let px=cartX;
 
-let py=cartY;
+            if(i < N) {
 
 
-let massX =
-px+
-this.params.l*
-Math.sin(this.theta[i])*scale;
+                let k1 =
+                    this.f(r,time)
+                    .map(k => h*k);
 
 
-let massY =
-py+
-this.params.l*
-Math.cos(this.theta[i])*scale;
 
+                let k2 =
+                    this.f(
+                        r.map(
+                            (value,j)=>
+                            value+k1[j]/2
+                        ),
+                        time+h/2
+                    )
+                    .map(k=>h*k);
 
 
-ctx.strokeStyle="red";
 
-ctx.lineWidth=3;
+                let k3 =
+                    this.f(
+                        r.map(
+                            (value,j)=>
+                            value+k2[j]/2
+                        ),
+                        time+h/2
+                    )
+                    .map(k=>h*k);
 
-ctx.beginPath();
 
-ctx.moveTo(px,py);
 
-ctx.lineTo(
-massX,
-massY
-);
+                let k4 =
+                    this.f(
+                        r.map(
+                            (value,j)=>
+                            value+k3[j]
+                        ),
+                        time+h
+                    )
+                    .map(k=>h*k);
 
-ctx.stroke();
 
 
+                for(let j=0;j<4;j++) {
 
-// massa
+                    r[j] +=
+                    (
+                        k1[j]
+                        +
+                        2*k2[j]
+                        +
+                        2*k3[j]
+                        +
+                        k4[j]
 
+                    )/6;
 
-ctx.fillStyle="blue";
+                }
 
-ctx.beginPath();
+            }
 
-ctx.arc(
-massX,
-massY,
-15,
-0,
-2*Math.PI
-);
+        }
 
-ctx.fill();
 
+        return {
+            t,
+            theta,
+            omega,
+            x,
+            v
+        };
 
+    }
 
-}
 
 
+    // ===========================
+    // SOLVER
+    // ===========================
 
+    solve(time = 10, steps = 1500) {
 
-iniciar(){
 
+        let result =
+            this.RK4(
 
-const loop=()=>{
+                0,
+                time,
+                steps,
 
+                [
+                    this.params.theta0,
+                    0,
+                    0,
+                    0
+                ]
 
-this.atualizar();
+            );
 
-this.desenhar();
 
 
-requestAnimationFrame(loop);
+        this.t = result.t;
 
+        this.theta = result.theta;
+        this.omega = result.omega;
 
-};
+        this.x = result.x;
+        this.v = result.v;
 
 
-loop();
 
+        this.xMass = [];
+        this.yMass = [];
 
-}
 
 
+        for(let i=0;i<this.t.length;i++) {
 
-reset(){
 
-this.frame=0;
-this.solve();
+            let xm =
+                this.x[i]
+                +
+                this.params.l *
+                Math.sin(this.theta[i]);
 
-}
 
 
-setParametro(nome,valor){
+            let ym =
+                0.3
+                +
+                this.params.l *
+                Math.cos(this.theta[i]);
 
-this.params[nome]=valor;
 
-this.solve();
 
-}
+            this.xMass.push(xm);
+            this.yMass.push(ym);
 
+        }
+
+
+
+        return {
+
+            t:this.t,
+
+            theta:this.theta,
+            omega:this.omega,
+
+            x:this.x,
+            v:this.v,
+
+            xMass:this.xMass,
+            yMass:this.yMass
+
+        };
+
+    }
+
+
+
+    // ===========================
+    // ALTERAR PARÂMETROS
+    // ===========================
+
+    updateParams(params) {
+
+        Object.assign(
+            this.params,
+            params
+        );
+
+    }
+
+
+
+    // ===========================
+    // ESTADO
+    // ===========================
+
+    getState(i) {
+
+        return {
+
+            t:this.t[i],
+
+            theta:this.theta[i],
+            omega:this.omega[i],
+
+            x:this.x[i],
+            v:this.v[i],
+
+            xMass:this.xMass[i],
+            yMass:this.yMass[i]
+
+        };
+
+    }
 
 }
