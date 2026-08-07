@@ -1,540 +1,320 @@
-// =================================================
-// PARÂMETROS
-// =================================================
+class PenduloAmortecido {
+
+    constructor(canvas, params={}) {
+
+        this.canvas = canvas;
+        this.ctx = canvas.getContext("2d");
 
 
-let params={
-
-    g:9.81,
-
-    L:0.10,
-
-    m:1.0,
-
-    b:0.5,
-
-    theta0:1.0,
-
-    omega0:0.0
-
-};
+        this.g = params.g ?? 9.81;
+        this.L = params.L ?? 1;
+        this.m = params.m ?? 1;
+        this.b = params.b ?? 0.5;
 
 
-
-// =================================================
-// SISTEMA
-// =================================================
+        this.theta = params.theta0 ?? 1;
+        this.omega = params.omega0 ?? 0;
 
 
-function f(state){
+        this.dt = 0.02;
 
+        this.t = 0;
 
-    let theta=state[0];
+        this.historicoTheta = [];
+        this.historicoOmega = [];
 
-    let omega=state[1];
+        this.animando = false;
 
-
-    return [
-
-        omega,
-
-
-        -(params.g/params.L)
-        *
-        Math.sin(theta)
-
-
-        -
-
-        (params.b/params.m)
-        *
-        omega
-
-    ];
-
-}
+    }
 
 
 
+    // =========================
+    // EQUAÇÃO DO MOVIMENTO
+    // =========================
 
-// =================================================
-// RK4
-// =================================================
+    aceleracao(theta,omega){
 
+        return (
+            -(this.g/this.L)*Math.sin(theta)
+            -
+            (this.b/this.m)*omega
+        );
 
-function RK4(){
-
-
-    let N=500;
-
-    let h=10/N;
-
-
-    let state=[
-
-        params.theta0,
-
-        params.omega0
-
-    ];
-
-
-    let data=[];
-
-
-    data.push({
-
-        t:0,
-
-        theta:state[0],
-
-        omega:state[1]
-
-    });
+    }
 
 
 
-    for(let i=0;i<N;i++){
+    derivada(state){
+
+        let theta = state[0];
+        let omega = state[1];
 
 
-        let k1=f(state);
+        return [
+            omega,
+            this.aceleracao(theta,omega)
+        ];
+
+    }
 
 
-        let k2=f([
 
-            state[0]+0.5*h*k1[0],
+    // =========================
+    // RK4
+    // =========================
 
-            state[1]+0.5*h*k1[1]
+    RK4(){
 
+        let estado=[
+            this.theta,
+            this.omega
+        ];
+
+
+        let h=this.dt;
+
+
+        let k1=this.derivada(estado);
+
+
+        let k2=this.derivada([
+            estado[0]+h*k1[0]/2,
+            estado[1]+h*k1[1]/2
+        ]);
+
+
+        let k3=this.derivada([
+            estado[0]+h*k2[0]/2,
+            estado[1]+h*k2[1]/2
+        ]);
+
+
+        let k4=this.derivada([
+            estado[0]+h*k3[0],
+            estado[1]+h*k3[1]
         ]);
 
 
 
-        let k3=f([
-
-            state[0]+0.5*h*k2[0],
-
-            state[1]+0.5*h*k2[1]
-
-        ]);
+        this.theta += 
+        h*(k1[0]+2*k2[0]+2*k3[0]+k4[0])/6;
 
 
-
-        let k4=f([
-
-            state[0]+h*k3[0],
-
-            state[1]+h*k3[1]
-
-        ]);
-
-
-
-
-        state[0]+=
-
-        h*
-
-        (
-
-            k1[0]
-            +
-            2*k2[0]
-            +
-            2*k3[0]
-            +
-            k4[0]
-
-        )/6;
-
-
-
-        state[1]+=
-
-        h*
-
-        (
-
-            k1[1]
-            +
-            2*k2[1]
-            +
-            2*k3[1]
-            +
-            k4[1]
-
-        )/6;
-
-
-
-        data.push({
-
-            t:(i+1)*h,
-
-            theta:state[0],
-
-            omega:state[1]
-
-        });
+        this.omega += 
+        h*(k1[1]+2*k2[1]+2*k3[1]+k4[1])/6;
 
 
     }
 
 
-    return data;
+
+    // =========================
+    // POSIÇÃO
+    // =========================
+
+    posicao(){
+
+        return {
+
+            x:
+            this.L*Math.sin(this.theta),
+
+
+            y:
+            this.L*Math.cos(this.theta)
+
+        };
+
+    }
+
+
+
+    // =========================
+    // REGIME
+    // =========================
+
+    regime(){
+
+        let omega0=Math.sqrt(this.g/this.L);
+
+        let gamma=(this.b/this.m)/2;
+
+
+        let delta=gamma*gamma-omega0*omega0;
+
+
+        if(Math.abs(this.b/this.m)<1e-6)
+            return "Sem amortecimento";
+
+
+        if(Math.abs(delta)<1e-3)
+            return "Criticamente amortecido";
+
+
+        if(delta>0)
+            return "Superamortecido";
+
+
+        return "Subamortecido";
+
+    }
+
+
+
+    // =========================
+    // DESENHO
+    // =========================
+
+    desenhar(){
+
+        let ctx=this.ctx;
+
+        ctx.clearRect(
+            0,
+            0,
+            this.canvas.width,
+            this.canvas.height
+        );
+
+
+        let p=this.posicao();
+
+
+        let cx=this.canvas.width/2;
+        let cy=80;
+
+
+        let escala=150;
+
+
+
+        ctx.beginPath();
+
+        ctx.moveTo(cx,cy);
+
+        ctx.lineTo(
+            cx+p.x*escala,
+            cy+p.y*escala
+        );
+
+
+        ctx.strokeStyle="black";
+        ctx.lineWidth=3;
+
+        ctx.stroke();
+
+
+
+        ctx.beginPath();
+
+        ctx.arc(
+            cx+p.x*escala,
+            cy+p.y*escala,
+            12,
+            0,
+            2*Math.PI
+        );
+
+
+        ctx.fillStyle="gray";
+
+        ctx.fill();
+
+
+
+        ctx.fillStyle="black";
+
+        ctx.fillText(
+            "θ = "+this.theta.toFixed(2),
+            20,
+            20
+        );
+
+
+        ctx.fillText(
+            "ω = "+this.omega.toFixed(2),
+            20,
+            40
+        );
+
+
+        ctx.fillText(
+            this.regime(),
+            20,
+            60
+        );
+
+
+    }
+
+
+
+    // =========================
+    // LOOP
+    // =========================
+
+    atualizar(){
+
+        this.RK4();
+
+
+        this.historicoTheta.push(this.theta);
+        this.historicoOmega.push(this.omega);
+
+
+        this.desenhar();
+
+
+        this.t+=this.dt;
+
+
+    }
+
+
+
+    iniciar(){
+
+        this.animando=true;
+
+
+        const loop=()=>{
+
+            if(!this.animando)
+                return;
+
+
+            this.atualizar();
+
+
+            requestAnimationFrame(loop);
+
+        };
+
+
+        loop();
+
+    }
+
+
+
+    parar(){
+
+        this.animando=false;
+
+    }
+
+
+
+    // =========================
+    // CONTROLE PELO APP
+    // =========================
+
+    alterarParametro(nome,valor){
+
+        this[nome]=valor;
+
+    }
+
 
 }
-
-
-
-// =================================================
-// SOLVER
-// =================================================
-
-
-function solve(){
-
-
-    let data=RK4();
-
-
-    data.forEach(p=>{
-
-
-        p.x =
-        params.L *
-        Math.sin(p.theta);
-
-
-        p.y =
-        -params.L *
-        Math.cos(p.theta);
-
-
-    });
-
-
-    return data;
-
-}
-
-
-
-let simulation=solve();
-
-
-
-
-// =================================================
-// CLASSIFICAÇÃO
-// =================================================
-
-
-function classifyRegime(){
-
-
-    let omega0 =
-    Math.sqrt(
-        params.g/params.L
-    );
-
-
-    let gamma =
-    (params.b/params.m)/2;
-
-
-
-    let delta =
-    gamma*gamma -
-    omega0*omega0;
-
-
-
-    if(Math.abs(params.b/params.m)<1e-6)
-
-        return "Sem amortecimento";
-
-
-    if(Math.abs(delta)<1e-3)
-
-        return "Criticamente amortecido";
-
-
-    if(delta>0)
-
-        return "Superamortecido";
-
-
-    return "Subamortecido";
-
-}
-
-
-
-// =================================================
-// DESENHO
-// =================================================
-
-
-let canvas =
-document.getElementById("pendulo");
-
-
-let ctx =
-canvas.getContext("2d");
-
-
-
-function drawPendulum(i){
-
-
-    ctx.clearRect(
-        0,
-        0,
-        canvas.width,
-        canvas.height
-    );
-
-
-
-    let p=simulation[i];
-
-
-    let scale=200;
-
-
-    let ox=200;
-
-    let oy=100;
-
-
-
-    let x=ox+p.x*scale;
-
-    let y=oy-p.y*scale;
-
-
-
-    ctx.beginPath();
-
-    ctx.moveTo(ox,oy);
-
-    ctx.lineTo(x,y);
-
-    ctx.lineWidth=3;
-
-    ctx.stroke();
-
-
-
-    ctx.beginPath();
-
-    ctx.arc(
-        x,
-        y,
-        15,
-        0,
-        2*Math.PI
-    );
-
-
-    ctx.fillStyle="red";
-
-    ctx.fill();
-
-
-}
-
-
-
-
-// =================================================
-// GRÁFICO
-// =================================================
-
-
-let chart=new Chart(
-
-document.getElementById("grafico"),
-
-{
-
-type:"line",
-
-data:{
-
-
-labels:
-simulation.map(p=>p.t),
-
-
-datasets:[
-
-
-{
-
-label:"θ(t)",
-
-data:
-simulation.map(p=>p.theta)
-
-},
-
-
-{
-
-label:"ω(t)",
-
-data:
-simulation.map(p=>p.omega)
-
-}
-
-
-]
-
-},
-
-
-options:{
-
-animation:false
-
-}
-
-});
-
-
-
-
-// =================================================
-// ANIMAÇÃO
-// =================================================
-
-
-let frame=0;
-
-
-function animate(){
-
-
-drawPendulum(frame);
-
-
-
-let p=simulation[frame];
-
-
-
-document
-.getElementById("info")
-.innerHTML=`
-
-L = ${params.L.toFixed(2)} m<br>
-
-g = ${params.g.toFixed(2)} m/s²<br>
-
-m = ${params.m.toFixed(2)} kg<br>
-
-b = ${params.b.toFixed(2)} kg/s<br><br>
-
-
-Regime: ${classifyRegime()}<br><br>
-
-
-θ = ${p.theta.toFixed(2)} rad<br>
-
-ω = ${p.omega.toFixed(2)} rad/s<br><br>
-
-
-t = ${p.t.toFixed(2)} s
-
-`;
-
-
-
-frame++;
-
-
-if(frame>=simulation.length)
-
-frame=0;
-
-
-
-requestAnimationFrame(animate);
-
-
-}
-
-
-
-animate();
-
-
-
-
-// =================================================
-// SLIDERS
-// =================================================
-
-
-function update(){
-
-
-params.g =
-Number(g.value);
-
-
-params.L =
-Number(L.value);
-
-
-params.m =
-Number(m.value);
-
-
-params.b =
-Number(b.value);
-
-
-params.theta0 =
-Number(theta0.value);
-
-
-params.omega0 =
-Number(omega0.value);
-
-
-
-simulation=solve();
-
-
-
-chart.data.labels =
-simulation.map(p=>p.t);
-
-
-chart.data.datasets[0].data =
-simulation.map(p=>p.theta);
-
-
-chart.data.datasets[1].data =
-simulation.map(p=>p.omega);
-
-
-chart.update();
-
-
-
-}
-
-
-
-document
-.querySelectorAll("input")
-.forEach(
-
-s=>s.oninput=update
-
-);
