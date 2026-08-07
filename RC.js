@@ -1,376 +1,459 @@
-// rc.js
+class RCCircuit {
 
-export class RCSimulacao {
+constructor(canvas, params={}){
 
-    constructor(canvas, params = {}) {
-
-        this.canvas = canvas;
-        this.ctx = canvas.getContext("2d");
-
-        this.params = {
-            R: 2.0,
-            C: 1.0,
-            q0: 1.0,
-            ...params
-        };
+    this.canvas = canvas;
+    this.ctx = canvas.getContext("2d");
 
 
-        this.t = [];
-        this.q = [];
-        this.i = [];
+    this.params = {
 
-        this.frame = 0;
-        this.running = false;
+        R:2,
+        C:1,
+        q0:1,
+
+        tempo:10,
+        passos:500,
+
+        ...params
+    };
 
 
-        this.electrons = [];
+    this.t=[];
+    this.q=[];
+    this.i=[];
 
-        for(let k = 0; k < 40; k++){
-            this.electrons.push(k/40);
+
+    this.frame=0;
+
+
+    // elétrons
+
+    this.num_e = 40;
+    this.electron_pos=[];
+
+}
+
+
+
+// ----------------------
+// SISTEMA RC
+// ----------------------
+
+f(r){
+
+    let q = r[0];
+
+    let R = this.params.R;
+    let C = this.params.C;
+
+
+    let dqdt = -(1/(R*C))*q;
+
+
+    return [
+        dqdt
+    ];
+
+}
+
+
+
+// ----------------------
+// RK4
+// ----------------------
+
+rk4(){
+
+
+    let N=this.params.passos;
+    let h=this.params.tempo/N;
+
+
+    let r=[
+        this.params.q0
+    ];
+
+
+
+    for(let k=0;k<=N;k++){
+
+
+        let tempo=k*h;
+
+
+        this.t.push(tempo);
+
+
+        this.q.push(r[0]);
+
+
+        let R=this.params.R;
+        let C=this.params.C;
+
+
+        this.i.push(
+            -(1/(R*C))*r[0]
+        );
+
+
+
+        if(k<N){
+
+
+            let k1=this.multiplica(
+                this.f(r),
+                h
+            );
+
+
+            let k2=this.multiplica(
+                this.f(
+                    this.soma(
+                        r,
+                        this.multiplica(k1,0.5)
+                    )
+                ),
+                h
+            );
+
+
+
+            let k3=this.multiplica(
+                this.f(
+                    this.soma(
+                        r,
+                        this.multiplica(k2,0.5)
+                    )
+                ),
+                h
+            );
+
+
+
+            let k4=this.multiplica(
+                this.f(
+                    this.soma(r,k3)
+                ),
+                h
+            );
+
+
+
+            r[0]+=
+            (k1[0]+2*k2[0]+2*k3[0]+k4[0])/6;
+
+
         }
 
 
-        this.resolver();
     }
 
 
-    // ------------------------
-    // SISTEMA RC
-    // dq/dt = -q/RC
-    // ------------------------
 
-    derivada(q){
+    this.resetEletrons();
 
-        const R = this.params.R;
-        const C = this.params.C;
-
-        return -(1/(R*C))*q;
-    }
+}
 
 
 
-    // ------------------------
-    // RK4
-    // ------------------------
 
-    rk4(){
+multiplica(v,c){
 
-        const h = 10/500;
+    return v.map(
+        x=>x*c
+    );
 
-        let q = this.params.q0;
-
-
-        this.t = [];
-        this.q = [];
-        this.i = [];
-
-
-        for(let k=0;k<=500;k++){
-
-            let tempo = k*h;
-
-
-            this.t.push(tempo);
-            this.q.push(q);
-
-
-            let corrente =
-                -(1/(this.params.R*this.params.C))*q;
-
-
-            this.i.push(corrente);
+}
 
 
 
-            let k1 = h*this.derivada(q);
+soma(a,b){
 
-            let k2 =
-                h*this.derivada(q+k1/2);
+    return a.map(
+        (x,i)=>x+b[i]
+    );
 
-            let k3 =
-                h*this.derivada(q+k2/2);
-
-            let k4 =
-                h*this.derivada(q+k3);
+}
 
 
-            q +=
-            (k1+2*k2+2*k3+k4)/6;
 
-        }
+// ----------------------
+// ELÉTRONS
+// ----------------------
+
+
+resetEletrons(){
+
+    this.electron_pos=[];
+
+
+    for(let i=0;i<this.num_e;i++){
+
+        this.electron_pos.push(
+            i/this.num_e
+        );
 
     }
 
-
-
-    // ------------------------
-    // RESOLVER
-    // ------------------------
-
-    resolver(){
-
-        this.rk4();
-
-        this.frame = 0;
-
-    }
+}
 
 
 
-    // ------------------------
-    // CAMINHO DO CIRCUITO
-    // ------------------------
-
-    caminho(s){
-
-        let x0=100;
-        let x1=300;
-
-        let y0=150;
-        let y1=300;
+loopPath(s){
 
 
-        if(s < 0.25){
+    let x0=80;
+    let x1=320;
 
-            return [
-                x0+(x1-x0)*(s/0.25),
-                y0
-            ];
-
-        }
-
-        else if(s < 0.5){
-
-            return [
-                x1,
-                y0+(y1-y0)*((s-0.25)/0.25)
-            ];
-
-        }
+    let y0=150;
+    let y1=250;
 
 
-        else if(s < 0.75){
 
-            return [
-                x1-(x1-x0)*((s-0.5)/0.25),
-                y1
-            ];
-
-        }
-
+    if(s<0.25){
 
         return [
-            x0,
-            y1-(y1-y0)*((s-0.75)/0.25)
+
+            x0+(x1-x0)*(s/0.25),
+            y0
+
         ];
 
     }
 
 
+    else if(s<0.5){
 
-    // ------------------------
-    // DESENHO
-    // ------------------------
+        return [
 
-    desenhar(){
+            x1,
+            y0+(y1-y0)*((s-0.25)/0.25)
+
+        ];
+
+    }
 
 
-        const ctx=this.ctx;
+    else if(s<0.75){
 
 
-        ctx.clearRect(
+        return [
+
+            x1-(x1-x0)*((s-0.5)/0.25),
+            y1
+
+        ];
+
+    }
+
+
+    else{
+
+
+        return [
+
+            x0,
+            y1-(y1-y0)*((s-0.75)/0.25)
+
+        ];
+
+    }
+
+}
+
+
+
+// ----------------------
+// DESENHO
+// ----------------------
+
+desenhar(i){
+
+
+    let ctx=this.ctx;
+
+    ctx.clearRect(
+        0,
+        0,
+        this.canvas.width,
+        this.canvas.height
+    );
+
+
+
+    let x0=80;
+    let x1=320;
+
+    let y0=150;
+    let y1=250;
+
+
+
+    // fios
+
+    ctx.beginPath();
+
+    ctx.moveTo(x0,y0);
+    ctx.lineTo(x1,y0);
+    ctx.lineTo(x1,y1);
+    ctx.lineTo(x0,y1);
+    ctx.lineTo(x0,y0);
+
+    ctx.stroke();
+
+
+
+    // resistor
+
+    ctx.beginPath();
+
+    ctx.moveTo(160,y0);
+
+    for(let k=0;k<8;k++){
+
+        ctx.lineTo(
+            160+k*15,
+            y0+(k%2?10:-10)
+        );
+
+    }
+
+    ctx.stroke();
+
+
+
+    // capacitor
+
+    ctx.beginPath();
+
+    ctx.moveTo(x1,y0+40);
+    ctx.lineTo(x1,y0+100);
+
+    ctx.moveTo(x1-20,y0+40);
+    ctx.lineTo(x1+20,y0+40);
+
+
+    ctx.moveTo(x1-20,y0+100);
+    ctx.lineTo(x1+20,y0+100);
+
+    ctx.stroke();
+
+
+
+
+    // elétrons
+
+
+    let corrente=this.i[i];
+
+    let velocidade=0.02*corrente;
+
+
+    for(let j=0;j<this.num_e;j++){
+
+
+        this.electron_pos[j]+=
+        velocidade;
+
+
+        this.electron_pos[j]%=1;
+
+
+        let pos=this.loopPath(
+            this.electron_pos[j]
+        );
+
+
+        ctx.beginPath();
+
+        ctx.arc(
+            pos[0],
+            pos[1],
+            4,
             0,
-            0,
-            this.canvas.width,
-            this.canvas.height
+            2*Math.PI
         );
 
-
-
-        // circuito
-
-        ctx.lineWidth=3;
-
-
-        ctx.beginPath();
-
-        ctx.moveTo(100,150);
-        ctx.lineTo(300,150);
-        ctx.lineTo(300,300);
-        ctx.lineTo(100,300);
-        ctx.closePath();
-
-        ctx.stroke();
-
-
-
-        // resistor
-
-        ctx.beginPath();
-
-        ctx.moveTo(170,150);
-
-        for(let i=0;i<8;i++){
-
-            ctx.lineTo(
-                170+i*15,
-                150+(i%2?15:-15)
-            );
-
-        }
-
-        ctx.stroke();
-
-
-
-        // capacitor
-
-        ctx.beginPath();
-
-        ctx.moveTo(300,200);
-        ctx.lineTo(300,250);
-
-        ctx.moveTo(285,200);
-        ctx.lineTo(315,200);
-
-        ctx.moveTo(285,250);
-        ctx.lineTo(315,250);
-
-        ctx.stroke();
-
-
-
-        // elétrons
-
-
-        let corrente =
-        Math.abs(this.i[this.frame]);
-
-
-        for(let k=0;k<this.electrons.length;k++){
-
-
-            this.electrons[k]+=
-            0.01*corrente;
-
-
-            this.electrons[k]%=1;
-
-
-            let pos =
-            this.caminho(this.electrons[k]);
-
-
-            ctx.beginPath();
-
-            ctx.arc(
-                pos[0],
-                pos[1],
-                4,
-                0,
-                2*Math.PI
-            );
-
-            ctx.fillStyle="red";
-
-            ctx.fill();
-
-        }
-
-
-
-        // texto
-
-        ctx.fillStyle="black";
-
-        ctx.fillText(
-            `R = ${this.params.R.toFixed(2)} Ω`,
-            20,
-            30
-        );
-
-        ctx.fillText(
-            `C = ${this.params.C.toFixed(2)} F`,
-            20,
-            50
-        );
-
-
-        ctx.fillText(
-            `q = ${this.q[this.frame].toFixed(3)} C`,
-            20,
-            70
-        );
-
-
-        ctx.fillText(
-            `i = ${this.i[this.frame].toFixed(3)} A`,
-            20,
-            90
-        );
-
+        ctx.fill();
 
     }
 
 
-
-    // ------------------------
-    // LOOP
-    // ------------------------
-
-    animar(){
+}
 
 
-        if(!this.running)
-            return;
+
+// ----------------------
+// LOOP
+// ----------------------
+
+animar(){
 
 
-        this.desenhar();
+    if(this.frame>=this.q.length){
 
-
-        this.frame++;
-
-
-        if(this.frame>=this.q.length)
-            this.frame=0;
-
-
-        requestAnimationFrame(
-            ()=>this.animar()
-        );
+        this.frame=0;
 
     }
 
 
-
-    iniciar(){
-
-        this.running=true;
-
-        this.animar();
-
-    }
+    this.desenhar(this.frame);
 
 
+    this.frame++;
 
-    parar(){
 
-        this.running=false;
+    requestAnimationFrame(
+        ()=>this.animar()
+    );
 
-    }
+
+}
 
 
 
-    atualizarParametros(novos){
+// ----------------------
+// ATUALIZAR SLIDERS
+// ----------------------
 
-        this.params={
-            ...this.params,
-            ...novos
-        };
+atualizarParametros(novos){
 
 
-        this.resolver();
+    this.params={
 
-    }
+        ...this.params,
+        ...novos
+
+    };
+
+
+    this.t=[];
+    this.q=[];
+    this.i=[];
+
+
+    this.frame=0;
+
+
+    this.rk4();
+
+
+}
+
+
+
+// ----------------------
+// INICIAR
+// ----------------------
+
+iniciar(){
+
+    this.rk4();
+
+    this.animar();
+
+}
+
 
 }
