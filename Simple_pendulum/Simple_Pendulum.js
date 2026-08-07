@@ -1,511 +1,209 @@
-// ===============================
-// PARÂMETROS
-// ===============================
+class PenduloSimples {
 
+    constructor(canvas, options = {}) {
 
-let params = {
+        this.canvas = canvas;
+        this.ctx = canvas.getContext("2d");
 
-    g:9.81,
 
-    L:0.10,
+        // parâmetros físicos
+        this.g = options.g ?? 9.81;
+        this.L = options.L ?? 0.10;
 
-    theta0:1.0,
+        this.theta0 = options.theta0 ?? 1.0;
+        this.omega0 = options.omega0 ?? 0.0;
 
-    omega0:0.0
 
-};
+        // estado
+        this.theta = [];
+        this.omega = [];
+        this.time = [];
 
+        this.frame = 0;
 
+        this.running = false;
+    }
 
-// ===============================
-// SISTEMA
-// ===============================
 
 
-function f(state){
+    derivada(theta, omega){
 
+        return {
+            theta: omega,
+            omega:
+            -(this.g/this.L)*Math.sin(theta)
+        };
+    }
 
-    let theta = state[0];
 
-    let omega = state[1];
 
+    resolver(){
 
-    return [
+        let N = 500;
+        let tempo = 10;
+        let h = tempo/N;
 
-        omega,
 
-        -(params.g/params.L)
-        *
-        Math.sin(theta)
+        let theta = this.theta0;
+        let omega = this.omega0;
 
-    ];
 
-}
+        this.theta=[];
+        this.omega=[];
+        this.time=[];
 
 
+        for(let i=0;i<=N;i++){
 
+            let t=i*h;
 
-// ===============================
-// RK4
-// ===============================
 
+            this.time.push(t);
+            this.theta.push(theta);
+            this.omega.push(omega);
 
-function RK4(){
 
 
-    let a=0;
+            let k1=this.derivada(theta,omega);
 
-    let b=10;
 
-    let N=500;
+            let k2=this.derivada(
+                theta+h*k1.theta/2,
+                omega+h*k1.omega/2
+            );
 
 
-    let h=(b-a)/N;
+            let k3=this.derivada(
+                theta+h*k2.theta/2,
+                omega+h*k2.omega/2
+            );
 
 
-    let state=[
+            let k4=this.derivada(
+                theta+h*k3.theta,
+                omega+h*k3.omega
+            );
 
-        params.theta0,
 
-        params.omega0
+            theta += h*
+            (
+                k1.theta+
+                2*k2.theta+
+                2*k3.theta+
+                k4.theta
+            )/6;
 
-    ];
 
-
-
-    let result=[];
-
-
-    result.push({
-
-        t:0,
-
-        theta:state[0],
-
-        omega:state[1]
-
-    });
-
-
-
-    for(let i=0;i<N;i++){
-
-
-        let k1=f(state);
-
-
-
-        let k2=f([
-
-            state[0]+0.5*h*k1[0],
-
-            state[1]+0.5*h*k1[1]
-
-        ]);
-
-
-
-        let k3=f([
-
-            state[0]+0.5*h*k2[0],
-
-            state[1]+0.5*h*k2[1]
-
-        ]);
-
-
-
-        let k4=f([
-
-            state[0]+h*k3[0],
-
-            state[1]+h*k3[1]
-
-        ]);
-
-
-
-        state[0]+=
-
-        h*
-
-        (
-
-        k1[0]+
-        2*k2[0]+
-        2*k3[0]+
-        k4[0]
-
-        )/6;
-
-
-
-        state[1]+=
-
-        h*
-
-        (
-
-        k1[1]+
-        2*k2[1]+
-        2*k3[1]+
-        k4[1]
-
-        )/6;
-
-
-
-        result.push({
-
-            t:(i+1)*h,
-
-            theta:state[0],
-
-            omega:state[1]
-
-        });
+            omega += h*
+            (
+                k1.omega+
+                2*k2.omega+
+                2*k3.omega+
+                k4.omega
+            )/6;
+
+        }
 
 
     }
 
 
-    return result;
 
-}
+    desenhar(){
 
+        let ctx=this.ctx;
 
+        ctx.clearRect(
+            0,
+            0,
+            this.canvas.width,
+            this.canvas.height
+        );
 
 
-// ===============================
-// SOLVER
-// ===============================
+        let theta =
+        this.theta[this.frame];
 
 
-function solve(){
+        let cx =
+        this.canvas.width/2;
 
+        let cy=80;
 
-    let data=RK4();
 
+        let escala=200;
 
-    data.forEach(p=>{
 
+        let x =
+        cx + escala*this.L*Math.sin(theta);
 
-        p.x =
-        params.L*Math.sin(p.theta);
 
+        let y =
+        cy + escala*this.L*Math.cos(theta);
 
-        p.y =
-        -params.L*Math.cos(p.theta);
 
 
-    });
+        // haste
 
+        ctx.beginPath();
 
-    return data;
+        ctx.moveTo(cx,cy);
+        ctx.lineTo(x,y);
 
-}
+        ctx.stroke();
 
 
 
+        // massa
 
-let simulation=solve();
+        ctx.beginPath();
 
+        ctx.arc(
+            x,
+            y,
+            15,
+            0,
+            2*Math.PI
+        );
 
+        ctx.fill();
 
 
-// ===============================
-// CANVAS
-// ===============================
+    }
 
 
-let canvas =
-document.getElementById("pendulo");
 
+    iniciar(){
 
-let ctx =
-canvas.getContext("2d");
+        this.resolver();
 
+        this.running=true;
 
 
-function drawPendulum(i){
+        const loop=()=>{
 
+            if(!this.running)
+                return;
 
-    ctx.clearRect(
-        0,
-        0,
-        canvas.width,
-        canvas.height
-    );
 
+            this.desenhar();
 
 
-    let p=simulation[i];
+            this.frame++;
 
 
-    let scale=200;
+            if(this.frame>=this.theta.length)
+                this.frame=0;
 
 
-    let ox=200;
+            requestAnimationFrame(loop);
 
-    let oy=100;
+        };
 
 
+        loop();
 
-    let x=ox+p.x*scale;
-
-    let y=oy-p.y*scale;
-
-
-
-    ctx.beginPath();
-
-    ctx.moveTo(
-        ox,
-        oy
-    );
-
-
-    ctx.lineTo(
-        x,
-        y
-    );
-
-
-    ctx.lineWidth=3;
-
-    ctx.stroke();
-
-
-
-    ctx.beginPath();
-
-    ctx.arc(
-        x,
-        y,
-        15,
-        0,
-        2*Math.PI
-    );
-
-
-    ctx.fillStyle="blue";
-
-    ctx.fill();
+    }
 
 
 }
-
-
-
-
-// ===============================
-// GRÁFICO
-// ===============================
-
-
-let chart =
-new Chart(
-
-document
-.getElementById("grafico"),
-
-
-{
-
-type:"line",
-
-
-data:{
-
-
-labels:
-simulation.map(p=>p.t),
-
-
-datasets:[
-
-
-{
-
-label:"θ(t)",
-
-data:
-simulation.map(p=>p.theta)
-
-},
-
-
-{
-
-label:"ω(t)",
-
-data:
-simulation.map(p=>p.omega)
-
-}
-
-
-]
-
-},
-
-
-options:{
-
-
-animation:false,
-
-
-scales:{
-
-
-x:{
-
-display:true
-
-}
-
-
-}
-
-
-}
-
-
-});
-
-
-
-
-// ===============================
-// ANIMAÇÃO
-// ===============================
-
-
-let frame=0;
-
-
-
-function animate(){
-
-
-drawPendulum(frame);
-
-
-
-let p=simulation[frame];
-
-
-document
-.getElementById("info")
-.innerHTML=
-
-
-`
-
-L = ${params.L.toFixed(2)} m<br>
-
-g = ${params.g.toFixed(2)} m/s²<br><br>
-
-
-θ₀ = ${params.theta0.toFixed(2)} rad<br>
-
-ω₀ = ${params.omega0.toFixed(2)} rad/s<br><br>
-
-
-θ = ${p.theta.toFixed(2)} rad<br>
-
-ω = ${p.omega.toFixed(2)} rad/s<br><br>
-
-
-t = ${p.t.toFixed(2)} s
-
-`;
-
-
-
-frame++;
-
-
-if(frame>=simulation.length)
-
-frame=0;
-
-
-requestAnimationFrame(animate);
-
-
-}
-
-
-
-animate();
-
-
-
-
-
-// ===============================
-// SLIDERS
-// ===============================
-
-
-function update(){
-
-
-params.g =
-Number(
-document.getElementById("g").value
-);
-
-
-params.L =
-Number(
-document.getElementById("L").value
-);
-
-
-
-params.theta0 =
-Number(
-document.getElementById("theta0").value
-);
-
-
-
-params.omega0 =
-Number(
-document.getElementById("omega0").value
-);
-
-
-
-simulation=solve();
-
-
-
-chart.data.labels =
-simulation.map(p=>p.t);
-
-
-
-chart.data.datasets[0].data =
-simulation.map(p=>p.theta);
-
-
-chart.data.datasets[1].data =
-simulation.map(p=>p.omega);
-
-
-chart.update();
-
-
-}
-
-
-
-document
-.querySelectorAll("input")
-.forEach(
-x=>x.oninput=update
-);
