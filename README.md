@@ -13,6 +13,7 @@ https://gustavosbarroso.github.io/Physics_lab/
 <img width="1206" height="575" alt="image" src="https://github.com/user-attachments/assets/4596c665-60ac-4bb8-a5ae-cf09f63878a9" />
 
 Link da simulação: https://gustavosbarroso.github.io/Physics_lab/Pendulo/
+
 Pêndulo simples não linear:
 
 $$
@@ -80,6 +81,7 @@ Simulação da propagação e interferência de ondas utilizando perturbações 
 <img width="1205" height="537" alt="image" src="https://github.com/user-attachments/assets/c919ad96-9005-496c-bd54-ff04bdabb18f" />
 
 Link da simulação: https://gustavosbarroso.github.io/Physics_lab/RLC/
+
 Circuito RLC submetido a uma tensão externa:
 
 $$
@@ -134,6 +136,7 @@ $$
 <img width="873" height="577" alt="image" src="https://github.com/user-attachments/assets/d086869d-b114-4ba7-8cb8-1eee50877f2d" />
 
 Link da simulação:https://gustavosbarroso.github.io/Physics_lab/InvertedPendulum/
+
 Pêndulo com ponto de suspensão oscilando horizontalmente:
 
 $$
