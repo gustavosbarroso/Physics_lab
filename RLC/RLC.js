@@ -57,23 +57,19 @@ class RLCircuit {
         this.x0 = 120;
         this.x1 = 620;
 
-        this.y0 = 180;
-        this.y1 = 440;
+        this.y0 = 120;
+        this.y1 = 380;
 
-        // Indutor
         this.coilStart = 270;
         this.coilEnd = 420;
 
-        // Resistor
         this.resStart = 270;
         this.resEnd = 420;
 
-        // Capacitor
-        this.capY1 = 280;
-        this.capY2 = 315;
+        this.capY1 = 220;
+        this.capY2 = 255;
 
-        // Fonte
-        this.sourceY = 310;
+        this.sourceY = 250;
 
         // =====================================================
         // CONTROLES
@@ -247,11 +243,9 @@ class RLCircuit {
                         ),
 
                         t + h / 2
-
                     ),
 
                     h
-
                 );
 
 
@@ -269,11 +263,9 @@ class RLCircuit {
                         ),
 
                         t + h / 2
-
                     ),
 
                     h
-
                 );
 
 
@@ -281,18 +273,14 @@ class RLCircuit {
                 this.mul(
 
                     this.f(
-
                         this.add(
                             state,
                             k3
                         ),
-
                         t + h
-
                     ),
 
                     h
-
                 );
 
 
@@ -311,9 +299,7 @@ class RLCircuit {
                         ),
 
                         1 / 6
-
                     )
-
                 );
         }
     }
@@ -611,12 +597,17 @@ class RLCircuit {
 
         const x0 = this.x0;
         const x1 = this.x1;
-
         const y0 = this.y0;
         const y1 = this.y1;
 
 
-        // Lado esquerdo
+        /*
+         * Caminho retangular.
+         *
+         * Isso representa o caminho fechado da corrente.
+         */
+
+        // lado esquerdo
 
         for (
             let y = y0;
@@ -631,7 +622,7 @@ class RLCircuit {
         }
 
 
-        // Parte inferior
+        // parte inferior
 
         for (
             let x = x0;
@@ -646,7 +637,7 @@ class RLCircuit {
         }
 
 
-        // Lado direito
+        // lado direito
 
         for (
             let y = y1;
@@ -661,7 +652,7 @@ class RLCircuit {
         }
 
 
-        // Parte superior
+        // parte superior
 
         for (
             let x = x1;
@@ -708,8 +699,6 @@ class RLCircuit {
     // =========================================================
 
     drawCircuit(ctx) {
-
-        ctx.save();
 
         const x0 = this.x0;
         const x1 = this.x1;
@@ -841,19 +830,10 @@ class RLCircuit {
         ctx.font =
             "bold 18px Arial";
 
-        ctx.fillStyle =
-            "black";
-
-        ctx.textAlign =
-            "center";
-
-        ctx.textBaseline =
-            "bottom";
-
         ctx.fillText(
             "L",
-            (coilStart + coilEnd) / 2,
-            y0 - 28
+            340,
+            y0 - 30
         );
 
 
@@ -882,6 +862,14 @@ class RLCircuit {
 
         ctx.lineWidth = 4;
 
+
+        /*
+         * Como o fio é vertical,
+         * as placas precisam ser horizontais.
+         *
+         * Portanto as placas são perpendiculares
+         * ao fio.
+         */
 
         ctx.beginPath();
 
@@ -937,19 +925,10 @@ class RLCircuit {
         ctx.font =
             "bold 18px Arial";
 
-        ctx.fillStyle =
-            "black";
-
-        ctx.textAlign =
-            "left";
-
-        ctx.textBaseline =
-            "middle";
-
         ctx.fillText(
             "C",
-            x1 + 38,
-            (this.capY1 + this.capY2) / 2
+            x1 + 35,
+            245
         );
 
 
@@ -1063,19 +1042,10 @@ class RLCircuit {
         ctx.font =
             "bold 18px Arial";
 
-        ctx.fillStyle =
-            "black";
-
-        ctx.textAlign =
-            "center";
-
-        ctx.textBaseline =
-            "top";
-
         ctx.fillText(
             "R",
-            (resStart + resEnd) / 2,
-            y1 + 22
+            340,
+            y1 + 35
         );
 
 
@@ -1089,28 +1059,29 @@ class RLCircuit {
         const sourceY =
             this.sourceY;
 
-        // Fonte reduzida
-        const radius = 32;
+        const radius =
+            38;
 
 
-        // =====================================================
-        // APAGA TRECHO DO FIO
-        // =====================================================
+        /*
+         * Apaga somente o trecho vertical
+         * onde ficará a fonte.
+         */
 
         ctx.fillStyle =
             "white";
 
         ctx.fillRect(
 
-            sourceX - 6,
+            sourceX - 5,
 
             sourceY -
             radius -
-            6,
+            5,
 
-            12,
+            10,
 
-            2 * radius + 12
+            2 * radius + 10
         );
 
 
@@ -1158,13 +1129,13 @@ class RLCircuit {
 
             const x =
                 sourceX -
-                21 +
-                42 * t;
+                25 +
+                50 * t;
 
 
             const y =
                 sourceY +
-                10 *
+                12 *
                 Math.sin(
                     2 *
                     Math.PI *
@@ -1195,23 +1166,11 @@ class RLCircuit {
         ctx.font =
             "bold 16px Arial";
 
-        ctx.fillStyle =
-            "black";
-
-        ctx.textAlign =
-            "center";
-
-        ctx.textBaseline =
-            "top";
-
         ctx.fillText(
             "AC",
-            sourceX,
-            sourceY + radius + 8
+            sourceX - 58,
+            sourceY + 5
         );
-
-
-        ctx.restore();
     }
 
 
@@ -1220,8 +1179,6 @@ class RLCircuit {
     // =========================================================
 
     drawElectrons(ctx) {
-
-        ctx.save();
 
         ctx.fillStyle =
             "#168aad";
@@ -1266,8 +1223,6 @@ class RLCircuit {
 
             ctx.fill();
         }
-
-        ctx.restore();
     }
 
 
@@ -1281,27 +1236,19 @@ class RLCircuit {
             this.params;
 
 
-        // =====================================================
-        // POSIÇÃO E TAMANHO
-        // =====================================================
+        /*
+         * Box menor e afastado do circuito.
+         */
 
         const x = 20;
         const y = 20;
 
-        // Box um pouco menor
-        const width = 315;
-        const height = 120;
+        const width = 215;
+        const height = 175;
 
-
-        ctx.save();
-
-
-        // =====================================================
-        // CAIXA
-        // =====================================================
 
         ctx.fillStyle =
-            "rgba(255,255,255,0.95)";
+            "rgba(255,255,255,0.94)";
 
         ctx.strokeStyle =
             "#777";
@@ -1326,9 +1273,12 @@ class RLCircuit {
         ctx.stroke();
 
 
-        // =====================================================
-        // ÍNDICE ATUAL
-        // =====================================================
+        ctx.fillStyle =
+            "black";
+
+        ctx.font =
+            "12px Arial";
+
 
         const index =
             Math.min(
@@ -1350,131 +1300,50 @@ class RLCircuit {
             this.time[index] || 0;
 
 
-        // =====================================================
-        // TÍTULO
-        // =====================================================
+        const text = [
 
-        ctx.fillStyle =
-            "black";
-
-        ctx.font =
-            "bold 14px Arial";
-
-        ctx.textAlign =
-            "left";
-
-        ctx.textBaseline =
-            "alphabetic";
-
-
-        ctx.fillText(
-            "Circuito RLC",
-            x + 12,
-            y + 20
-        );
-
-
-        // =====================================================
-        // COLUNA 1
-        // =====================================================
-
-        ctx.font =
-            "12px Arial";
-
-
-        ctx.fillText(
             `R = ${p.R.toFixed(2)} Ω`,
-            x + 12,
-            y + 42
-        );
 
-
-        ctx.fillText(
             `L = ${p.L.toFixed(2)} H`,
-            x + 12,
-            y + 60
-        );
 
-
-        ctx.fillText(
             `C = ${p.C.toFixed(2)} F`,
-            x + 12,
-            y + 78
-        );
 
+            ``,
 
-        // =====================================================
-        // REGIME
-        // =====================================================
-
-        /*
-         * Fonte menor e texto menor para evitar
-         * qualquer conflito com a segunda coluna.
-         */
-
-        ctx.font =
-            "bold 11px Arial";
-
-
-        ctx.fillText(
             `Regime: ${this.regime()}`,
-            x + 12,
-            y + 100
-        );
 
+            ``,
 
-        // =====================================================
-        // COLUNA 2
-        // =====================================================
-
-        /*
-         * Segunda coluna mais afastada.
-         */
-
-        const col2 =
-            x + 205;
-
-
-        ctx.font =
-            "12px Arial";
-
-
-        ctx.fillText(
             `q₀ = ${p.q0.toFixed(2)} C`,
-            col2,
-            y + 42
-        );
 
-
-        ctx.fillText(
             `i₀ = ${p.i0.toFixed(2)} A`,
-            col2,
-            y + 60
-        );
 
+            ``,
 
-        ctx.fillText(
             `q(t) = ${q.toFixed(3)} C`,
-            col2,
-            y + 78
-        );
 
-
-        ctx.fillText(
             `i(t) = ${i.toFixed(3)} A`,
-            col2,
-            y + 96
+
+            `t = ${t.toFixed(2)} s`
+
+        ];
+
+
+        text.forEach(
+            (line, k) => {
+
+                ctx.fillText(
+
+                    line,
+
+                    x + 12,
+
+                    y + 20 +
+                    k * 13
+
+                );
+            }
         );
-
-
-        ctx.fillText(
-            `t = ${t.toFixed(2)} s`,
-            col2,
-            y + 114
-        );
-
-
-        ctx.restore();
     }
 
 
@@ -1504,9 +1373,6 @@ class RLCircuit {
 
         ctx.fillStyle =
             "black";
-
-        ctx.textAlign =
-            "left";
 
 
         ctx.fillText(
@@ -1669,6 +1535,8 @@ class RLCircuit {
                 );
 
 
+            // marca
+
             ctx.strokeStyle =
                 "#777";
 
@@ -1687,6 +1555,8 @@ class RLCircuit {
 
             ctx.stroke();
 
+
+            // grade
 
             if (k !== 0) {
 
@@ -1709,6 +1579,8 @@ class RLCircuit {
                 ctx.stroke();
             }
 
+
+            // número
 
             ctx.fillStyle =
                 "black";
@@ -1795,16 +1667,14 @@ class RLCircuit {
         ctx.font =
             "14px Arial";
 
-        ctx.textAlign =
-            "center";
-
 
         ctx.fillText(
 
             "t [s]",
 
             graphX +
-            graphW / 2,
+            graphW / 2 -
+            15,
 
             graphY +
             graphH +
@@ -1835,15 +1705,11 @@ class RLCircuit {
         );
 
 
-        ctx.textAlign =
-            "center";
-
-
         ctx.fillText(
 
             "q(t) [C] / i(t) [A]",
 
-            0,
+            -70,
             0
 
         );
@@ -1891,6 +1757,7 @@ class RLCircuit {
         ctx.strokeStyle =
             "#1976d2";
 
+
         ctx.beginPath();
 
 
@@ -1936,6 +1803,7 @@ class RLCircuit {
         ctx.strokeStyle =
             "#f57c00";
 
+
         ctx.beginPath();
 
 
@@ -1980,9 +1848,6 @@ class RLCircuit {
 
         ctx.font =
             "13px Arial";
-
-        ctx.textAlign =
-            "left";
 
 
         ctx.fillStyle =
@@ -2045,7 +1910,7 @@ class RLCircuit {
         );
 
 
-        // Fundo
+        // fundo
 
         ctx.fillStyle =
             "white";
@@ -2059,22 +1924,22 @@ class RLCircuit {
         );
 
 
-        // Circuito
+        // circuito
 
         this.drawCircuit(ctx);
 
 
-        // Elétrons
+        // elétrons
 
         this.drawElectrons(ctx);
 
 
-        // Informações
+        // informações
 
         this.drawHUD(ctx);
 
 
-        // Gráfico
+        // gráfico
 
         this.drawGraph(ctx);
     }
