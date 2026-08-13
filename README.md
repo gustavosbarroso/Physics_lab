@@ -58,6 +58,7 @@ Comportamento de carga e descarga de um capacitor em um circuito RC.
 
 ### VI. PÊNDULO DE KAPITZA
 <img width="746" height="591" alt="image" src="https://github.com/user-attachments/assets/8ed96d43-7a60-4898-8795-297ef6d11896" />
+
 Link: https://gustavosbarroso.github.io/Physics_lab/KapitizaPendulum/
 
 Pêndulo com ponto de suspensão oscilando verticalmente
