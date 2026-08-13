@@ -1,21 +1,78 @@
-<canvas
-    id="doublePendulumCanvas"
-    width="1200"
-    height="520">
-</canvas>
+<!DOCTYPE html>
+<html lang="pt-BR">
 
-<script src="DoublePendulum.js"></script>
+<head>
 
-<script>
+    <meta charset="UTF-8">
 
-const canvas =
-    document.getElementById(
-        "doublePendulumCanvas"
-    );
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-const pendulum =
-    new DoublePendulum(
-        canvas
-    );
+    <title>Pêndulo Duplo</title>
 
-</script>
+    <style>
+
+        body {
+            margin: 0;
+            background: white;
+            font-family: Arial, sans-serif;
+        }
+
+        canvas {
+            display: block;
+            margin: 20px auto;
+            border: 1px solid #ccc;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <canvas
+        id="canvas"
+        width="1200"
+        height="550">
+    </canvas>
+
+
+    <!-- Classe do pêndulo duplo -->
+    <script src="DoublePendulum.js"></script>
+
+
+    <script>
+
+        const canvas =
+            document.getElementById("canvas");
+
+
+        const pendulum =
+            new DoublePendulum(
+                canvas,
+                {
+
+                    g: 9.81,
+
+                    L1: 1.0,
+                    L2: 1.0,
+
+                    m1: 1.0,
+                    m2: 1.0,
+
+                    theta10: 0.8,
+                    omega10: 0.0,
+
+                    theta20: 1.2,
+                    omega20: 0.0
+
+                }
+            );
+
+    </script>
+
+</body>
+
+</html>
