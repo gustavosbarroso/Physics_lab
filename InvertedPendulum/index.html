@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <title>Pêndulo Invertido</title>
+
+    <style>
+
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+
+        canvas {
+            border: 1px solid #ccc;
+            display: block;
+            margin: 20px auto;
+        }
+
+        .controls {
+            width: 600px;
+            margin: auto;
+        }
+
+        .slider {
+            margin: 12px 0;
+            text-align: left;
+        }
+
+        input {
+            width: 100%;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+    <h1>Carrinho + Pêndulo Invertido</h1>
+
+
+    <canvas
+        id="canvas"
+        width="800"
+        height="500">
+    </canvas>
+
+
+    <div class="controls">
+
+        <div class="slider">
+            <label>
+                A [N]:
+                <span id="A_value">0.00</span>
+            </label>
+
+            <input
+                id="A"
+                type="range"
+                min="0"
+                max="30"
+                step="0.1"
+                value="0">
+        </div>
+
+
+        <div class="slider">
+            <label>
+                ω [rad/s]:
+                <span id="w_value">2.00</span>
+            </label>
+
+            <input
+                id="w"
+                type="range"
+                min="0"
+                max="30"
+                step="0.1"
+                value="2">
+        </div>
+
+
+        <div class="slider">
+            <label>
+                M [kg]:
+                <span id="M_value">2.00</span>
+            </label>
+
+            <input
+                id="M"
+                type="range"
+                min="0.5"
+                max="10"
+                step="0.1"
+                value="2">
+        </div>
+
+
+        <div class="slider">
+            <label>
+                m [kg]:
+                <span id="m_value">1.00</span>
+            </label>
+
+            <input
+                id="m"
+                type="range"
+                min="0.1"
+                max="5"
+                step="0.1"
+                value="1">
+        </div>
+
+
+        <div class="slider">
+            <label>
+                l [m]:
+                <span id="l_value">1.00</span>
+            </label>
+
+            <input
+                id="l"
+                type="range"
+                min="0.5"
+                max="3"
+                step="0.1"
+                value="1">
+        </div>
+
+
+        <div class="slider">
+            <label>
+                θ₀ [rad]:
+                <span id="theta0_value">0.05</span>
+            </label>
+
+            <input
+                id="theta0"
+                type="range"
+                min="-3.14159"
+                max="3.14159"
+                step="0.01"
+                value="0.05">
+        </div>
+
+    </div>
+
+
+    <script src="InvertedPendulum.js"></script>
+
+
+    <script>
+
+        const canvas =
+            document.getElementById("canvas");
+
+
+        const pendulo =
+            new InvertedPendulum(canvas, {
+
+                A: 0,
+                w: 2,
+                M: 2,
+                m: 1,
+                l: 1,
+                theta0: 0.05
+
+            });
+
+
+        // ==========================
+        // SLIDERS
+        // ==========================
+
+        const sliders = {
+
+            A:
+                document.getElementById("A"),
+
+            w:
+                document.getElementById("w"),
+
+            M:
+                document.getElementById("M"),
+
+            m:
+                document.getElementById("m"),
+
+            l:
+                document.getElementById("l"),
+
+            theta0:
+                document.getElementById("theta0")
+
+        };
+
+
+        const values = {
+
+            A:
+                document.getElementById("A_value"),
+
+            w:
+                document.getElementById("w_value"),
+
+            M:
+                document.getElementById("M_value"),
+
+            m:
+                document.getElementById("m_value"),
+
+            l:
+                document.getElementById("l_value"),
+
+            theta0:
+                document.getElementById("theta0_value")
+
+        };
+
+
+        function atualizar() {
+
+            const params = {
+
+                A: parseFloat(sliders.A.value),
+
+                w: parseFloat(sliders.w.value),
+
+                M: parseFloat(sliders.M.value),
+
+                m: parseFloat(sliders.m.value),
+
+                l: parseFloat(sliders.l.value),
+
+                theta0:
+                    parseFloat(sliders.theta0.value)
+
+            };
+
+
+            // Atualiza os valores exibidos
+
+            for (const key in params) {
+
+                values[key].textContent =
+                    params[key].toFixed(2);
+
+            }
+
+
+            // Atualiza a simulação
+
+            pendulo.atualizarParametros(params);
+        }
+
+
+        for (const key in sliders) {
+
+            sliders[key].addEventListener(
+                "input",
+                atualizar
+            );
+
+        }
+
+
+        // ==========================
+        // INICIA
+        // ==========================
+
+        pendulo.iniciar();
+
+    </script>
+
+</body>
+
+</html>
