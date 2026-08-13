@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <title>Pêndulo de Kapitza</title>
+
+    <style>
+
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+
+        canvas {
+            border: 1px solid black;
+            margin-top: 20px;
+        }
+
+        .controls {
+            margin: 20px auto;
+            width: 500px;
+            text-align: left;
+        }
+
+        .slider {
+            margin: 12px 0;
+        }
+
+        .slider label {
+            display: inline-block;
+            width: 150px;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+    <h1>Pêndulo de Kapitza</h1>
+
+    <canvas
+        id="canvas"
+        width="600"
+        height="500">
+    </canvas>
+
+
+    <div class="controls">
+
+        <div class="slider">
+            <label>g (m/s²)</label>
+            <input
+                id="slider_g"
+                type="range"
+                min="0"
+                max="30"
+                step="0.01"
+                value="9.81">
+            <span id="value_g">9.81</span>
+        </div>
+
+
+        <div class="slider">
+            <label>L (m)</label>
+            <input
+                id="slider_L"
+                type="range"
+                min="0.1"
+                max="3"
+                step="0.01"
+                value="0.5">
+            <span id="value_L">0.5</span>
+        </div>
+
+
+        <div class="slider">
+            <label>A (m)</label>
+            <input
+                id="slider_A"
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                value="0.3">
+            <span id="value_A">0.3</span>
+        </div>
+
+
+        <div class="slider">
+            <label>ω forçado (rad/s)</label>
+            <input
+                id="slider_w"
+                type="range"
+                min="-30"
+                max="30"
+                step="0.01"
+                value="10">
+            <span id="value_w">10</span>
+        </div>
+
+
+        <div class="slider">
+            <label>θ₀ (rad)</label>
+            <input
+                id="slider_theta0"
+                type="range"
+                min="-3.14159"
+                max="3.14159"
+                step="0.01"
+                value="0.3">
+            <span id="value_theta0">0.3</span>
+        </div>
+
+
+        <div class="slider">
+            <label>ω₀ (rad/s)</label>
+            <input
+                id="slider_omega0"
+                type="range"
+                min="-30"
+                max="30"
+                step="0.01"
+                value="0">
+            <span id="value_omega0">0</span>
+        </div>
+
+    </div>
+
+
+    <script src="KapitzaPendulum.js"></script>
+
+
+    <script>
+
+        const canvas =
+            document.getElementById("canvas");
+
+        const pendulo =
+            new KapitzaPendulum(canvas);
+
+
+        pendulo.iniciar();
+
+
+        function atualizar() {
+
+            pendulo.atualizarParametros({
+
+                g: parseFloat(
+                    document.getElementById("slider_g").value
+                ),
+
+                L: parseFloat(
+                    document.getElementById("slider_L").value
+                ),
+
+                A: parseFloat(
+                    document.getElementById("slider_A").value
+                ),
+
+                w_drive: parseFloat(
+                    document.getElementById("slider_w").value
+                ),
+
+                theta0: parseFloat(
+                    document.getElementById("slider_theta0").value
+                ),
+
+                omega0: parseFloat(
+                    document.getElementById("slider_omega0").value
+                )
+            });
+
+
+            document.getElementById("value_g").textContent =
+                pendulo.params.g.toFixed(2);
+
+            document.getElementById("value_L").textContent =
+                pendulo.params.L.toFixed(2);
+
+            document.getElementById("value_A").textContent =
+                pendulo.params.A.toFixed(2);
+
+            document.getElementById("value_w").textContent =
+                pendulo.params.w_drive.toFixed(2);
+
+            document.getElementById("value_theta0").textContent =
+                pendulo.params.theta0.toFixed(2);
+
+            document.getElementById("value_omega0").textContent =
+                pendulo.params.omega0.toFixed(2);
+        }
+
+
+        document
+            .getElementById("slider_g")
+            .addEventListener("input", atualizar);
+
+        document
+            .getElementById("slider_L")
+            .addEventListener("input", atualizar);
+
+        document
+            .getElementById("slider_A")
+            .addEventListener("input", atualizar);
+
+        document
+            .getElementById("slider_w")
+            .addEventListener("input", atualizar);
+
+        document
+            .getElementById("slider_theta0")
+            .addEventListener("input", atualizar);
+
+        document
+            .getElementById("slider_omega0")
+            .addEventListener("input", atualizar);
+
+    </script>
+
+</body>
+
+</html>
