@@ -1,4 +1,3 @@
-
 class SimplePendulum {
 
     constructor(canvas, options = {}) {
@@ -15,8 +14,12 @@ class SimplePendulum {
             g: 9.81,
             L: 1.0,
 
-            // Internamente sempre em radianos
-            theta0: 0.5 * Math.PI / 180,
+            // =================================================
+            // ÂNGULOS SEMPRE EM RADIANOS
+            // =================================================
+            // 0,5° = 0,008726646259971648 rad
+
+            theta0: 0.008726646259971648,
             omega0: 0.0,
 
             ...options
@@ -95,6 +98,8 @@ class SimplePendulum {
          * θ' = ω
          *
          * ω' = -(g/L) sin(θ)
+         *
+         * θ sempre em radianos.
          */
 
         return [
@@ -169,6 +174,10 @@ class SimplePendulum {
         const h =
             (b - a) / N;
 
+        // =====================================================
+        // ESTADO INICIAL
+        // =====================================================
+
         let state = [
 
             this.params.theta0,
@@ -179,6 +188,10 @@ class SimplePendulum {
         this.time = [];
         this.theta = [];
         this.omega = [];
+
+        // =====================================================
+        // INTEGRAÇÃO
+        // =====================================================
 
         for (
             let n = 0;
@@ -450,7 +463,10 @@ class SimplePendulum {
                 name: "theta0",
                 label: "θ₀ (rad)",
 
-                // Slider diretamente em radianos
+                // =================================================
+                // SLIDER DIRETAMENTE EM RADIANOS
+                // =================================================
+
                 min: -Math.PI,
                 max: Math.PI,
                 step: 0.01
@@ -523,7 +539,10 @@ class SimplePendulum {
                 slider.step =
                     config.step;
 
-                // Valor interno já está em radianos
+                // =================================================
+                // VALOR INICIAL
+                // =================================================
+
                 const initialValue =
                     this.params[
                         config.name
@@ -536,7 +555,7 @@ class SimplePendulum {
                     "1";
 
                 // =================================================
-                // VALOR
+                // VALOR MOSTRADO
                 // =================================================
 
                 const value =
@@ -563,7 +582,10 @@ class SimplePendulum {
                     "input",
                     () => {
 
-                        // Slider já está em radianos
+                        // =========================================
+                        // SLIDER JÁ ESTÁ EM RADIANOS
+                        // =========================================
+
                         const v =
                             Number(
                                 slider.value
@@ -573,11 +595,17 @@ class SimplePendulum {
                             config.name
                         ] = v;
 
-                        // Atualiza valor mostrado
+                        // =========================================
+                        // ATUALIZA VALOR MOSTRADO
+                        // =========================================
+
                         value.innerText =
                             v.toFixed(2);
 
-                        // Recalcula
+                        // =========================================
+                        // RECALCULA
+                        // =========================================
+
                         this.solve();
 
                         this.draw();
@@ -648,6 +676,7 @@ class SimplePendulum {
         // ÂNGULO DA SOLUÇÃO NUMÉRICA
         // =====================================================
 
+        // theta em radianos
         const theta =
             this.theta[index] || 0;
 
@@ -1745,7 +1774,10 @@ class SimplePendulum {
             );
         };
 
-        // Primeiro desenho
+        // =====================================================
+        // PRIMEIRO DESENHO
+        // =====================================================
+
         this.draw();
 
         requestAnimationFrame(
@@ -1794,8 +1826,9 @@ class SimplePendulum {
                     this.sliders[key]
                 ) {
 
-                    // Todos os sliders usam diretamente
-                    // as unidades internas do sistema.
+                    // Todos os parâmetros angulares
+                    // já estão nas unidades internas.
+
                     this.sliders[key].value =
                         newParams[key];
 
@@ -1813,6 +1846,3 @@ class SimplePendulum {
         this.draw();
     }
 }
-```
-
-
