@@ -3,10 +3,7 @@ class SimplePendulum {
     constructor(canvas, options = {}) {
 
         this.canvas = canvas;
-
-        this.ctx =
-            canvas.getContext("2d");
-
+        this.ctx = canvas.getContext("2d");
 
         // =====================================================
         // PARÂMETROS
@@ -15,65 +12,48 @@ class SimplePendulum {
         this.params = {
 
             g: 9.81,
-
             L: 0.10,
-
             m: 1.0,
-
             b: 0.5,
 
             theta0: 1.0,
-
             omega0: 0.0,
 
             ...options
-
         };
-
 
         // =====================================================
         // DADOS DA SOLUÇÃO
         // =====================================================
 
         this.time = [];
-
         this.theta = [];
-
         this.omega = [];
 
         this.x = [];
-
         this.y = [];
-
 
         // =====================================================
         // ANIMAÇÃO
         // =====================================================
 
         this.running = false;
-
         this.frame = 0;
-
 
         // =====================================================
         // CONFIGURAÇÃO NUMÉRICA
         // =====================================================
 
         this.t0 = 0;
-
         this.tf = 10;
-
         this.N = 500;
-
 
         // =====================================================
         // GEOMETRIA
         // =====================================================
 
         this.pivotX = 250;
-
-        this.pivotY = 100;
-
+        this.pivotY = 120;
 
         // =====================================================
         // CONTROLES
@@ -81,20 +61,23 @@ class SimplePendulum {
 
         this.createControls();
 
-
         // =====================================================
         // SOLUÇÃO
         // =====================================================
 
         this.solve();
 
+        // =====================================================
+        // PRIMEIRO DESENHO
+        // =====================================================
+
+        this.draw();
 
         // =====================================================
         // INICIA
         // =====================================================
 
         this.iniciar();
-
     }
 
 
@@ -104,33 +87,20 @@ class SimplePendulum {
 
     f(state, t) {
 
-        const theta =
-            state[0];
+        const theta = state[0];
+        const omega = state[1];
 
-        const omega =
-            state[1];
-
-
-        const p =
-            this.params;
-
+        const p = this.params;
 
         return [
 
             omega,
 
+            -(p.g / p.L) * Math.sin(theta)
             -
-            (p.g / p.L)
-            *
-            Math.sin(theta)
-
-            -
-            (p.b / p.m)
-            *
-            omega
+            (p.b / p.m) * omega
 
         ];
-
     }
 
 
@@ -141,26 +111,18 @@ class SimplePendulum {
     add(a, b) {
 
         return [
-
             a[0] + b[0],
-
             a[1] + b[1]
-
         ];
-
     }
 
 
     mul(a, x) {
 
         return [
-
             a[0] * x,
-
             a[1] * x
-
         ];
-
     }
 
 
@@ -169,23 +131,16 @@ class SimplePendulum {
         return [
 
             a[0]
-            +
-            2 * b[0]
-            +
-            2 * c[0]
-            +
-            d[0],
+            + 2 * b[0]
+            + 2 * c[0]
+            + d[0],
 
             a[1]
-            +
-            2 * b[1]
-            +
-            2 * c[1]
-            +
-            d[1]
+            + 2 * b[1]
+            + 2 * c[1]
+            + d[1]
 
         ];
-
     }
 
 
@@ -195,35 +150,22 @@ class SimplePendulum {
 
     RK4() {
 
-        const a =
-            this.t0;
+        const a = this.t0;
+        const b = this.tf;
+        const N = this.N;
 
-        const b =
-            this.tf;
-
-        const N =
-            this.N;
-
-
-        const h =
-            (b - a) / N;
-
+        const h = (b - a) / N;
 
         let state = [
 
             this.params.theta0,
-
             this.params.omega0
 
         ];
 
-
         this.time = [];
-
         this.theta = [];
-
         this.omega = [];
-
 
         for (
             let n = 0;
@@ -231,129 +173,79 @@ class SimplePendulum {
             n++
         ) {
 
-            const t =
-                a + n * h;
-
+            const t = a + n * h;
 
             this.time.push(t);
-
-            this.theta.push(
-                state[0]
-            );
-
-            this.omega.push(
-                state[1]
-            );
-
+            this.theta.push(state[0]);
+            this.omega.push(state[1]);
 
             if (n === N)
                 break;
 
+            const k1 = this.mul(
+                this.f(state, t),
+                h
+            );
 
-            const k1 =
-                this.mul(
+            const k2 = this.mul(
 
-                    this.f(
+                this.f(
+
+                    this.add(
                         state,
-                        t
+                        this.mul(k1, 0.5)
                     ),
 
-                    h
+                    t + h / 2
 
-                );
+                ),
 
+                h
+            );
 
-            const k2 =
+            const k3 = this.mul(
+
+                this.f(
+
+                    this.add(
+                        state,
+                        this.mul(k2, 0.5)
+                    ),
+
+                    t + h / 2
+
+                ),
+
+                h
+            );
+
+            const k4 = this.mul(
+
+                this.f(
+                    this.add(state, k3),
+                    t + h
+                ),
+
+                h
+            );
+
+            state = this.add(
+
+                state,
+
                 this.mul(
 
-                    this.f(
-
-                        this.add(
-
-                            state,
-
-                            this.mul(
-                                k1,
-                                0.5
-                            )
-
-                        ),
-
-                        t + h / 2
-
+                    this.add4(
+                        k1,
+                        k2,
+                        k3,
+                        k4
                     ),
 
-                    h
-
-                );
-
-
-            const k3 =
-                this.mul(
-
-                    this.f(
-
-                        this.add(
-
-                            state,
-
-                            this.mul(
-                                k2,
-                                0.5
-                            )
-
-                        ),
-
-                        t + h / 2
-
-                    ),
-
-                    h
-
-                );
-
-
-            const k4 =
-                this.mul(
-
-                    this.f(
-
-                        this.add(
-                            state,
-                            k3
-                        ),
-
-                        t + h
-
-                    ),
-
-                    h
-
-                );
-
-
-            state =
-                this.add(
-
-                    state,
-
-                    this.mul(
-
-                        this.add4(
-                            k1,
-                            k2,
-                            k3,
-                            k4
-                        ),
-
-                        1 / 6
-
-                    )
-
-                );
-
+                    1 / 6
+                )
+            );
         }
-
     }
 
 
@@ -365,15 +257,10 @@ class SimplePendulum {
 
         this.RK4();
 
-
-        const L =
-            this.params.L;
-
+        const L = this.params.L;
 
         this.x = [];
-
         this.y = [];
-
 
         for (
             let k = 0;
@@ -381,24 +268,16 @@ class SimplePendulum {
             k++
         ) {
 
-            const theta =
-                this.theta[k];
-
-
             this.x.push(
-                L * Math.sin(theta)
+                L * Math.sin(this.theta[k])
             );
-
 
             this.y.push(
-                -L * Math.cos(theta)
+                -L * Math.cos(this.theta[k])
             );
-
         }
 
-
         this.frame = 0;
-
     }
 
 
@@ -408,68 +287,33 @@ class SimplePendulum {
 
     regime() {
 
-        const p =
-            this.params;
+        const p = this.params;
 
-
-        const omega0 =
-            Math.sqrt(
-                p.g / p.L
-            );
-
+        const omegaNatural =
+            Math.sqrt(p.g / p.L);
 
         const gamma =
-            p.b /
-            (2 * p.m);
-
+            p.b / (2 * p.m);
 
         const delta =
             gamma * gamma
             -
-            omega0 * omega0;
+            omegaNatural * omegaNatural;
 
 
-        // Sem amortecimento
-
-        if (
-            Math.abs(p.b)
-            <
-            1e-6
-        ) {
-
+        if (Math.abs(p.b) < 1e-6)
             return "Sem amortecimento";
 
-        }
 
-
-        // Crítico
-
-        if (
-            Math.abs(delta)
-            <
-            1e-3
-        ) {
-
+        if (Math.abs(delta) < 1e-3)
             return "Criticamente amortecido";
 
-        }
 
-
-        // Superamortecido
-
-        if (
-            delta > 0
-        ) {
-
+        if (delta > 0)
             return "Superamortecido";
 
-        }
-
-
-        // Subamortecido
 
         return "Subamortecido";
-
     }
 
 
@@ -484,23 +328,20 @@ class SimplePendulum {
                 "pendulum-controls"
             );
 
-
         container.innerHTML = "";
+
+        container.style.width = "900px";
+        container.style.margin = "20px auto";
+        container.style.fontFamily = "Arial";
 
 
         const title =
-            document.createElement(
-                "h2"
-            );
-
+            document.createElement("h2");
 
         title.innerText =
             "Parâmetros do pêndulo";
 
-
-        container.appendChild(
-            title
-        );
+        container.appendChild(title);
 
 
         this.sliders = {};
@@ -559,201 +400,114 @@ class SimplePendulum {
         ];
 
 
-        configs.forEach(
-            config => {
+        configs.forEach(config => {
 
-                const row =
-                    document.createElement(
-                        "div"
-                    );
+            const row =
+                document.createElement("div");
 
-
-                row.className =
-                    "control-row";
+            row.className =
+                "slider-row";
 
 
-                const label =
-                    document.createElement(
-                        "label"
-                    );
+            const label =
+                document.createElement("label");
+
+            label.className =
+                "slider-label";
+
+            label.innerText =
+                config.label;
 
 
-                label.className =
-                    "control-label";
+            const slider =
+                document.createElement("input");
+
+            slider.type = "range";
+
+            slider.className =
+                "pendulum-slider";
+
+            slider.min = config.min;
+            slider.max = config.max;
+            slider.step = config.step;
+
+            slider.value =
+                this.params[config.name];
 
 
-                label.innerText =
-                    config.label;
+            const value =
+                document.createElement("span");
+
+            value.className =
+                "slider-value";
+
+            value.innerText =
+                Number(
+                    this.params[config.name]
+                ).toFixed(2);
 
 
-                const slider =
-                    document.createElement(
-                        "input"
-                    );
+            slider.addEventListener(
+                "input",
+                () => {
 
+                    const v =
+                        Number(slider.value);
 
-                slider.type =
-                    "range";
-
-
-                slider.className =
-                    "control-slider";
-
-
-                slider.min =
-                    config.min;
-
-
-                slider.max =
-                    config.max;
-
-
-                slider.step =
-                    config.step;
-
-
-                slider.value =
                     this.params[
                         config.name
-                    ];
+                    ] = v;
+
+                    value.innerText =
+                        v.toFixed(2);
+
+                    this.solve();
+
+                    this.draw();
+                }
+            );
 
 
-                const value =
-                    document.createElement(
-                        "span"
-                    );
+            row.appendChild(label);
+            row.appendChild(slider);
+            row.appendChild(value);
+
+            container.appendChild(row);
 
 
-                value.className =
-                    "control-value";
+            this.sliders[
+                config.name
+            ] = slider;
 
-
-                value.innerText =
-                    Number(
-                        this.params[
-                            config.name
-                        ]
-                    ).toFixed(2);
-
-
-                slider.addEventListener(
-                    "input",
-                    () => {
-
-                        const v =
-                            Number(
-                                slider.value
-                            );
-
-
-                        this.params[
-                            config.name
-                        ] = v;
-
-
-                        value.innerText =
-                            v.toFixed(2);
-
-
-                        this.solve();
-
-
-                        this.draw();
-
-                    }
-                );
-
-
-                row.appendChild(
-                    label
-                );
-
-
-                row.appendChild(
-                    slider
-                );
-
-
-                row.appendChild(
-                    value
-                );
-
-
-                container.appendChild(
-                    row
-                );
-
-
-                this.sliders[
-                    config.name
-                ] =
-                    slider;
-
-            }
-        );
-
+        });
     }
 
 
     // =========================================================
-    // PÊNDULO
+    // DESENHO DO PÊNDULO
     // =========================================================
 
     drawPendulum(ctx) {
 
-        const L =
-            this.params.L;
-
-
-        /*
-         * Escala visual.
-         *
-         * Mesmo que L seja pequeno fisicamente,
-         * o desenho continua visível.
-         */
-
-        const scale =
-            280 / Math.max(L, 0.1);
-
-
-        const x =
-            this.pivotX +
-            this.x[this.frame] *
-            scale;
-
-
-        const y =
-            this.pivotY +
-            this.y[this.frame] *
-            scale;
-
-
-        // =====================================================
-        // ÁREA DO PÊNDULO
-        // =====================================================
-
         const areaX = 20;
-
         const areaY = 20;
 
         const areaW = 470;
-
         const areaH = 480;
 
 
-        ctx.strokeStyle =
-            "#777";
+        // =====================================================
+        // ÁREA
+        // =====================================================
 
+        ctx.strokeStyle = "#777";
         ctx.lineWidth = 1;
 
-
         ctx.strokeRect(
-
             areaX,
             areaY,
             areaW,
             areaH
-
         );
 
 
@@ -761,30 +515,53 @@ class SimplePendulum {
         // TÍTULO
         // =====================================================
 
+        ctx.fillStyle = "black";
+
         ctx.font =
             "bold 18px Arial";
 
-        ctx.fillStyle =
-            "black";
-
-        ctx.textAlign =
-            "center";
-
+        ctx.textAlign = "center";
 
         ctx.fillText(
 
             "Pêndulo simples",
 
-            areaX +
-            areaW / 2,
-
+            areaX + areaW / 2,
             areaY + 30
-
         );
 
 
         // =====================================================
-        // LINHA VERTICAL DE REFERÊNCIA
+        // ESCALA VISUAL
+        // =====================================================
+
+        const L =
+            this.params.L;
+
+        const visualLength = 300;
+
+        const scale =
+            visualLength / Math.max(L, 0.1);
+
+
+        const theta =
+            this.theta[this.frame] || 0;
+
+
+        const bobX =
+            this.pivotX
+            +
+            this.x[this.frame] * scale;
+
+
+        const bobY =
+            this.pivotY
+            +
+            this.y[this.frame] * scale;
+
+
+        // =====================================================
+        // REFERÊNCIA VERTICAL
         // =====================================================
 
         ctx.strokeStyle =
@@ -792,6 +569,7 @@ class SimplePendulum {
 
         ctx.lineWidth = 1;
 
+        ctx.setLineDash([5, 5]);
 
         ctx.beginPath();
 
@@ -802,31 +580,30 @@ class SimplePendulum {
 
         ctx.lineTo(
             this.pivotX,
-            this.pivotY + 330
+            this.pivotY + visualLength + 20
         );
 
         ctx.stroke();
+
+        ctx.setLineDash([]);
 
 
         // =====================================================
         // SUPORTE
         // =====================================================
 
-        ctx.strokeStyle =
-            "black";
-
-        ctx.lineWidth = 4;
-
+        ctx.strokeStyle = "black";
+        ctx.lineWidth = 5;
 
         ctx.beginPath();
 
         ctx.moveTo(
-            this.pivotX - 40,
+            this.pivotX - 45,
             this.pivotY
         );
 
         ctx.lineTo(
-            this.pivotX + 40,
+            this.pivotX + 45,
             this.pivotY
         );
 
@@ -837,20 +614,16 @@ class SimplePendulum {
         // PONTO DE SUSPENSÃO
         // =====================================================
 
-        ctx.fillStyle =
-            "black";
-
+        ctx.fillStyle = "black";
 
         ctx.beginPath();
 
         ctx.arc(
-
             this.pivotX,
             this.pivotY,
             6,
             0,
             2 * Math.PI
-
         );
 
         ctx.fill();
@@ -860,24 +633,19 @@ class SimplePendulum {
         // HASTE
         // =====================================================
 
-        ctx.strokeStyle =
-            "#333";
-
+        ctx.strokeStyle = "#333";
         ctx.lineWidth = 3;
-
 
         ctx.beginPath();
 
         ctx.moveTo(
-
             this.pivotX,
             this.pivotY
-
         );
 
         ctx.lineTo(
-            x,
-            y
+            bobX,
+            bobY
         );
 
         ctx.stroke();
@@ -887,108 +655,75 @@ class SimplePendulum {
         // MASSA
         // =====================================================
 
-        ctx.fillStyle =
-            "#168aad";
-
+        ctx.fillStyle = "#168aad";
 
         ctx.beginPath();
 
         ctx.arc(
-
-            x,
-            y,
-            15,
+            bobX,
+            bobY,
+            17,
             0,
             2 * Math.PI
-
         );
 
         ctx.fill();
 
 
-        ctx.strokeStyle =
-            "#0b4f6c";
-
+        ctx.strokeStyle = "#0b4f6c";
         ctx.lineWidth = 2;
 
         ctx.stroke();
 
 
         // =====================================================
-        // MASSA
+        // LETRA m
         // =====================================================
 
-        ctx.fillStyle =
-            "white";
+        ctx.fillStyle = "white";
 
         ctx.font =
             "bold 12px Arial";
 
-        ctx.textAlign =
-            "center";
-
-        ctx.textBaseline =
-            "middle";
-
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
 
         ctx.fillText(
             "m",
-            x,
-            y
+            bobX,
+            bobY
         );
 
 
         // =====================================================
-        // ÂNGULO θ
+        // ÂNGULO
         // =====================================================
 
-        const theta =
-            this.theta[this.frame];
+        if (Math.abs(theta) > 0.02) {
 
+            const radius = 65;
 
-        if (
-            Math.abs(theta)
-            >
-            0.02
-        ) {
-
-            const radius =
-                55;
-
-
-            ctx.strokeStyle =
-                "#f57c00";
-
+            ctx.strokeStyle = "#f57c00";
             ctx.lineWidth = 2;
-
-
-            ctx.beginPath();
-
 
             const startAngle =
                 Math.PI / 2;
 
-
             const endAngle =
-                Math.PI / 2 +
-                theta;
+                Math.PI / 2 + theta;
 
+
+            ctx.beginPath();
 
             ctx.arc(
 
                 this.pivotX,
                 this.pivotY,
-
                 radius,
-
                 startAngle,
-
                 endAngle,
-
                 theta < 0
-
             );
-
 
             ctx.stroke();
 
@@ -998,43 +733,61 @@ class SimplePendulum {
             // =================================================
 
             const midAngle =
-                Math.PI / 2 +
-                theta / 2;
-
+                Math.PI / 2 + theta / 2;
 
             const textRadius =
                 radius + 18;
 
-
             const tx =
-                this.pivotX +
+                this.pivotX
+                +
                 textRadius *
                 Math.cos(midAngle);
 
-
             const ty =
-                this.pivotY +
+                this.pivotY
+                +
                 textRadius *
                 Math.sin(midAngle);
 
 
-            ctx.fillStyle =
-                "#f57c00";
+            ctx.fillStyle = "#f57c00";
 
             ctx.font =
-                "14px Arial";
+                "bold 14px Arial";
+
+            ctx.textAlign = "center";
+
+            ctx.textBaseline = "middle";
 
             ctx.fillText(
-
                 "θ",
-
                 tx,
                 ty
-
             );
-
         }
 
+
+        // =====================================================
+        // COMPRIMENTO L
+        // =====================================================
+
+        ctx.fillStyle = "#555";
+
+        ctx.font =
+            "13px Arial";
+
+        ctx.textAlign = "left";
+
+        ctx.textBaseline = "alphabetic";
+
+        ctx.fillText(
+
+            `L = ${L.toFixed(2)} m`,
+
+            areaX + 15,
+            areaY + areaH - 15
+        );
     }
 
 
@@ -1044,68 +797,57 @@ class SimplePendulum {
 
     drawHUD(ctx) {
 
-        const p =
-            this.params;
-
+        const p = this.params;
 
         const index =
             Math.min(
-
                 this.frame,
-
                 this.theta.length - 1
-
             );
 
 
         const theta =
             this.theta[index] || 0;
 
-
         const omega =
             this.omega[index] || 0;
-
 
         const t =
             this.time[index] || 0;
 
 
         // =====================================================
-        // BOX
+        // POSIÇÃO
         // =====================================================
 
         const x = 510;
-
         const y = 25;
 
         const width = 430;
-
         const height = 180;
 
+
+        // =====================================================
+        // BOX
+        // =====================================================
 
         ctx.fillStyle =
             "rgba(255,255,255,0.95)";
 
-        ctx.strokeStyle =
-            "#777";
-
+        ctx.strokeStyle = "#777";
         ctx.lineWidth = 1;
-
 
         ctx.beginPath();
 
         ctx.roundRect(
-
             x,
             y,
             width,
             height,
             8
-
         );
 
         ctx.fill();
-
         ctx.stroke();
 
 
@@ -1113,15 +855,12 @@ class SimplePendulum {
         // TÍTULO
         // =====================================================
 
-        ctx.fillStyle =
-            "black";
+        ctx.fillStyle = "black";
 
         ctx.font =
             "bold 15px Arial";
 
-        ctx.textAlign =
-            "left";
-
+        ctx.textAlign = "left";
 
         ctx.fillText(
 
@@ -1129,7 +868,6 @@ class SimplePendulum {
 
             x + 12,
             y + 22
-
         );
 
 
@@ -1142,42 +880,30 @@ class SimplePendulum {
 
 
         ctx.fillText(
-
             `L = ${p.L.toFixed(2)} m`,
-
             x + 12,
             y + 48
-
         );
 
 
         ctx.fillText(
-
             `g = ${p.g.toFixed(2)} m/s²`,
-
             x + 12,
             y + 66
-
         );
 
 
         ctx.fillText(
-
             `m = ${p.m.toFixed(2)} kg`,
-
             x + 12,
             y + 84
-
         );
 
 
         ctx.fillText(
-
             `b = ${p.b.toFixed(2)} kg/s`,
-
             x + 12,
             y + 102
-
         );
 
 
@@ -1185,27 +911,20 @@ class SimplePendulum {
         // COLUNA 2
         // =====================================================
 
-        const col2 =
-            x + 215;
+        const col2 = x + 220;
 
 
         ctx.fillText(
-
             `θ₀ = ${p.theta0.toFixed(2)} rad`,
-
             col2,
             y + 48
-
         );
 
 
         ctx.fillText(
-
             `ω₀ = ${p.omega0.toFixed(2)} rad/s`,
-
             col2,
             y + 66
-
         );
 
 
@@ -1216,14 +935,10 @@ class SimplePendulum {
         ctx.font =
             "bold 11px Arial";
 
-
         ctx.fillText(
-
             `Regime: ${this.regime()}`,
-
             col2,
             y + 88
-
         );
 
 
@@ -1236,34 +951,24 @@ class SimplePendulum {
 
 
         ctx.fillText(
-
             `θ(t) = ${theta.toFixed(3)} rad`,
-
             col2,
             y + 112
-
         );
 
 
         ctx.fillText(
-
             `ω(t) = ${omega.toFixed(3)} rad/s`,
-
             col2,
             y + 130
-
         );
 
 
         ctx.fillText(
-
             `t = ${t.toFixed(2)} s`,
-
             col2,
             y + 148
-
         );
-
     }
 
 
@@ -1274,11 +979,9 @@ class SimplePendulum {
     drawGraph(ctx) {
 
         const graphX = 510;
-
         const graphY = 240;
 
         const graphW = 600;
-
         const graphH = 260;
 
 
@@ -1286,25 +989,19 @@ class SimplePendulum {
         // TÍTULO
         // =====================================================
 
+        ctx.fillStyle = "black";
+
         ctx.font =
             "bold 18px Arial";
 
-        ctx.fillStyle =
-            "black";
-
-        ctx.textAlign =
-            "center";
-
+        ctx.textAlign = "center";
 
         ctx.fillText(
 
             "Evolução temporal",
 
-            graphX +
-            graphW / 2,
-
+            graphX + graphW / 2,
             graphY - 15
-
         );
 
 
@@ -1312,11 +1009,8 @@ class SimplePendulum {
         // BORDA
         // =====================================================
 
-        ctx.strokeStyle =
-            "#777";
-
+        ctx.strokeStyle = "#777";
         ctx.lineWidth = 1;
-
 
         ctx.strokeRect(
 
@@ -1324,17 +1018,13 @@ class SimplePendulum {
             graphY,
             graphW,
             graphH
-
         );
 
 
         const n =
             Math.min(
-
                 this.frame + 1,
-
                 this.time.length
-
             );
 
 
@@ -1342,161 +1032,43 @@ class SimplePendulum {
             return;
 
 
-        const thetaData =
-            this.theta.slice(
-                0,
-                n
-            );
-
-
-        const omegaData =
-            this.omega.slice(
-                0,
-                n
-            );
-
-
         // =====================================================
         // ESCALAS
         // =====================================================
 
         let maxTheta = 0;
-
         let maxOmega = 0;
 
 
-        for (
-            const value of thetaData
-        ) {
+        for (let k = 0; k < n; k++) {
 
             maxTheta =
                 Math.max(
-
                     maxTheta,
-
-                    Math.abs(value)
-
+                    Math.abs(this.theta[k])
                 );
-
-        }
-
-
-        for (
-            const value of omegaData
-        ) {
 
             maxOmega =
                 Math.max(
-
                     maxOmega,
-
-                    Math.abs(value)
-
+                    Math.abs(this.omega[k])
                 );
-
         }
 
 
-        if (
-            maxTheta < 0.001
-        )
+        if (maxTheta < 0.001)
             maxTheta = 1;
 
-
-        if (
-            maxOmega < 0.001
-        )
+        if (maxOmega < 0.001)
             maxOmega = 1;
 
 
         maxTheta *= 1.15;
-
         maxOmega *= 1.15;
 
 
-        // =====================================================
-        // EIXO ZERO
-        // =====================================================
-
         const centerY =
-            graphY +
-            graphH / 2;
-
-
-        ctx.strokeStyle =
-            "#999";
-
-
-        ctx.beginPath();
-
-        ctx.moveTo(
-
-            graphX,
-            centerY
-
-        );
-
-        ctx.lineTo(
-
-            graphX + graphW,
-            centerY
-
-        );
-
-        ctx.stroke();
-
-
-        // =====================================================
-        // CONVERSÃO
-        // =====================================================
-
-        const convertX =
-            t => {
-
-                return graphX +
-
-                    (
-                        t /
-                        this.tf
-                    )
-                    *
-                    graphW;
-
-            };
-
-
-        const convertYTheta =
-            value => {
-
-                return centerY -
-
-                    (
-                        value /
-                        maxTheta
-                    )
-                    *
-                    (
-                        graphH / 2
-                    );
-
-            };
-
-
-        const convertYOmega =
-            value => {
-
-                return centerY -
-
-                    (
-                        value /
-                        maxOmega
-                    )
-                    *
-                    (
-                        graphH / 2
-                    );
-
-            };
+            graphY + graphH / 2;
 
 
         // =====================================================
@@ -1506,19 +1078,11 @@ class SimplePendulum {
         ctx.strokeStyle =
             "#eeeeee";
 
-
-        for (
-            let k = 1;
-            k < 5;
-            k++
-        ) {
+        for (let k = 1; k < 5; k++) {
 
             const y =
                 graphY +
-                graphH *
-                k /
-                5;
-
+                graphH * k / 5;
 
             ctx.beginPath();
 
@@ -1533,55 +1097,86 @@ class SimplePendulum {
             );
 
             ctx.stroke();
-
         }
+
+
+        // =====================================================
+        // EIXO ZERO
+        // =====================================================
+
+        ctx.strokeStyle = "#999";
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            graphX,
+            centerY
+        );
+
+        ctx.lineTo(
+            graphX + graphW,
+            centerY
+        );
+
+        ctx.stroke();
+
+
+        // =====================================================
+        // CONVERSÕES
+        // =====================================================
+
+        const convertX = t => {
+
+            return graphX
+                +
+                (t / this.tf)
+                *
+                graphW;
+        };
+
+
+        const convertYTheta = value => {
+
+            return centerY
+                -
+                (value / maxTheta)
+                *
+                (graphH / 2);
+        };
+
+
+        const convertYOmega = value => {
+
+            return centerY
+                -
+                (value / maxOmega)
+                *
+                (graphH / 2);
+        };
 
 
         // =====================================================
         // θ(t)
         // =====================================================
 
-        ctx.strokeStyle =
-            "#1976d2";
-
+        ctx.strokeStyle = "#1976d2";
         ctx.lineWidth = 2;
-
 
         ctx.beginPath();
 
-
-        for (
-            let k = 0;
-            k < n;
-            k++
-        ) {
+        for (let k = 0; k < n; k++) {
 
             const x =
-                convertX(
-                    this.time[k]
-                );
-
+                convertX(this.time[k]);
 
             const y =
-                convertYTheta(
-                    this.theta[k]
-                );
-
+                convertYTheta(this.theta[k]);
 
             if (k === 0)
-                ctx.moveTo(
-                    x,
-                    y
-                );
-
+                ctx.moveTo(x, y);
             else
-                ctx.lineTo(
-                    x,
-                    y
-                );
-
+                ctx.lineTo(x, y);
         }
-
 
         ctx.stroke();
 
@@ -1590,61 +1185,37 @@ class SimplePendulum {
         // ω(t)
         // =====================================================
 
-        ctx.strokeStyle =
-            "#f57c00";
-
+        ctx.strokeStyle = "#f57c00";
 
         ctx.beginPath();
 
-
-        for (
-            let k = 0;
-            k < n;
-            k++
-        ) {
+        for (let k = 0; k < n; k++) {
 
             const x =
-                convertX(
-                    this.time[k]
-                );
-
+                convertX(this.time[k]);
 
             const y =
-                convertYOmega(
-                    this.omega[k]
-                );
-
+                convertYOmega(this.omega[k]);
 
             if (k === 0)
-                ctx.moveTo(
-                    x,
-                    y
-                );
-
+                ctx.moveTo(x, y);
             else
-                ctx.lineTo(
-                    x,
-                    y
-                );
-
+                ctx.lineTo(x, y);
         }
-
 
         ctx.stroke();
 
 
         // =====================================================
-        // EIXO X
+        // TICKS X
         // =====================================================
 
         ctx.font =
             "11px Arial";
 
-        ctx.fillStyle =
-            "black";
+        ctx.fillStyle = "black";
 
-        ctx.textAlign =
-            "center";
+        ctx.textAlign = "center";
 
 
         const xTicks = 5;
@@ -1657,21 +1228,14 @@ class SimplePendulum {
         ) {
 
             const time =
-                this.tf *
-                k /
-                xTicks;
-
+                this.tf * k / xTicks;
 
             const x =
                 graphX +
-                graphW *
-                k /
-                xTicks;
+                graphW * k / xTicks;
 
 
-            ctx.strokeStyle =
-                "#777";
-
+            ctx.strokeStyle = "#777";
 
             ctx.beginPath();
 
@@ -1688,9 +1252,7 @@ class SimplePendulum {
             ctx.stroke();
 
 
-            ctx.fillStyle =
-                "black";
-
+            ctx.fillStyle = "black";
 
             ctx.fillText(
 
@@ -1698,34 +1260,25 @@ class SimplePendulum {
 
                 x,
 
-                graphY +
-                graphH +
-                18
-
+                graphY + graphH + 18
             );
-
         }
 
 
         // =====================================================
-        // LABEL X
+        // EIXO X
         // =====================================================
 
         ctx.font =
             "13px Arial";
 
-
         ctx.fillText(
 
             "t [s]",
 
-            graphX +
-            graphW / 2,
+            graphX + graphW / 2,
 
-            graphY +
-            graphH +
-            38
-
+            graphY + graphH + 38
         );
 
 
@@ -1733,8 +1286,7 @@ class SimplePendulum {
         // LEGENDA
         // =====================================================
 
-        ctx.textAlign =
-            "left";
+        ctx.textAlign = "left";
 
         ctx.font =
             "13px Arial";
@@ -1743,20 +1295,17 @@ class SimplePendulum {
         ctx.fillStyle =
             "#1976d2";
 
-
         ctx.fillText(
 
             "θ(t) [rad]",
 
             graphX + 15,
             graphY + 22
-
         );
 
 
         ctx.fillStyle =
             "#f57c00";
-
 
         ctx.fillText(
 
@@ -1764,9 +1313,7 @@ class SimplePendulum {
 
             graphX + 15,
             graphY + 42
-
         );
-
     }
 
 
@@ -1776,66 +1323,45 @@ class SimplePendulum {
 
     draw() {
 
-        const ctx =
-            this.ctx;
+        const ctx = this.ctx;
 
-
-        const w =
-            this.canvas.width;
-
-
-        const h =
-            this.canvas.height;
+        const w = this.canvas.width;
+        const h = this.canvas.height;
 
 
         ctx.clearRect(
-
             0,
             0,
             w,
             h
-
         );
 
 
-        // =====================================================
-        // FUNDO
-        // =====================================================
+        // Fundo
 
-        ctx.fillStyle =
-            "white";
-
+        ctx.fillStyle = "white";
 
         ctx.fillRect(
-
             0,
             0,
             w,
             h
-
         );
 
 
-        // =====================================================
-        // PÊNDULO
-        // =====================================================
+        // Pêndulo
 
         this.drawPendulum(ctx);
 
 
-        // =====================================================
         // HUD
-        // =====================================================
 
         this.drawHUD(ctx);
 
 
-        // =====================================================
-        // GRÁFICO
-        // =====================================================
+        // Gráfico
 
         this.drawGraph(ctx);
-
     }
 
 
@@ -1845,50 +1371,39 @@ class SimplePendulum {
 
     iniciar() {
 
-        if (
-            this.running
-        )
+        if (this.running)
             return;
 
 
-        this.running =
-            true;
+        this.running = true;
 
 
-        const loop =
-            () => {
+        const loop = () => {
 
-                if (
-                    !this.running
-                )
-                    return;
+            if (!this.running)
+                return;
 
 
-                this.draw();
+            this.draw();
 
 
-                this.frame++;
+            this.frame++;
 
 
-                if (
-                    this.frame >=
-                    this.time.length
-                ) {
+            if (
+                this.frame >=
+                this.time.length
+            ) {
 
-                    this.frame = 0;
+                this.frame = 0;
+            }
 
-                }
 
-
-                requestAnimationFrame(
-                    loop
-                );
-
-            };
+            requestAnimationFrame(loop);
+        };
 
 
         loop();
-
     }
 
 
@@ -1898,9 +1413,7 @@ class SimplePendulum {
 
     parar() {
 
-        this.running =
-            false;
-
+        this.running = false;
     }
 
 
@@ -1908,42 +1421,29 @@ class SimplePendulum {
     // ATUALIZAR PARÂMETROS
     // =========================================================
 
-    atualizarParametros(
-        newParams
-    ) {
+    atualizarParametros(newParams) {
 
         this.params = {
 
             ...this.params,
-
             ...newParams
-
         };
 
 
-        Object.keys(
-            newParams
-        ).forEach(
+        Object.keys(newParams).forEach(
             key => {
 
-                if (
-                    this.sliders[key]
-                ) {
+                if (this.sliders[key]) {
 
                     this.sliders[key].value =
                         newParams[key];
-
                 }
-
             }
         );
 
 
         this.solve();
 
-
         this.draw();
-
     }
-
 }
