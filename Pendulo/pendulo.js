@@ -11,11 +11,12 @@ class SimplePendulum {
 
         this.params = {
 
-            g: 9.81,          // gravidade [m/s²]
-            L: 1.0,           // comprimento [m]
+            g: 9.81,
+            L: 1.0,
 
-            theta0: 0.5,      // posição angular inicial [rad]
-            omega0: 0.0,      // velocidade angular inicial [rad/s]
+            // Internamente continua em radianos
+            theta0: 0.5,
+            omega0: 0.0,
 
             ...options
         };
@@ -29,6 +30,8 @@ class SimplePendulum {
         this.omega = [];
 
         this.running = false;
+
+        // frame pode ser fracionário
         this.frame = 0;
 
         // =====================================================
@@ -43,7 +46,7 @@ class SimplePendulum {
         // CONFIGURAÇÃO DA ANIMAÇÃO
         // =====================================================
 
-        this.animationSpeed = 1.0;
+        this.animationSpeed = 1.2;
 
         // =====================================================
         // GEOMETRIA DO PÊNDULO
@@ -88,15 +91,9 @@ class SimplePendulum {
         const p = this.params;
 
         /*
-         * Pêndulo simples:
-         *
          * θ' = ω
          *
          * ω' = -(g/L) sin(θ)
-         *
-         * Portanto:
-         *
-         * θ'' + (g/L) sin(θ) = 0
          */
 
         return [
@@ -172,12 +169,14 @@ class SimplePendulum {
         const h =
             (b - a) / N;
 
+
         let state = [
 
             this.params.theta0,
             this.params.omega0
 
         ];
+
 
         this.time = [];
         this.theta = [];
@@ -351,6 +350,100 @@ class SimplePendulum {
 
 
     // =========================================================
+    // ESTADO ATUAL
+    //
+    // Usa interpolação para que o valor mostrado acompanhe
+    // suavemente a animação.
+    // =========================================================
+
+    getCurrentState() {
+
+        if (this.theta.length === 0) {
+
+            return {
+
+                theta: 0,
+                omega: 0,
+                time: 0
+
+            };
+        }
+
+
+        const maxIndex =
+            this.theta.length - 1;
+
+
+        const frame =
+            Math.min(
+                Math.max(this.frame, 0),
+                maxIndex
+            );
+
+
+        const i0 =
+            Math.floor(frame);
+
+
+        const i1 =
+            Math.min(
+                i0 + 1,
+                maxIndex
+            );
+
+
+        const fraction =
+            frame - i0;
+
+
+        // =====================================================
+        // INTERPOLAÇÃO LINEAR
+        // =====================================================
+
+        const theta =
+            this.theta[i0] +
+
+            (
+                this.theta[i1] -
+                this.theta[i0]
+            )
+            *
+            fraction;
+
+
+        const omega =
+            this.omega[i0] +
+
+            (
+                this.omega[i1] -
+                this.omega[i0]
+            )
+            *
+            fraction;
+
+
+        const time =
+            this.time[i0] +
+
+            (
+                this.time[i1] -
+                this.time[i0]
+            )
+            *
+            fraction;
+
+
+        return {
+
+            theta,
+            omega,
+            time
+
+        };
+    }
+
+
+    // =========================================================
     // PERÍODO
     // =========================================================
 
@@ -467,10 +560,15 @@ class SimplePendulum {
 
             {
                 name: "theta0",
-                label: "θ₀ (rad)",
-                min: -3.0,
-                max: 3.0,
-                step: 0.01
+                label: "θ₀ (graus)",
+                min: -170,
+                max: 170,
+                step: 1,
+
+                convert: value =>
+                    value *
+                    Math.PI /
+                    180
             },
 
             {
@@ -553,10 +651,26 @@ class SimplePendulum {
                     config.step;
 
 
-                slider.value =
+                let initialValue =
                     this.params[
                         config.name
                     ];
+
+
+                // Converte rad → graus
+                // apenas para mostrar no slider
+
+                if (config.convert) {
+
+                    initialValue =
+                        initialValue *
+                        180 /
+                        Math.PI;
+                }
+
+
+                slider.value =
+                    initialValue;
 
 
                 slider.style.flex =
@@ -583,9 +697,7 @@ class SimplePendulum {
 
                 value.innerText =
                     Number(
-                        this.params[
-                            config.name
-                        ]
+                        initialValue
                     ).toFixed(2);
 
 
@@ -597,10 +709,17 @@ class SimplePendulum {
                     "input",
                     () => {
 
-                        const v =
+                        let v =
                             Number(
                                 slider.value
                             );
+
+
+                        if (config.convert) {
+
+                            v =
+                                config.convert(v);
+                        }
 
 
                         this.params[
@@ -609,7 +728,9 @@ class SimplePendulum {
 
 
                         value.innerText =
-                            v.toFixed(2);
+                            Number(
+                                slider.value
+                            ).toFixed(2);
 
 
                         this.solve();
@@ -673,18 +794,16 @@ class SimplePendulum {
         ctx.save();
 
 
-        const index =
-            Math.min(
+        // =====================================================
+        // ESTADO ATUAL INTERPOLADO
+        // =====================================================
 
-                this.frame,
-
-                this.theta.length - 1
-
-            );
+        const state =
+            this.getCurrentState();
 
 
         const theta =
-            this.theta[index] || 0;
+            state.theta;
 
 
         // =====================================================
@@ -735,7 +854,8 @@ class SimplePendulum {
             "black";
 
 
-        ctx.lineWidth = 4;
+        ctx.lineWidth =
+            4;
 
 
         ctx.beginPath();
@@ -757,10 +877,11 @@ class SimplePendulum {
 
 
         // =====================================================
-        // HACHURAS DO SUPORTE
+        // HACHURAS
         // =====================================================
 
-        ctx.lineWidth = 2;
+        ctx.lineWidth =
+            2;
 
 
         for (
@@ -789,7 +910,8 @@ class SimplePendulum {
         // CORDA
         // =====================================================
 
-        ctx.lineWidth = 3;
+        ctx.lineWidth =
+            3;
 
 
         ctx.strokeStyle =
@@ -851,7 +973,8 @@ class SimplePendulum {
             "#111";
 
 
-        ctx.lineWidth = 2;
+        ctx.lineWidth =
+            2;
 
 
         ctx.beginPath();
@@ -882,7 +1005,8 @@ class SimplePendulum {
             "#aaaaaa";
 
 
-        ctx.lineWidth = 1;
+        ctx.lineWidth =
+            1;
 
 
         ctx.setLineDash([
@@ -924,13 +1048,15 @@ class SimplePendulum {
                 "#d32f2f";
 
 
-            ctx.lineWidth = 2;
+            ctx.lineWidth =
+                2;
 
 
             ctx.beginPath();
 
 
-            const arcRadius = 55;
+            const arcRadius =
+                55;
 
 
             ctx.arc(
@@ -1090,7 +1216,8 @@ class SimplePendulum {
             "#777";
 
 
-        ctx.lineWidth = 1;
+        ctx.lineWidth =
+            1;
 
 
         ctx.beginPath();
@@ -1112,29 +1239,39 @@ class SimplePendulum {
 
 
         // =====================================================
-        // ÍNDICE
+        // ESTADO ATUAL
         // =====================================================
 
-        const index =
-            Math.min(
-
-                this.frame,
-
-                this.theta.length - 1
-
-            );
+        const state =
+            this.getCurrentState();
 
 
         const theta =
-            this.theta[index] || 0;
+            state.theta;
 
 
         const omega =
-            this.omega[index] || 0;
+            state.omega;
 
 
         const t =
-            this.time[index] || 0;
+            state.time;
+
+
+        // =====================================================
+        // CONVERSÃO PARA GRAUS
+        // =====================================================
+
+        const thetaDegrees =
+            theta *
+            180 /
+            Math.PI;
+
+
+        const theta0Degrees =
+            p.theta0 *
+            180 /
+            Math.PI;
 
 
         // =====================================================
@@ -1197,7 +1334,7 @@ class SimplePendulum {
 
         ctx.fillText(
 
-            `θ₀ = ${p.theta0.toFixed(3)} rad`,
+            `θ₀ = ${theta0Degrees.toFixed(2)}°`,
 
             x + 12,
             y + 78
@@ -1225,7 +1362,7 @@ class SimplePendulum {
 
         ctx.fillText(
 
-            `θ(t) = ${theta.toFixed(3)} rad`,
+            `θ(t) = ${thetaDegrees.toFixed(2)}°`,
 
             col2,
             y + 42
@@ -1342,7 +1479,8 @@ class SimplePendulum {
             "#777";
 
 
-        ctx.lineWidth = 1;
+        ctx.lineWidth =
+            1;
 
 
         ctx.strokeRect(
@@ -1362,7 +1500,7 @@ class SimplePendulum {
         const n =
             Math.min(
 
-                this.frame + 1,
+                Math.floor(this.frame) + 1,
 
                 this.time.length
 
@@ -1391,19 +1529,28 @@ class SimplePendulum {
         // ESCALA
         // =====================================================
 
-        let maxAbs = 0;
+        let maxTheta =
+            0;
+
+
+        let maxOmega =
+            0;
 
 
         for (
             const value of thetaData
         ) {
 
-            maxAbs =
+            maxTheta =
                 Math.max(
 
-                    maxAbs,
+                    maxTheta,
 
-                    Math.abs(value)
+                    Math.abs(
+                        value *
+                        180 /
+                        Math.PI
+                    )
 
                 );
         }
@@ -1413,10 +1560,10 @@ class SimplePendulum {
             const value of omegaData
         ) {
 
-            maxAbs =
+            maxOmega =
                 Math.max(
 
-                    maxAbs,
+                    maxOmega,
 
                     Math.abs(value)
 
@@ -1424,11 +1571,22 @@ class SimplePendulum {
         }
 
 
-        if (maxAbs < 0.001)
-            maxAbs = 1;
+        const maxAbs =
+            Math.max(
+                maxTheta,
+                maxOmega
+            );
 
 
-        maxAbs *= 1.15;
+        let scaleMax =
+            maxAbs;
+
+
+        if (scaleMax < 0.001)
+            scaleMax = 1;
+
+
+        scaleMax *= 1.15;
 
 
         // =====================================================
@@ -1488,7 +1646,7 @@ class SimplePendulum {
         ) {
 
             const value =
-                maxAbs *
+                scaleMax *
                 k /
                 ticks;
 
@@ -1497,7 +1655,7 @@ class SimplePendulum {
                 centerY -
                 (
                     value /
-                    maxAbs
+                    scaleMax
                 )
                 *
                 (
@@ -1578,7 +1736,7 @@ class SimplePendulum {
 
             ctx.fillText(
 
-                value.toFixed(2),
+                value.toFixed(0),
 
                 graphX - 50,
                 y + 4
@@ -1711,7 +1869,7 @@ class SimplePendulum {
 
         ctx.fillText(
 
-            "θ(t) [rad] / ω(t) [rad/s]",
+            "θ(t) [graus] / ω(t) [rad/s]",
 
             0,
             0
@@ -1723,7 +1881,7 @@ class SimplePendulum {
 
 
         // =====================================================
-        // CONVERSÃO
+        // CONVERSÃO X
         // =====================================================
 
         const convertX =
@@ -1741,6 +1899,10 @@ class SimplePendulum {
             };
 
 
+        // =====================================================
+        // CONVERSÃO Y
+        // =====================================================
+
         const convertY =
             value => {
 
@@ -1748,7 +1910,7 @@ class SimplePendulum {
 
                     (
                         value /
-                        maxAbs
+                        scaleMax
                     )
                     *
                     (
@@ -1760,9 +1922,12 @@ class SimplePendulum {
 
         // =====================================================
         // θ(t)
+        //
+        // CONVERTIDO PARA GRAUS
         // =====================================================
 
-        ctx.lineWidth = 2;
+        ctx.lineWidth =
+            2;
 
 
         ctx.strokeStyle =
@@ -1784,9 +1949,15 @@ class SimplePendulum {
                 );
 
 
+            const thetaDegrees =
+                this.theta[k] *
+                180 /
+                Math.PI;
+
+
             const y =
                 convertY(
-                    this.theta[k]
+                    thetaDegrees
                 );
 
 
@@ -1875,11 +2046,11 @@ class SimplePendulum {
 
         ctx.fillText(
 
-            "θ(t) [rad]",
+            "θ(t) [graus]",
 
             graphX +
             graphW -
-            100,
+            110,
 
             graphY + 25
 
@@ -1896,7 +2067,7 @@ class SimplePendulum {
 
             graphX +
             graphW -
-            100,
+            110,
 
             graphY + 45
 
@@ -2022,7 +2193,7 @@ class SimplePendulum {
 
             if (
                 this.frame >=
-                this.time.length
+                this.time.length - 1
             ) {
 
                 this.frame = 0;
@@ -2076,8 +2247,24 @@ class SimplePendulum {
                     this.sliders[key]
                 ) {
 
-                    this.sliders[key].value =
+                    let value =
                         newParams[key];
+
+
+                    // rad → graus para o slider
+                    if (
+                        key === "theta0"
+                    ) {
+
+                        value =
+                            value *
+                            180 /
+                            Math.PI;
+                    }
+
+
+                    this.sliders[key].value =
+                        value;
 
                 }
 
