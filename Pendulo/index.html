@@ -1,135 +1,21 @@
-<!DOCTYPE html>
+<canvas
+    id="pendulumCanvas"
+    width="1200"
+    height="550">
+</canvas>
 
-<html lang="pt-BR">
+<script src="pendulo.js"></script>
 
-<head>
+<script>
 
-    <meta charset="UTF-8">
+const canvas =
+    document.getElementById(
+        "pendulumCanvas"
+    );
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+const pendulum =
+    new SimplePendulum(
+        canvas
+    );
 
-    <title>Pêndulo Simples</title>
-
-    <style>
-
-        body {
-
-            margin: 0;
-
-            background: #f2f2f2;
-
-            font-family: Arial, sans-serif;
-
-        }
-
-        .container {
-
-            width: 1250px;
-
-            max-width: 95%;
-
-            margin: 25px auto;
-
-            background: white;
-
-            padding: 20px;
-
-        }
-
-        h1 {
-
-            text-align: center;
-
-            margin-top: 0;
-
-        }
-
-        #canvas {
-
-            width: 100%;
-
-            height: auto;
-
-            display: block;
-
-            border: 1px solid #ccc;
-
-            background: white;
-
-        }
-
-        #pendulum-controls {
-
-            width: 900px;
-
-            max-width: 100%;
-
-            margin: 20px auto;
-
-        }
-
-    </style>
-
-</head>
-
-
-<body>
-
-    <div class="container">
-
-        <h1>Pêndulo Simples</h1>
-
-        <canvas
-            id="canvas"
-            width="1250"
-            height="650"
-        ></canvas>
-
-        <div id="pendulum-controls"></div>
-
-    </div>
-
-
-    <!--
-        IMPORTANTE:
-
-        pendulo.js precisa estar na mesma pasta
-        deste index.html.
-    -->
-
-    <script src="./pendulo.js"></script>
-
-
-    <script>
-
-        const canvas =
-            document.getElementById("canvas");
-
-
-        const pendulo =
-            new SimplePendulum(
-
-                canvas,
-
-                {
-
-                    g: 9.81,
-
-                    L: 1.0,
-
-                    theta0: 1.0,
-
-                    omega0: 0.0
-
-                }
-
-            );
-
-    </script>
-
-</body>
-
-</html>
+</script>
