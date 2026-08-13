@@ -19,6 +19,7 @@ class DoublePendulum {
 
             g: 9.81,
 
+            // Internamente sempre em radianos
             theta10: Math.PI / 3,
             theta20: Math.PI / 6,
 
@@ -127,7 +128,6 @@ class DoublePendulum {
         const acceleration1 =
 
             (
-
                 -g *
                 (
                     2 * m1 +
@@ -161,7 +161,6 @@ class DoublePendulum {
                     L1 *
                     Math.cos(delta)
                 )
-
             )
 
             /
@@ -184,14 +183,12 @@ class DoublePendulum {
         const acceleration2 =
 
             (
-
                 2 *
                 Math.sin(delta)
 
                 *
 
                 (
-
                     omega1 *
                     omega1 *
                     L1 *
@@ -216,9 +213,7 @@ class DoublePendulum {
                     L2 *
                     m2 *
                     Math.cos(delta)
-
                 )
-
             )
 
             /
@@ -229,11 +224,9 @@ class DoublePendulum {
         return [
 
             omega1,
-
             acceleration1,
 
             omega2,
-
             acceleration2
 
         ];
@@ -584,6 +577,8 @@ class DoublePendulum {
                 min: -170,
                 max: 170,
                 step: 1,
+
+                // graus -> radianos
                 convert: v =>
                     v * Math.PI / 180
             },
@@ -594,6 +589,8 @@ class DoublePendulum {
                 min: -170,
                 max: 170,
                 step: 1,
+
+                // graus -> radianos
                 convert: v =>
                     v * Math.PI / 180
             },
@@ -612,6 +609,7 @@ class DoublePendulum {
                 min: -10,
                 max: 10,
                 step: 0.1
+
             }
 
         ];
@@ -676,12 +674,16 @@ class DoublePendulum {
                     ];
 
 
+                // Radianos -> graus
+                // somente para os sliders angulares
+
                 if (config.convert) {
 
                     initialValue =
                         initialValue *
                         180 /
                         Math.PI;
+
                 }
 
 
@@ -722,9 +724,13 @@ class DoublePendulum {
                             );
 
 
-                        if (config.convert)
+                        // graus -> radianos
+                        if (config.convert) {
+
                             v =
                                 config.convert(v);
+
+                        }
 
 
                         this.params[
@@ -732,6 +738,7 @@ class DoublePendulum {
                         ] = v;
 
 
+                        // Mostra o valor do slider
                         value.innerText =
                             Number(
                                 slider.value
@@ -773,8 +780,11 @@ class DoublePendulum {
 
 
         this.canvas.parentNode.insertBefore(
+
             container,
+
             this.canvas.nextSibling
+
         );
     }
 
@@ -788,11 +798,16 @@ class DoublePendulum {
         const index =
             Math.min(
 
-                this.frame,
+                Math.floor(this.frame),
+
                 this.theta1.length - 1
 
             );
 
+
+        // =====================================================
+        // USA DIRETAMENTE A SOLUÇÃO NUMÉRICA
+        // =====================================================
 
         const theta1 =
             this.theta1[index] || 0;
@@ -812,6 +827,7 @@ class DoublePendulum {
 
         const x0 =
             this.pivotX;
+
 
         const y0 =
             this.pivotY;
@@ -995,48 +1011,20 @@ class DoublePendulum {
         );
 
 
-        // =====================================================
-        // MARCAÇÃO DOS ÂNGULOS
-        // =====================================================
-
-        ctx.strokeStyle =
-            "#777";
-
-        ctx.lineWidth =
-            1;
-
-
-        ctx.beginPath();
-
-        ctx.arc(
-
-            x0,
-            y0,
-
-            45,
-
-            Math.PI / 2 -
-            theta1,
-
-            Math.PI / 2
-
-        );
-
-        ctx.stroke();
-
-
-        ctx.font =
-            "13px Arial";
-
-        ctx.fillStyle =
-            "black";
-
-
-        ctx.fillText(
-            "θ₁",
-            x0 + 35,
-            y0 + 30
-        );
+        /*
+         * ====================================================
+         * INDICADOR VISUAL DE θ REMOVIDO
+         *
+         * O arco angular e o texto θ₁ foram removidos.
+         *
+         * Os valores continuam disponíveis:
+         * - no HUD;
+         * - no gráfico;
+         * - nas arrays theta1/theta2;
+         * - na solução RK4.
+         *
+         * ====================================================
+         */
 
 
         ctx.restore();
@@ -1052,7 +1040,7 @@ class DoublePendulum {
         const index =
             Math.min(
 
-                this.frame,
+                Math.floor(this.frame),
                 this.theta1.length - 1
 
             );
@@ -1164,7 +1152,7 @@ class DoublePendulum {
         const index =
             Math.min(
 
-                this.frame,
+                Math.floor(this.frame),
                 this.theta1.length - 1
 
             );
@@ -1433,7 +1421,7 @@ class DoublePendulum {
         const n =
             Math.min(
 
-                this.frame + 1,
+                Math.floor(this.frame) + 1,
                 this.time.length
 
             );
@@ -2074,6 +2062,9 @@ class DoublePendulum {
                     let value =
                         newParams[key];
 
+
+                    // Backend mantém radianos.
+                    // Slider mostra graus.
 
                     if (
                         key === "theta10" ||
