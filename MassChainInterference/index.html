@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <title>Interferência em Cadeia de Massas</title>
+
+
+    <style>
+
+        body {
+
+            font-family: Arial, sans-serif;
+
+            text-align: center;
+
+            margin: 20px;
+        }
+
+
+        .canvases {
+
+            display: flex;
+
+            justify-content: center;
+
+            gap: 20px;
+
+            flex-wrap: wrap;
+        }
+
+
+        canvas {
+
+            border: 1px solid #ccc;
+        }
+
+
+        .controls {
+
+            width: 700px;
+
+            max-width: 90%;
+
+            margin: 25px auto;
+        }
+
+
+        .slider {
+
+            margin: 15px 0;
+
+            text-align: left;
+        }
+
+
+        .slider label {
+
+            display: block;
+
+            margin-bottom: 5px;
+        }
+
+
+        input[type="range"] {
+
+            width: 100%;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <h1>Interferência em cadeia de massas</h1>
+
+
+    <div class="canvases">
+
+        <canvas
+            id="canvasChain"
+            width="600"
+            height="350">
+        </canvas>
+
+
+        <canvas
+            id="canvasPlot"
+            width="600"
+            height="350">
+        </canvas>
+
+    </div>
+
+
+    <div class="controls">
+
+
+        <!-- C1 -->
+
+        <div class="slider">
+
+            <label>
+                x₁ inicial:
+                <span id="c1_value"></span>
+            </label>
+
+            <input
+                id="c1"
+                type="range"
+                min="0"
+                max="59"
+                step="0.1"
+                value="18">
+        </div>
+
+
+        <!-- C2 -->
+
+        <div class="slider">
+
+            <label>
+                x₂ inicial:
+                <span id="c2_value"></span>
+            </label>
+
+            <input
+                id="c2"
+                type="range"
+                min="0"
+                max="59"
+                step="0.1"
+                value="42">
+        </div>
+
+
+        <!-- L1 -->
+
+        <div class="slider">
+
+            <label>
+                Largura 1:
+                <span id="l1_value"></span>
+            </label>
+
+            <input
+                id="l1"
+                type="range"
+                min="1"
+                max="10"
+                step="0.1"
+                value="3">
+        </div>
+
+
+        <!-- L2 -->
+
+        <div class="slider">
+
+            <label>
+                Largura 2:
+                <span id="l2_value"></span>
+            </label>
+
+            <input
+                id="l2"
+                type="range"
+                min="1"
+                max="10"
+                step="0.1"
+                value="3">
+        </div>
+
+
+        <!-- A1 -->
+
+        <div class="slider">
+
+            <label>
+                A₁:
+                <span id="A1_value"></span>
+            </label>
+
+            <input
+                id="A1"
+                type="range"
+                min="-2"
+                max="2"
+                step="0.01"
+                value="1">
+        </div>
+
+
+        <!-- A2 -->
+
+        <div class="slider">
+
+            <label>
+                A₂:
+                <span id="A2_value"></span>
+            </label>
+
+            <input
+                id="A2"
+                type="range"
+                min="-2"
+                max="2"
+                step="0.01"
+                value="-1">
+        </div>
+
+
+    </div>
+
+
+    <script src="MassChainInterference.js"></script>
+
+
+    <script>
+
+        // ==========================
+        // CANVAS
+        // ==========================
+
+        const canvasChain =
+            document.getElementById(
+                "canvasChain"
+            );
+
+
+        const canvasPlot =
+            document.getElementById(
+                "canvasPlot"
+            );
+
+
+        // ==========================
+        // CLASSE
+        // ==========================
+
+        const cadeia =
+            new MassChainInterference(
+                canvasChain,
+                canvasPlot,
+                {
+
+                    N: 60,
+
+                    m: 1.0,
+
+                    k: 10.0,
+
+                    c1: 18,
+
+                    c2: 42,
+
+                    l1: 3,
+
+                    l2: 3,
+
+                    A1: 1,
+
+                    A2: -1
+                }
+            );
+
+
+        // ==========================
+        // SLIDERS
+        // ==========================
+
+        const sliders = {
+
+            c1:
+                document.getElementById("c1"),
+
+            c2:
+                document.getElementById("c2"),
+
+            l1:
+                document.getElementById("l1"),
+
+            l2:
+                document.getElementById("l2"),
+
+            A1:
+                document.getElementById("A1"),
+
+            A2:
+                document.getElementById("A2")
+        };
+
+
+        const values = {
+
+            c1:
+                document.getElementById("c1_value"),
+
+            c2:
+                document.getElementById("c2_value"),
+
+            l1:
+                document.getElementById("l1_value"),
+
+            l2:
+                document.getElementById("l2_value"),
+
+            A1:
+                document.getElementById("A1_value"),
+
+            A2:
+                document.getElementById("A2_value")
+        };
+
+
+        // ==========================
+        // ATUALIZAÇÃO
+        // ==========================
+
+        function atualizar() {
+
+            const params = {
+
+                c1:
+                    parseFloat(
+                        sliders.c1.value
+                    ),
+
+                c2:
+                    parseFloat(
+                        sliders.c2.value
+                    ),
+
+                l1:
+                    parseFloat(
+                        sliders.l1.value
+                    ),
+
+                l2:
+                    parseFloat(
+                        sliders.l2.value
+                    ),
+
+                A1:
+                    parseFloat(
+                        sliders.A1.value
+                    ),
+
+                A2:
+                    parseFloat(
+                        sliders.A2.value
+                    )
+            };
+
+
+            // Atualiza valores mostrados
+
+            values.c1.textContent =
+                params.c1.toFixed(1);
+
+            values.c2.textContent =
+                params.c2.toFixed(1);
+
+            values.l1.textContent =
+                params.l1.toFixed(1);
+
+            values.l2.textContent =
+                params.l2.toFixed(1);
+
+            values.A1.textContent =
+                params.A1.toFixed(2);
+
+            values.A2.textContent =
+                params.A2.toFixed(2);
+
+
+            // Atualiza a simulação
+
+            cadeia.atualizarParametros(
+                params
+            );
+        }
+
+
+        // Eventos
+
+        for (const key in sliders) {
+
+            sliders[key].addEventListener(
+                "input",
+                atualizar
+            );
+        }
+
+
+        // Valores iniciais
+
+        atualizar();
+
+
+        // ==========================
+        // INICIA ANIMAÇÃO
+        // ==========================
+
+        cadeia.iniciar();
+
+    </script>
+
+
+</body>
+
+</html>
