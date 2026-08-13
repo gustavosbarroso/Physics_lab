@@ -40,7 +40,8 @@ Simulação da propagação e interferência de ondas utilizando perturbações 
 
 ### IV. [SIMULAÇÃO DE CIRCUITO RLC](https://gustavosbarroso.github.io/Physics_lab/RLC/)
 
-<img width="1205" height="537" alt="Circuito RLC" src="https://github.com/user-attachments/assets/c919ad96-9005-496c-bd54-ff54bdabb18f" />
+<img width="1205" height="537" alt="image" src="https://github.com/user-attachments/assets/04829bf9-a205-457a-b297-ec7b9f2bfff2" />
+
 
 Simulação do comportamento de um circuito RLC, permitindo visualizar a dinâmica do circuito e suas grandezas elétricas.
 
