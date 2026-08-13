@@ -114,6 +114,12 @@ class RLCircuit {
 
         const p = this.params;
 
+        /*
+         * Fonte AC:
+         *
+         * V(t) = V0 cos(ωt)
+         */
+
         const Vt =
             p.V0 *
             Math.cos(
@@ -610,6 +616,8 @@ class RLCircuit {
         const y1 = this.y1;
 
 
+        // Lado esquerdo
+
         for (
             let y = y0;
             y <= y1;
@@ -622,6 +630,8 @@ class RLCircuit {
             });
         }
 
+
+        // Parte inferior
 
         for (
             let x = x0;
@@ -636,6 +646,8 @@ class RLCircuit {
         }
 
 
+        // Lado direito
+
         for (
             let y = y1;
             y >= y0;
@@ -648,6 +660,8 @@ class RLCircuit {
             });
         }
 
+
+        // Parte superior
 
         for (
             let x = x1;
@@ -844,7 +858,7 @@ class RLCircuit {
 
 
         // =====================================================
-        // LADO DIREITO
+        // LADO DIREITO - PARTE SUPERIOR
         // =====================================================
 
         ctx.beginPath();
@@ -867,6 +881,7 @@ class RLCircuit {
         // =====================================================
 
         ctx.lineWidth = 4;
+
 
         ctx.beginPath();
 
@@ -939,7 +954,7 @@ class RLCircuit {
 
 
         // =====================================================
-        // FIO INFERIOR
+        // FIO INFERIOR ATÉ O RESISTOR
         // =====================================================
 
         ctx.beginPath();
@@ -1023,7 +1038,7 @@ class RLCircuit {
 
 
         // =====================================================
-        // FIO ATÉ A FONTE
+        // FIO DO RESISTOR ATÉ A FONTE
         // =====================================================
 
         ctx.beginPath();
@@ -1074,12 +1089,7 @@ class RLCircuit {
         const sourceY =
             this.sourceY;
 
-        /*
-         * Fonte ligeiramente menor:
-         * antes: 38 px
-         * agora: 32 px
-         */
-
+        // Fonte reduzida
         const radius = 32;
 
 
@@ -1112,6 +1122,7 @@ class RLCircuit {
             "black";
 
         ctx.lineWidth = 3;
+
 
         ctx.beginPath();
 
@@ -1270,11 +1281,16 @@ class RLCircuit {
             this.params;
 
 
+        // =====================================================
+        // POSIÇÃO E TAMANHO
+        // =====================================================
+
         const x = 20;
         const y = 20;
 
-        const width = 330;
-        const height = 130;
+        // Box um pouco menor
+        const width = 315;
+        const height = 120;
 
 
         ctx.save();
@@ -1311,7 +1327,7 @@ class RLCircuit {
 
 
         // =====================================================
-        // DADOS
+        // ÍNDICE ATUAL
         // =====================================================
 
         const index =
@@ -1350,6 +1366,7 @@ class RLCircuit {
         ctx.textBaseline =
             "alphabetic";
 
+
         ctx.fillText(
             "Circuito RLC",
             x + 12,
@@ -1364,11 +1381,13 @@ class RLCircuit {
         ctx.font =
             "12px Arial";
 
+
         ctx.fillText(
             `R = ${p.R.toFixed(2)} Ω`,
             x + 12,
             y + 42
         );
+
 
         ctx.fillText(
             `L = ${p.L.toFixed(2)} H`,
@@ -1376,11 +1395,26 @@ class RLCircuit {
             y + 60
         );
 
+
         ctx.fillText(
             `C = ${p.C.toFixed(2)} F`,
             x + 12,
             y + 78
         );
+
+
+        // =====================================================
+        // REGIME
+        // =====================================================
+
+        /*
+         * Fonte menor e texto menor para evitar
+         * qualquer conflito com a segunda coluna.
+         */
+
+        ctx.font =
+            "bold 11px Arial";
+
 
         ctx.fillText(
             `Regime: ${this.regime()}`,
@@ -1393,33 +1427,49 @@ class RLCircuit {
         // COLUNA 2
         // =====================================================
 
+        /*
+         * Segunda coluna mais afastada.
+         */
+
+        const col2 =
+            x + 205;
+
+
+        ctx.font =
+            "12px Arial";
+
+
         ctx.fillText(
             `q₀ = ${p.q0.toFixed(2)} C`,
-            x + 175,
+            col2,
             y + 42
         );
 
+
         ctx.fillText(
             `i₀ = ${p.i0.toFixed(2)} A`,
-            x + 175,
+            col2,
             y + 60
         );
 
+
         ctx.fillText(
             `q(t) = ${q.toFixed(3)} C`,
-            x + 175,
+            col2,
             y + 78
         );
 
+
         ctx.fillText(
             `i(t) = ${i.toFixed(3)} A`,
-            x + 175,
+            col2,
             y + 96
         );
 
+
         ctx.fillText(
             `t = ${t.toFixed(2)} s`,
-            x + 175,
+            col2,
             y + 114
         );
 
@@ -1457,6 +1507,7 @@ class RLCircuit {
 
         ctx.textAlign =
             "left";
+
 
         ctx.fillText(
 
