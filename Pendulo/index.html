@@ -6,8 +6,6 @@
 
     <meta charset="UTF-8">
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Simulador de Pêndulo</title>
 
     <style>
@@ -38,33 +36,28 @@
             display: block;
         }
 
-        #pendulo-controls {
-            width: 100%;
+        #pendulum-controls {
             margin-top: 20px;
             padding: 10px 40px 20px 40px;
-            box-sizing: border-box;
         }
 
-        .slider-row {
-            display: grid;
-            grid-template-columns: 120px 1fr 80px;
+        .control-row {
+            display: flex;
             align-items: center;
-            gap: 15px;
-            margin: 12px 0;
+            margin-bottom: 8px;
         }
 
-        .slider-label {
-            font-size: 15px;
-            text-align: right;
+        .control-label {
+            width: 100px;
         }
 
-        .pendulo-slider {
-            width: 100%;
+        .control-slider {
+            flex: 1;
         }
 
-        .slider-value {
-            font-size: 15px;
-            text-align: left;
+        .control-value {
+            width: 70px;
+            margin-left: 10px;
         }
 
     </style>
@@ -84,42 +77,32 @@
         height="650">
     </canvas>
 
+    <div id="pendulum-controls"></div>
+
 </div>
 
 
-<!-- =========================================================
-     CÓDIGO DO PÊNDULO
-     ========================================================= -->
-
 <script src="./pendulo.js"></script>
-
-
-<!-- =========================================================
-     INICIALIZAÇÃO
-     ========================================================= -->
 
 <script>
 
     const canvas =
         document.getElementById("canvas");
 
-
     const pendulo =
-        new Pendulo(
+        new SimplePendulum(
             canvas,
             {
                 g: 9.81,
-                L: 0.10,
+                L: 1.0,
                 m: 1.0,
-                b: 0.5,
-
-                theta0: 1.0,
+                b: 0.05,
+                theta0: 0.8,
                 omega0: 0.0
             }
         );
 
 </script>
-
 
 </body>
 
