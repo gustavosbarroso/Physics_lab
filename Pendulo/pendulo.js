@@ -1,3 +1,4 @@
+```js
 class SimplePendulum {
 
     constructor(canvas, options = {}) {
@@ -447,20 +448,12 @@ class SimplePendulum {
 
             {
                 name: "theta0",
-                label: "θ₀ (graus)",
+                label: "θ₀ (rad)",
 
-                // Slider em graus
-                min: -170,
-                max: 170,
-                step: 1,
-
-                // Graus -> radianos
-                convertToInternal: v =>
-                    v * Math.PI / 180,
-
-                // Radianos -> graus
-                convertToDisplay: v =>
-                    v * 180 / Math.PI
+                // Slider diretamente em radianos
+                min: -Math.PI,
+                max: Math.PI,
+                step: 0.01
             },
 
             {
@@ -530,20 +523,11 @@ class SimplePendulum {
                 slider.step =
                     config.step;
 
-                let initialValue =
+                // Valor interno já está em radianos
+                const initialValue =
                     this.params[
                         config.name
                     ];
-
-                if (
-                    config.convertToDisplay
-                ) {
-
-                    initialValue =
-                        config.convertToDisplay(
-                            initialValue
-                        );
-                }
 
                 slider.value =
                     initialValue;
@@ -579,31 +563,19 @@ class SimplePendulum {
                     "input",
                     () => {
 
-                        let v =
+                        // Slider já está em radianos
+                        const v =
                             Number(
                                 slider.value
                             );
-
-                        // Graus -> radianos
-                        if (
-                            config.convertToInternal
-                        ) {
-
-                            v =
-                                config.convertToInternal(
-                                    v
-                                );
-                        }
 
                         this.params[
                             config.name
                         ] = v;
 
-                        // Valor mostrado
+                        // Atualiza valor mostrado
                         value.innerText =
-                            Number(
-                                slider.value
-                            ).toFixed(2);
+                            v.toFixed(2);
 
                         // Recalcula
                         this.solve();
@@ -871,14 +843,6 @@ class SimplePendulum {
         ctx.setLineDash([]);
 
         // =====================================================
-        // SEM INDICADOR VISUAL DE θ
-        //
-        // O arco vermelho e o texto θ foram removidos.
-        // O theta continua sendo usado normalmente na
-        // solução numérica e na posição do pêndulo.
-        // =====================================================
-
-        // =====================================================
         // COMPRIMENTO L
         // =====================================================
 
@@ -1046,7 +1010,7 @@ class SimplePendulum {
 
         ctx.fillText(
 
-            `θ₀ = ${(p.theta0 * 180 / Math.PI).toFixed(1)}°`,
+            `θ₀ = ${p.theta0.toFixed(2)} rad`,
 
             x + 10,
             y + 70
@@ -1071,7 +1035,7 @@ class SimplePendulum {
 
         ctx.fillText(
 
-            `θ(t) = ${(theta * 180 / Math.PI).toFixed(1)}°`,
+            `θ(t) = ${theta.toFixed(2)} rad`,
 
             col2,
             y + 38
@@ -1364,7 +1328,7 @@ class SimplePendulum {
             }
 
             // =================================================
-            // VALOR
+            // VALOR EM RADIANOS
             // =================================================
 
             ctx.fillStyle =
@@ -1372,13 +1336,9 @@ class SimplePendulum {
 
             ctx.fillText(
 
-                (
-                    value *
-                    180 /
-                    Math.PI
-                ).toFixed(0),
+                value.toFixed(2),
 
-                graphX - 40,
+                graphX - 50,
                 y + 4
 
             );
@@ -1492,7 +1452,7 @@ class SimplePendulum {
 
         ctx.fillText(
 
-            "θ(t) [graus] / ω(t) [rad/s]",
+            "θ(t) [rad] / ω(t) [rad/s]",
 
             0,
             0
@@ -1641,11 +1601,11 @@ class SimplePendulum {
 
         ctx.fillText(
 
-            "θ(t) [graus]",
+            "θ(t) [rad]",
 
             graphX +
             graphW -
-            105,
+            90,
 
             graphY + 25
 
@@ -1834,23 +1794,10 @@ class SimplePendulum {
                     this.sliders[key]
                 ) {
 
-                    let value =
-                        newParams[key];
-
-                    // θ₀ interno em radianos,
-                    // slider em graus
-                    if (
-                        key === "theta0"
-                    ) {
-
-                        value =
-                            value *
-                            180 /
-                            Math.PI;
-                    }
-
+                    // Todos os sliders usam diretamente
+                    // as unidades internas do sistema.
                     this.sliders[key].value =
-                        value;
+                        newParams[key];
 
                 }
 
@@ -1866,3 +1813,6 @@ class SimplePendulum {
         this.draw();
     }
 }
+```
+
+
