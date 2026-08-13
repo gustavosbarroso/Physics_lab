@@ -1,92 +1,98 @@
 # Physics_lab
 
-Adaptação de algumas simulações originalmente desenvolvidas em Python, construídas para funcionar como laboratórios virtuais interativos de Física para professores e estudantes.
+Adaptação de algumas simulações originalmente desenvolvidas em Python, construídas para funcionar como **laboratórios virtuais interativos de Física** para professores e estudantes.
 
-🌐 **Laboratório Virtual de Física:**  
-https://gustavosbarroso.github.io/Physics_lab/
+🌐 **[Laboratório Virtual de Física](https://gustavosbarroso.github.io/Physics_lab/)**
 
 ---
 
 ## 📦 SISTEMAS IMPLEMENTADOS
 
-### I. PÊNDULO AMORTECIDO E PÊNDULO SIMPLES
-<img width="1206" height="575" alt="image" src="https://github.com/user-attachments/assets/4596c665-60ac-4bb8-a5ae-cf09f63878a9" />
+### I. [PÊNDULO AMORTECIDO E PÊNDULO SIMPLES](https://gustavosbarroso.github.io/Physics_lab/Pendulo/)
 
-Link da simulação: https://gustavosbarroso.github.io/Physics_lab/Pendulo/
+<img width="1206" height="575" alt="Pêndulo amortecido e pêndulo simples" src="https://github.com/user-attachments/assets/4596c665-60ac-4bb8-a5ae-cf09f63878a9" />
 
+Simulação de pêndulos simples e amortecidos, permitindo explorar o movimento oscilatório e os efeitos do amortecimento.
 
+**[▶ Abrir simulação](https://gustavosbarroso.github.io/Physics_lab/Pendulo/)**
 
 ---
 
-### II. PÊNDULO DUPLO — SISTEMA CAÓTICO
-<img width="1187" height="517" alt="image" src="https://github.com/user-attachments/assets/d10cacf2-f62b-4c05-b5cc-98700e1a436e" />
+### II. [PÊNDULO DUPLO — SISTEMA CAÓTICO](https://gustavosbarroso.github.io/Physics_lab/DoublePendulum/)
 
-Link da simulação:https://gustavosbarroso.github.io/Physics_lab/DoublePendulum/
-
+<img width="1187" height="517" alt="Pêndulo duplo" src="https://github.com/user-attachments/assets/d10cacf2-f62b-4c05-b5cc-98700e1a436e" />
 
 O pêndulo duplo é um sistema não linear acoplado que apresenta comportamento caótico e forte dependência das condições iniciais.
 
+**[▶ Abrir simulação](https://gustavosbarroso.github.io/Physics_lab/DoublePendulum/)**
 
 ---
 
-### III. INTERFERÊNCIA DE ONDAS EM UMA CADEIA DE MASSAS E MOLAS
-<img width="1310" height="451" alt="image" src="https://github.com/user-attachments/assets/f1cebb7c-ee9b-478a-b6e4-bb4b27ef6f58" />
+### III. [INTERFERÊNCIA DE ONDAS EM UMA CADEIA DE MASSAS E MOLAS](https://gustavosbarroso.github.io/Physics_lab/MassChainInterference/)
 
-Link da simulação: https://gustavosbarroso.github.io/Physics_lab/MassChainInterference/
+<img width="1310" height="451" alt="Interferência de ondas em cadeia de massas e molas" src="https://github.com/user-attachments/assets/f1cebb7c-ee9b-478a-b6e4-bb4b27ef6f58" />
 
 Simulação da propagação e interferência de ondas utilizando perturbações gaussianas em uma cadeia de massas e molas acopladas.
 
----
-
-### IV. SIMULAÇÃO DE CIRCUITO RLC
-<img width="1205" height="537" alt="image" src="https://github.com/user-attachments/assets/c919ad96-9005-496c-bd54-ff04bdabb18f" />
-
-Link da simulação: https://gustavosbarroso.github.io/Physics_lab/RLC/
-
+**[▶ Abrir simulação](https://gustavosbarroso.github.io/Physics_lab/MassChainInterference/)**
 
 ---
 
-### V. CIRCUITO RC
-<img width="930" height="479" alt="image" src="https://github.com/user-attachments/assets/4952861d-92a8-4c57-8dfd-6a7b202f6b4e" />
+### IV. [SIMULAÇÃO DE CIRCUITO RLC](https://gustavosbarroso.github.io/Physics_lab/RLC/)
 
-Link da simulação:https://gustavosbarroso.github.io/Physics_lab/RC/
+<img width="1205" height="537" alt="Circuito RLC" src="https://github.com/user-attachments/assets/c919ad96-9005-496c-bd54-ff54bdabb18f" />
+
+Simulação do comportamento de um circuito RLC, permitindo visualizar a dinâmica do circuito e suas grandezas elétricas.
+
+**[▶ Abrir simulação](https://gustavosbarroso.github.io/Physics_lab/RLC/)**
+
+---
+
+### V. [CIRCUITO RC](https://gustavosbarroso.github.io/Physics_lab/RC/)
+
+<img width="930" height="479" alt="Circuito RC" src="https://github.com/user-attachments/assets/4952861d-92a8-4c57-8dfd-6a7b202f6b4e" />
 
 Comportamento de carga e descarga de um capacitor em um circuito RC.
 
+**[▶ Abrir simulação](https://gustavosbarroso.github.io/Physics_lab/RC/)**
 
 ---
 
-### VI. PÊNDULO DE KAPITZA
-<img width="746" height="591" alt="image" src="https://github.com/user-attachments/assets/8ed96d43-7a60-4898-8795-297ef6d11896" />
+### VI. [PÊNDULO DE KAPITZA](https://gustavosbarroso.github.io/Physics_lab/KapitizaPendulum/)
 
-Link: https://gustavosbarroso.github.io/Physics_lab/KapitizaPendulum/
+<img width="746" height="591" alt="Pêndulo de Kapitza" src="https://github.com/user-attachments/assets/8ed96d43-7a60-4898-8795-297ef6d11896" />
 
-Pêndulo com ponto de suspensão oscilando verticalmente
+Pêndulo com ponto de suspensão oscilando verticalmente, permitindo explorar o comportamento dinâmico do pêndulo de Kapitza.
+
+**[▶ Abrir simulação](https://gustavosbarroso.github.io/Physics_lab/KapitizaPendulum/)**
 
 ---
 
-### VII. PÊNDULO FORÇADO EM UM CARRINHO OSCILANTE
-<img width="873" height="577" alt="image" src="https://github.com/user-attachments/assets/d086869d-b114-4ba7-8cb8-1eee50877f2d" />
+### VII. [PÊNDULO FORÇADO EM UM CARRINHO OSCILANTE](https://gustavosbarroso.github.io/Physics_lab/InvertedPendulum/)
 
-Link da simulação:https://gustavosbarroso.github.io/Physics_lab/InvertedPendulum/
+<img width="873" height="577" alt="Pêndulo forçado em carrinho oscilante" src="https://github.com/user-attachments/assets/d086869d-b114-4ba7-8cb8-1eee50877f2d" />
 
 Pêndulo com ponto de suspensão oscilando horizontalmente.
+
+**[▶ Abrir simulação](https://gustavosbarroso.github.io/Physics_lab/InvertedPendulum/)**
+
+---
 
 ## 🧮 MÉTODOS NUMÉRICOS
 
 As simulações são baseadas na solução numérica de equações diferenciais ordinárias.
 
-As implementações originais foram desenvolvidas em Python, utilizando métodos de integração numérica, como o método de Runge-Kutta de quarta ordem (RK4).
+As implementações originais foram desenvolvidas em Python, utilizando métodos de integração numérica, como o **método de Runge-Kutta de quarta ordem (RK4)**.
 
-As adaptações para a web estão sendo desenvolvidas utilizando HTML, CSS e JavaScript.
+As adaptações para a web estão sendo desenvolvidas utilizando **HTML, CSS e JavaScript**.
 
 ---
 
 ## 🌐 LABORATÓRIO VIRTUAL DE FÍSICA
 
-As simulações interativas estão disponíveis no site do projeto:
+Todas as simulações interativas estão disponíveis no site do projeto:
 
-**[Abrir Physics_lab](https://gustavosbarroso.github.io/Physics_lab/)**
+**[🚀 Abrir Physics_lab](https://gustavosbarroso.github.io/Physics_lab/)**
 
 ---
 
@@ -108,8 +114,8 @@ O aviso de copyright acima e este aviso de permissão devem ser incluídos
 em todas as cópias ou partes substanciais do Software.
 
 O SOFTWARE É FORNECIDO "COMO ESTÁ", SEM GARANTIAS DE QUALQUER TIPO,
-EXPRESSAS OU IMPLÍCITAS, INCLUINDO, MAS NÃO SE LIMITANDO ÀS GARANTIAS
-DE COMERCIALIZAÇÃO, ADEQUAÇÃO A UM DETERMINADO FIM E NÃO VIOLAÇÃO.
+EXPRESSAS OU IMPLÍCITAS, INCLUINDO, MAS NÃO SE LIMITANDO ÀS GARANTIAS DE
+COMERCIALIZAÇÃO, ADEQUAÇÃO A UM DETERMINADO FIM E NÃO VIOLAÇÃO.
 EM NENHUMA CIRCUNSTÂNCIA OS AUTORES OU DETENTORES DOS DIREITOS AUTORAIS
 SERÃO RESPONSÁVEIS POR QUALQUER REIVINDICAÇÃO, DANO OU OUTRA
 RESPONSABILIDADE, SEJA EM UMA AÇÃO DE CONTRATO, ATO ILÍCITO OU OUTRA
