@@ -8,11 +8,11 @@ Adaptação de algumas simulações originalmente desenvolvidas em Python, const
 
 ## 📦 SISTEMAS IMPLEMENTADOS
 
-### I. [PÊNDULO AMORTECIDO E PÊNDULO SIMPLES](https://gustavosbarroso.github.io/Physics_lab/Pendulo/)
+### I. [PÊNDULO SIMPLES](https://gustavosbarroso.github.io/Physics_lab/Pendulo/)
 
 <img width="1206" height="575" alt="Pêndulo amortecido e pêndulo simples" src="https://github.com/user-attachments/assets/4596c665-60ac-4bb8-a5ae-cf09f63878a9" />
 
-Simulação de pêndulos simples e amortecidos, permitindo explorar o movimento oscilatório e os efeitos do amortecimento.
+Simulação de pêndulos simples, permitindo explorar o movimento oscilatório.
 
 **[▶ Abrir simulação](https://gustavosbarroso.github.io/Physics_lab/Pendulo/)**
 
