@@ -170,6 +170,7 @@ class RCCircuit {
                         ),
 
                         t + h / 2
+
                     ),
 
                     h
@@ -190,6 +191,7 @@ class RCCircuit {
                         ),
 
                         t + h / 2
+
                     ),
 
                     h
@@ -207,6 +209,7 @@ class RCCircuit {
                         ),
 
                         t + h
+
                     ),
 
                     h
@@ -593,7 +596,6 @@ class RCCircuit {
 
         const ctx = this.ctx;
 
-
         // =====================================================
         // GEOMETRIA
         // =====================================================
@@ -605,12 +607,12 @@ class RCCircuit {
         const graphH = 280;
 
 
+        ctx.save();
+
+
         // =====================================================
         // TÍTULO
         // =====================================================
-
-        ctx.save();
-
 
         ctx.font =
             "bold 18px Arial";
@@ -660,6 +662,7 @@ class RCCircuit {
             Math.min(
 
                 this.frame + 1,
+
                 this.time.length
 
             );
@@ -762,7 +765,7 @@ class RCCircuit {
 
 
         // =====================================================
-        // TICKS DO EIXO Y
+        // TICKS E NÚMEROS DO EIXO Y
         // =====================================================
 
         const yTicks = 6;
@@ -870,7 +873,7 @@ class RCCircuit {
 
 
         // =====================================================
-        // TICKS DO EIXO X
+        // TICKS E NÚMEROS DO EIXO X
         // =====================================================
 
         const xTicks = 5;
@@ -923,7 +926,7 @@ class RCCircuit {
 
 
             // -------------------------------------------------
-            // GRADE VERTICAL
+            // GRADE
             // -------------------------------------------------
 
             if (k !== 0) {
@@ -1340,6 +1343,10 @@ class RCCircuit {
                 return;
 
 
+            // =================================================
+            // REINICIA
+            // =================================================
+
             if (
                 this.frame >=
                 this.time.length
@@ -1356,8 +1363,13 @@ class RCCircuit {
             // =================================================
 
             const i =
-                this.current[this.frame];
+                this.current[this.frame] || 0;
 
+
+            /*
+             * O sinal da corrente determina
+             * o sentido do movimento.
+             */
 
             const speed =
                 0.02 * i;
