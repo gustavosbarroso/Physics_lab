@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Pêndulo Simples
+    </title>
+
+
+    <style>
+
+        body {
+
+            margin: 0;
+
+            padding: 0;
+
+            background: #f5f5f5;
+
+            font-family: Arial, sans-serif;
+
+        }
+
+
+        #pendulum-container {
+
+            width: 1200px;
+
+            margin: 20px auto;
+
+            background: white;
+
+            border: 1px solid #ddd;
+
+            border-radius: 10px;
+
+            padding: 15px;
+
+            box-sizing: border-box;
+
+        }
+
+
+        #pendulum-canvas {
+
+            display: block;
+
+            width: 100%;
+
+            height: auto;
+
+            background: white;
+
+        }
+
+
+        #pendulum-controls {
+
+            width: 100%;
+
+            margin-top: 15px;
+
+        }
+
+
+        .control-row {
+
+            display: flex;
+
+            align-items: center;
+
+            margin-bottom: 8px;
+
+        }
+
+
+        .control-label {
+
+            width: 110px;
+
+            font-size: 14px;
+
+        }
+
+
+        .control-slider {
+
+            flex: 1;
+
+        }
+
+
+        .control-value {
+
+            width: 80px;
+
+            margin-left: 10px;
+
+            font-size: 14px;
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<div id="pendulum-container">
+
+    <canvas
+        id="pendulum-canvas"
+        width="1160"
+        height="650"
+    ></canvas>
+
+
+    <div id="pendulum-controls"></div>
+
+</div>
+
+
+<script src="pendulo.js"></script>
+
+
+<script>
+
+    const canvas =
+        document.getElementById(
+            "pendulum-canvas"
+        );
+
+
+    const pendulum =
+        new SimplePendulum(
+            canvas
+        );
+
+</script>
+
+
+</body>
+
+</html>
