@@ -14,27 +14,49 @@ class SimplePendulum {
             g: 9.81,
             L: 1.0,
 
-            // Internamente SEMPRE em radianos
+            // BACKEND: sempre radianos
             theta0: 0.5 * Math.PI / 180,
 
-            // rad/s
+            // BACKEND: rad/s
             omega0: 0.0,
 
             ...options
         };
 
         // =====================================================
-        // DADOS DA SOLUÇÃO
+        // DADOS DA SOLUÇÃO RK4
         // =====================================================
 
         this.time = [];
         this.theta = [];
         this.omega = [];
 
+        // =====================================================
+        // ESTADO ATUAL DA ANIMAÇÃO
+        // =====================================================
+
+        this.currentTheta =
+            this.params.theta0;
+
+        this.currentOmega =
+            this.params.omega0;
+
+        this.currentTime =
+            0;
+
+        // =====================================================
+        // CONTROLE DA ANIMAÇÃO
+        // =====================================================
+
         this.running = false;
 
-        // frame pode ser fracionário
-        this.frame = 0;
+        this.animationTime = 0;
+
+        this.lastTimestamp = null;
+
+        // velocidade da animação
+        // 1.0 = tempo físico normal
+        this.animationSpeed = 1.0;
 
         // =====================================================
         // CONFIGURAÇÃO NUMÉRICA
@@ -45,13 +67,7 @@ class SimplePendulum {
         this.N = 1000;
 
         // =====================================================
-        // CONFIGURAÇÃO DA ANIMAÇÃO
-        // =====================================================
-
-        this.animationSpeed = 1.0;
-
-        // =====================================================
-        // GEOMETRIA DO PÊNDULO
+        // GEOMETRIA
         // =====================================================
 
         this.pivotX = 300;
@@ -187,7 +203,7 @@ class SimplePendulum {
 
 
             // =================================================
-            // SALVA ESTADO
+            // SALVA
             // =================================================
 
             this.time.push(t);
@@ -304,7 +320,7 @@ class SimplePendulum {
 
 
             // =================================================
-            // ATUALIZA ESTADO
+            // ATUALIZA
             // =================================================
 
             state =
@@ -338,39 +354,47 @@ class SimplePendulum {
 
         this.RK4();
 
-        this.frame = 0;
+        // Reinicia estado da animação
+
+        this.animationTime =
+            this.t0;
+
+        this.currentTime =
+            this.t0;
+
+        this.currentTheta =
+            this.params.theta0;
+
+        this.currentOmega =
+            this.params.omega0;
+
+        this.lastTimestamp =
+            null;
     }
 
 
     // =========================================================
-    // ESTADO ANIMADO
+    // INTERPOLAÇÃO DA SOLUÇÃO
     //
-    // IMPORTANTE:
+    // Essa função agora é usada SOMENTE para descobrir
+    // o estado físico correspondente ao tempo da animação.
     //
-    // frame pode ser fracionário.
+    // Depois disso existe apenas UMA fonte de verdade:
     //
-    // Em vez de usar simplesmente:
+    // this.currentTheta
     //
-    // theta[Math.floor(frame)]
-    //
-    // fazemos interpolação entre os dois pontos.
-    //
-    // Isso deixa o movimento do pêndulo e o theta vermelho
-    // exatamente sincronizados.
     // =========================================================
 
-    getAnimatedState() {
+    getStateAtTime(t) {
 
         if (
-            !this.theta.length ||
-            !this.time.length
+            this.time.length === 0
         ) {
 
             return {
 
-                theta: 0,
-                omega: 0,
-                t: 0
+                theta: this.params.theta0,
+                omega: this.params.omega0
 
             };
         }
@@ -380,52 +404,64 @@ class SimplePendulum {
         // LIMITES
         // =====================================================
 
-        const maxIndex =
-            this.theta.length - 1;
+        if (t <= this.time[0]) {
+
+            return {
+
+                theta: this.theta[0],
+                omega: this.omega[0]
+
+            };
+        }
 
 
-        const frame =
-            Math.max(
+        const last =
+            this.time.length - 1;
 
-                0,
 
-                Math.min(
-                    this.frame,
-                    maxIndex
-                )
+        if (t >= this.time[last]) {
 
-            );
+            return {
+
+                theta: this.theta[last],
+                omega: this.omega[last]
+
+            };
+        }
 
 
         // =====================================================
-        // ÍNDICE INICIAL
+        // POSIÇÃO APROXIMADA
+        //
+        // Como o passo é uniforme:
         // =====================================================
+
+        const h =
+            this.time[1] -
+            this.time[0];
+
+
+        const position =
+            (
+                t -
+                this.time[0]
+            ) / h;
+
 
         const i =
-            Math.floor(frame);
+            Math.floor(position);
 
-
-        // =====================================================
-        // ÍNDICE SEGUINTE
-        // =====================================================
-
-        const j =
-            Math.min(
-                i + 1,
-                maxIndex
-            );
-
-
-        // =====================================================
-        // FRAÇÃO
-        // =====================================================
 
         const alpha =
-            frame - i;
+            position - i;
+
+
+        const j =
+            i + 1;
 
 
         // =====================================================
-        // INTERPOLAÇÃO LINEAR
+        // INTERPOLAÇÃO
         // =====================================================
 
         const theta =
@@ -450,24 +486,114 @@ class SimplePendulum {
             alpha;
 
 
-        const t =
-            this.time[i] +
-
-            (
-                this.time[j] -
-                this.time[i]
-            )
-            *
-            alpha;
-
-
         return {
 
             theta,
-            omega,
-            t
+            omega
 
         };
+    }
+
+
+    // =========================================================
+    // ATUALIZA O ESTADO VISUAL
+    //
+    // ESTE É O ÚNICO LUGAR ONDE:
+    //
+    // currentTheta
+    // currentOmega
+    //
+    // são atualizados.
+    // =========================================================
+
+    updateAnimationState(timestamp) {
+
+        if (
+            this.lastTimestamp === null
+        ) {
+
+            this.lastTimestamp =
+                timestamp;
+
+            return;
+        }
+
+
+        // =====================================================
+        // TEMPO REAL ENTRE FRAMES
+        // =====================================================
+
+        let dt =
+            (
+                timestamp -
+                this.lastTimestamp
+            ) / 1000;
+
+
+        this.lastTimestamp =
+            timestamp;
+
+
+        // =====================================================
+        // EVITA SALTOS GRANDES
+        // =====================================================
+
+        dt =
+            Math.min(
+                dt,
+                0.05
+            );
+
+
+        // =====================================================
+        // AVANÇA TEMPO FÍSICO
+        // =====================================================
+
+        this.animationTime +=
+
+            dt *
+            this.animationSpeed;
+
+
+        // =====================================================
+        // LOOP
+        // =====================================================
+
+        if (
+            this.animationTime >=
+            this.tf
+        ) {
+
+            this.animationTime =
+                this.t0;
+
+        }
+
+
+        // =====================================================
+        // OBTÉM ESTADO FÍSICO
+        // =====================================================
+
+        const state =
+            this.getStateAtTime(
+                this.animationTime
+            );
+
+
+        // =====================================================
+        // ÚNICA FONTE DE VERDADE
+        // =====================================================
+
+        this.currentTime =
+            this.animationTime;
+
+
+        this.currentTheta =
+            state.theta;
+
+
+        this.currentOmega =
+            state.omega;
     }
 
 
@@ -592,21 +718,27 @@ class SimplePendulum {
                 name: "theta0",
                 label: "θ₀ (graus)",
 
-                // =================================================
                 // SLIDER EM GRAUS
-                // =================================================
 
                 min: -170,
                 max: 170,
                 step: 1,
 
-                // Graus -> radianos
-                convertToInternal: v =>
-                    v * Math.PI / 180,
+                // graus -> radianos
 
-                // Radianos -> graus
+                convertToInternal: v =>
+
+                    v *
+                    Math.PI /
+                    180,
+
+                // radianos -> graus
+
                 convertToDisplay: v =>
-                    v * 180 / Math.PI
+
+                    v *
+                    180 /
+                    Math.PI
             },
 
             {
@@ -621,7 +753,7 @@ class SimplePendulum {
 
 
         // =====================================================
-        // CRIA SLIDERS
+        // SLIDERS
         // =====================================================
 
         configs.forEach(
@@ -695,10 +827,6 @@ class SimplePendulum {
                     ];
 
 
-                // =================================================
-                // CONVERSÃO
-                // =================================================
-
                 if (
                     config.convertToDisplay
                 ) {
@@ -756,9 +884,9 @@ class SimplePendulum {
                             );
 
 
-                        // -----------------------------------------
-                        // CONVERTE GRAUS -> RADIANOS
-                        // -----------------------------------------
+                        // =========================================
+                        // GRAUS -> RADIANOS
+                        // =========================================
 
                         if (
                             config.convertToInternal
@@ -771,18 +899,18 @@ class SimplePendulum {
                         }
 
 
-                        // -----------------------------------------
-                        // BACKEND
-                        // -----------------------------------------
+                        // =========================================
+                        // ATUALIZA BACKEND
+                        // =========================================
 
                         this.params[
                             config.name
                         ] = v;
 
 
-                        // -----------------------------------------
-                        // VALOR VISUAL
-                        // -----------------------------------------
+                        // =========================================
+                        // DISPLAY
+                        // =========================================
 
                         value.innerText =
                             Number(
@@ -790,12 +918,11 @@ class SimplePendulum {
                             ).toFixed(2);
 
 
-                        // -----------------------------------------
+                        // =========================================
                         // RECALCULA
-                        // -----------------------------------------
+                        // =========================================
 
                         this.solve();
-
 
                         this.draw();
 
@@ -833,7 +960,7 @@ class SimplePendulum {
 
 
         // =====================================================
-        // INSERE DEPOIS DO CANVAS
+        // INSERE
         // =====================================================
 
         this.canvas.parentNode.insertBefore(
@@ -856,19 +983,19 @@ class SimplePendulum {
 
 
         // =====================================================
-        // PEGA O MESMO ESTADO USADO PELO RESTO DA ANIMAÇÃO
+        // ATENÇÃO:
+        //
+        // NÃO busca mais theta no array.
+        //
+        // Usa diretamente o estado atual da animação.
         // =====================================================
-
-        const state =
-            this.getAnimatedState();
-
 
         const theta =
-            state.theta;
+            this.currentTheta;
 
 
         // =====================================================
-        // POSIÇÃO DO PIVÔ
+        // PIVÔ
         // =====================================================
 
         const px =
@@ -880,7 +1007,7 @@ class SimplePendulum {
 
 
         // =====================================================
-        // COMPRIMENTO VISUAL
+        // COMPRIMENTO
         // =====================================================
 
         const L =
@@ -888,7 +1015,7 @@ class SimplePendulum {
 
 
         // =====================================================
-        // POSIÇÃO DA MASSA
+        // MASSA
         // =====================================================
 
         const bx =
@@ -1099,6 +1226,13 @@ class SimplePendulum {
 
         // =====================================================
         // ARCO DO ÂNGULO
+        //
+        // IMPORTANTE:
+        //
+        // O arco é calculado diretamente a partir de theta,
+        // que também determinou bx/by.
+        //
+        // Portanto não existe outro estado angular.
         // =====================================================
 
         if (
@@ -1113,11 +1247,33 @@ class SimplePendulum {
                 2;
 
 
-            ctx.beginPath();
-
-
             const arcRadius =
                 55;
+
+
+            // =================================================
+            // DIREÇÃO DA VERTICAL
+            // =================================================
+
+            const verticalAngle =
+                Math.PI / 2;
+
+
+            // =================================================
+            // DIREÇÃO DA HASTE
+            // =================================================
+
+            const pendulumAngle =
+                Math.atan2(
+
+                    bx - px,
+
+                    by - py
+
+                );
+
+
+            ctx.beginPath();
 
 
             ctx.arc(
@@ -1127,11 +1283,12 @@ class SimplePendulum {
 
                 arcRadius,
 
-                Math.PI / 2,
+                verticalAngle,
 
-                Math.PI / 2 + theta,
+                verticalAngle +
+                pendulumAngle,
 
-                theta < 0
+                pendulumAngle < 0
 
             );
 
@@ -1140,9 +1297,7 @@ class SimplePendulum {
 
 
             // =================================================
-            // TEXTO DO THETA
-            //
-            // USA EXATAMENTE O MESMO theta do pêndulo
+            // TEXTO
             // =================================================
 
             ctx.fillStyle =
@@ -1162,8 +1317,8 @@ class SimplePendulum {
 
 
             const labelAngle =
-                Math.PI / 2 +
-                theta / 2;
+                verticalAngle +
+                pendulumAngle / 2;
 
 
             const labelRadius =
@@ -1198,7 +1353,7 @@ class SimplePendulum {
 
 
         // =====================================================
-        // COMPRIMENTO L
+        // COMPRIMENTO
         // =====================================================
 
         ctx.fillStyle =
@@ -1255,13 +1410,8 @@ class SimplePendulum {
             this.params;
 
 
-        // =====================================================
-        // POSIÇÃO
-        // =====================================================
-
         const x = 15;
         const y = 15;
-
 
         const width = 275;
         const height = 125;
@@ -1305,25 +1455,21 @@ class SimplePendulum {
 
 
         // =====================================================
-        // ESTADO ANIMADO
+        // ESTADO ATUAL
         //
-        // É o mesmo estado usado pelo pêndulo.
+        // MESMO ESTADO DO PÊNDULO
         // =====================================================
 
-        const state =
-            this.getAnimatedState();
-
-
         const theta =
-            state.theta;
+            this.currentTheta;
 
 
         const omega =
-            state.omega;
+            this.currentOmega;
 
 
         const t =
-            state.t;
+            this.currentTime;
 
 
         // =====================================================
@@ -1558,13 +1704,20 @@ class SimplePendulum {
 
 
         // =====================================================
-        // DADOS ATÉ O FRAME ATUAL
+        // NÚMERO DE PONTOS
         // =====================================================
 
         const n =
             Math.min(
 
-                Math.floor(this.frame) + 1,
+                Math.floor(
+                    (
+                        this.currentTime /
+                        this.tf
+                    )
+                    *
+                    this.time.length
+                ) + 1,
 
                 this.time.length
 
@@ -2178,69 +2331,46 @@ class SimplePendulum {
             true;
 
 
-        const loop = () => {
-
-            if (!this.running)
-                return;
+        this.lastTimestamp =
+            null;
 
 
-            // =================================================
-            // AVANÇA FRAME
-            // =================================================
-            //
-            // frame é FRACIONÁRIO quando necessário.
-            //
-            // Exemplo:
-            //
-            // frame = 12.35
-            //
-            // O estado será interpolado entre:
-            //
-            // theta[12]
-            // e
-            // theta[13]
-            //
-            // =================================================
+        const loop =
+            timestamp => {
 
-            this.frame +=
-                this.animationSpeed;
+                if (!this.running)
+                    return;
 
 
-            // =================================================
-            // LOOP
-            // =================================================
+                // =================================================
+                // ATUALIZA O ESTADO FÍSICO
+                // =================================================
 
-            if (
-                this.frame >=
-                this.time.length - 1
-            ) {
-
-                this.frame = 0;
-
-            }
+                this.updateAnimationState(
+                    timestamp
+                );
 
 
-            // =================================================
-            // DESENHA
-            // =================================================
+                // =================================================
+                // DESENHA
+                // =================================================
 
-            this.draw();
+                this.draw();
 
 
-            requestAnimationFrame(
-                loop
-            );
-        };
+                // =================================================
+                // PRÓXIMO FRAME
+                // =================================================
+
+                requestAnimationFrame(
+                    loop
+                );
+            };
 
 
         // =====================================================
-        // PRIMEIRO DESENHO
+        // PRIMEIRO FRAME
         // =====================================================
-
-        this.frame = 0;
-
-        this.draw();
-
 
         requestAnimationFrame(
             loop
@@ -2256,6 +2386,9 @@ class SimplePendulum {
 
         this.running =
             false;
+
+        this.lastTimestamp =
+            null;
     }
 
 
@@ -2294,10 +2427,7 @@ class SimplePendulum {
 
 
                     // =================================================
-                    // theta0:
-                    //
-                    // backend = radianos
-                    // slider   = graus
+                    // BACKEND RAD -> SLIDER GRAUS
                     // =================================================
 
                     if (
