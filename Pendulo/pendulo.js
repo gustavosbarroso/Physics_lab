@@ -103,8 +103,7 @@ class SimplePendulum {
 
             omega,
 
-            -
-            (
+            -(
                 p.g /
                 p.L
             )
@@ -677,7 +676,6 @@ class SimplePendulum {
             Math.min(
 
                 this.frame,
-
                 this.theta.length - 1
 
             );
@@ -771,15 +769,18 @@ class SimplePendulum {
 
             ctx.beginPath();
 
+
             ctx.moveTo(
                 x,
                 py
             );
 
+
             ctx.lineTo(
                 x - 10,
                 py + 10
             );
+
 
             ctx.stroke();
         }
@@ -913,99 +914,6 @@ class SimplePendulum {
 
 
         // =====================================================
-        // ARCO DO ÂNGULO
-        // =====================================================
-
-        if (
-            Math.abs(theta) > 0.01
-        ) {
-
-            ctx.strokeStyle =
-                "#d32f2f";
-
-
-            ctx.lineWidth = 2;
-
-
-            ctx.beginPath();
-
-
-            const arcRadius = 55;
-
-
-            ctx.arc(
-
-                px,
-                py,
-
-                arcRadius,
-
-                Math.PI / 2,
-
-                Math.PI / 2 + theta,
-
-                theta < 0
-
-            );
-
-
-            ctx.stroke();
-
-
-            // -------------------------------------------------
-            // θ
-            // -------------------------------------------------
-
-            ctx.fillStyle =
-                "#d32f2f";
-
-
-            ctx.font =
-                "bold 16px Arial";
-
-
-            ctx.textAlign =
-                "center";
-
-
-            ctx.textBaseline =
-                "middle";
-
-
-            const labelAngle =
-                Math.PI / 2 +
-                theta / 2;
-
-
-            const labelRadius =
-                75;
-
-
-            const tx =
-                px +
-                labelRadius *
-                Math.cos(
-                    labelAngle
-                );
-
-
-            const ty =
-                py +
-                labelRadius *
-                Math.sin(
-                    labelAngle
-                );
-
-
-            ctx.fillText(
-                "θ",
-                tx,
-                ty
-            );
-        }
-
-
-        // =====================================================
         // COMPRIMENTO L
         // =====================================================
 
@@ -1070,7 +978,6 @@ class SimplePendulum {
         const x = 20;
         const y = 20;
 
-
         const width = 315;
         const height = 150;
 
@@ -1119,7 +1026,6 @@ class SimplePendulum {
             Math.min(
 
                 this.frame,
-
                 this.theta.length - 1
 
             );
@@ -1363,7 +1269,6 @@ class SimplePendulum {
             Math.min(
 
                 this.frame + 1,
-
                 this.time.length
 
             );
@@ -1402,7 +1307,6 @@ class SimplePendulum {
                 Math.max(
 
                     maxAbs,
-
                     Math.abs(value)
 
                 );
@@ -1417,7 +1321,6 @@ class SimplePendulum {
                 Math.max(
 
                     maxAbs,
-
                     Math.abs(value)
 
                 );
