@@ -11,53 +11,87 @@
     <style>
 
         body {
+
             margin: 0;
+
             background: #f2f2f2;
+
             font-family: Arial, sans-serif;
+
         }
 
         .container {
+
             width: 1250px;
+
             margin: 25px auto;
+
             background: white;
+
             padding: 20px;
+
             box-sizing: border-box;
+
         }
 
         h1 {
+
             text-align: center;
+
             margin-top: 0;
+
         }
 
         #canvas {
+
             width: 100%;
+
             height: auto;
+
             border: 1px solid #ccc;
+
             display: block;
+
         }
 
         #pendulum-controls {
-            margin-top: 20px;
-            padding: 10px 40px 20px 40px;
+
+            width: 900px;
+
+            margin: 20px auto;
+
+            font-family: Arial;
+
         }
 
         .control-row {
+
             display: flex;
+
             align-items: center;
+
             margin-bottom: 8px;
+
         }
 
         .control-label {
-            width: 100px;
+
+            width: 120px;
+
         }
 
         .control-slider {
+
             flex: 1;
+
         }
 
         .control-value {
-            width: 70px;
+
+            width: 80px;
+
             margin-left: 10px;
+
         }
 
     </style>
@@ -89,17 +123,28 @@
     const canvas =
         document.getElementById("canvas");
 
+
     const pendulo =
         new SimplePendulum(
+
             canvas,
+
             {
+
                 g: 9.81,
+
                 L: 1.0,
+
                 m: 1.0,
-                b: 0.05,
-                theta0: 0.8,
+
+                b: 0.5,
+
+                theta0: 1.0,
+
                 omega0: 0.0
+
             }
+
         );
 
 </script>
