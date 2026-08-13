@@ -595,6 +595,7 @@ class DoublePendulum {
                 min: -170,
                 max: 170,
                 step: 1,
+
                 convert: v =>
                     v * Math.PI / 180
             },
@@ -605,6 +606,7 @@ class DoublePendulum {
                 min: -170,
                 max: 170,
                 step: 1,
+
                 convert: v =>
                     v * Math.PI / 180
             },
@@ -800,7 +802,6 @@ class DoublePendulum {
             Math.min(
 
                 this.frame,
-
                 this.theta1.length - 1
 
             );
@@ -874,6 +875,7 @@ class DoublePendulum {
 
         ctx.beginPath();
 
+
         ctx.arc(
             x0,
             y0,
@@ -881,6 +883,7 @@ class DoublePendulum {
             0,
             2 * Math.PI
         );
+
 
         ctx.fill();
 
@@ -898,15 +901,18 @@ class DoublePendulum {
 
         ctx.beginPath();
 
+
         ctx.moveTo(
             x0,
             y0
         );
 
+
         ctx.lineTo(
             x1,
             y1
         );
+
 
         ctx.stroke();
 
@@ -917,15 +923,18 @@ class DoublePendulum {
 
         ctx.beginPath();
 
+
         ctx.moveTo(
             x1,
             y1
         );
 
+
         ctx.lineTo(
             x2,
             y2
         );
+
 
         ctx.stroke();
 
@@ -940,6 +949,7 @@ class DoublePendulum {
 
         ctx.beginPath();
 
+
         ctx.arc(
             x1,
             y1,
@@ -947,6 +957,7 @@ class DoublePendulum {
             0,
             2 * Math.PI
         );
+
 
         ctx.fill();
 
@@ -961,6 +972,7 @@ class DoublePendulum {
 
         ctx.beginPath();
 
+
         ctx.arc(
             x2,
             y2,
@@ -968,6 +980,7 @@ class DoublePendulum {
             0,
             2 * Math.PI
         );
+
 
         ctx.fill();
 
@@ -1021,6 +1034,7 @@ class DoublePendulum {
 
         ctx.beginPath();
 
+
         ctx.arc(
 
             x0,
@@ -1034,6 +1048,7 @@ class DoublePendulum {
             Math.PI / 2
 
         );
+
 
         ctx.stroke();
 
@@ -1066,7 +1081,6 @@ class DoublePendulum {
             Math.min(
 
                 this.frame,
-
                 this.theta1.length - 1
 
             );
@@ -1143,12 +1157,14 @@ class DoublePendulum {
 
 
             if (k === start)
+
                 ctx.moveTo(
                     x2,
                     y2
                 );
 
             else
+
                 ctx.lineTo(
                     x2,
                     y2
@@ -1177,7 +1193,6 @@ class DoublePendulum {
             Math.min(
 
                 this.frame,
-
                 this.theta1.length - 1
 
             );
@@ -1203,11 +1218,15 @@ class DoublePendulum {
             this.time[index] || 0;
 
 
-        const x = 20;
-        const y = 20;
+        // =====================================================
+        // TAMANHO DO BOX
+        // =====================================================
 
-        const width = 330;
-        const height = 175;
+        const x = 15;
+        const y = 15;
+
+        const width = 285;
+        const height = 135;
 
 
         ctx.save();
@@ -1229,15 +1248,15 @@ class DoublePendulum {
 
         ctx.beginPath();
 
-        ctx.roundRect(
 
+        ctx.roundRect(
             x,
             y,
             width,
             height,
             8
-
         );
+
 
         ctx.fill();
 
@@ -1252,7 +1271,7 @@ class DoublePendulum {
             "black";
 
         ctx.font =
-            "bold 14px Arial";
+            "bold 13px Arial";
 
         ctx.textAlign =
             "left";
@@ -1265,8 +1284,8 @@ class DoublePendulum {
 
             "Pêndulo duplo",
 
-            x + 12,
-            y + 20
+            x + 10,
+            y + 18
 
         );
 
@@ -1276,41 +1295,56 @@ class DoublePendulum {
         // =====================================================
 
         ctx.font =
-            "12px Arial";
+            "11px Arial";
 
 
         ctx.fillText(
+
             `L₁ = ${p.L1.toFixed(2)} m`,
-            x + 12,
-            y + 44
+
+            x + 10,
+            y + 40
+
         );
 
 
         ctx.fillText(
+
             `m₁ = ${p.m1.toFixed(2)} kg`,
-            x + 12,
-            y + 62
+
+            x + 10,
+            y + 56
+
         );
 
 
         ctx.fillText(
+
             `θ₁ = ${(theta1 * 180 / Math.PI).toFixed(2)}°`,
-            x + 12,
-            y + 80
+
+            x + 10,
+            y + 72
+
         );
 
 
         ctx.fillText(
+
             `ω₁ = ${omega1.toFixed(3)} rad/s`,
-            x + 12,
-            y + 98
+
+            x + 10,
+            y + 88
+
         );
 
 
         ctx.fillText(
+
             `θ₂ = ${(theta2 * 180 / Math.PI).toFixed(2)}°`,
-            x + 12,
-            y + 116
+
+            x + 10,
+            y + 104
+
         );
 
 
@@ -1319,48 +1353,56 @@ class DoublePendulum {
         // =====================================================
 
         const col2 =
-            x + 175;
+            x + 145;
 
 
         ctx.fillText(
+
             `L₂ = ${p.L2.toFixed(2)} m`,
+
             col2,
-            y + 44
+            y + 40
+
         );
 
 
         ctx.fillText(
+
             `m₂ = ${p.m2.toFixed(2)} kg`,
+
             col2,
-            y + 62
+            y + 56
+
         );
 
 
         ctx.fillText(
+
             `ω₂ = ${omega2.toFixed(3)} rad/s`,
+
             col2,
-            y + 80
+            y + 72
+
         );
 
 
         ctx.fillText(
+
             `g = ${p.g.toFixed(2)} m/s²`,
+
             col2,
-            y + 98
+            y + 88
+
         );
 
 
         ctx.fillText(
+
             `t = ${t.toFixed(2)} s`,
-            col2,
-            y + 116
-        );
 
-
-        ctx.fillText(
-            `N = ${this.N}`,
             col2,
-            y + 134
+            y + 104
+
         );
 
 
@@ -1376,6 +1418,7 @@ class DoublePendulum {
 
         const graphX =
             700;
+
 
         const graphY =
             70;
@@ -1410,6 +1453,7 @@ class DoublePendulum {
             "Resposta do pêndulo",
 
             graphX + 80,
+
             graphY - 20
 
         );
@@ -1444,7 +1488,6 @@ class DoublePendulum {
             Math.min(
 
                 this.frame + 1,
-
                 this.time.length
 
             );
@@ -1506,15 +1549,18 @@ class DoublePendulum {
 
         ctx.beginPath();
 
+
         ctx.moveTo(
             graphX,
             centerY
         );
 
+
         ctx.lineTo(
             graphX + graphW,
             centerY
         );
+
 
         ctx.stroke();
 
@@ -1567,15 +1613,18 @@ class DoublePendulum {
 
                 ctx.beginPath();
 
+
                 ctx.moveTo(
                     graphX,
                     y
                 );
 
+
                 ctx.lineTo(
                     graphX + graphW,
                     y
                 );
+
 
                 ctx.stroke();
             }
@@ -1633,15 +1682,18 @@ class DoublePendulum {
 
             ctx.beginPath();
 
+
             ctx.moveTo(
                 x,
                 centerY - 5
             );
 
+
             ctx.lineTo(
                 x,
                 centerY + 5
             );
+
 
             ctx.stroke();
 
