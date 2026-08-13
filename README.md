@@ -14,11 +14,7 @@ https://gustavosbarroso.github.io/Physics_lab/
 
 Link da simulação: https://gustavosbarroso.github.io/Physics_lab/Pendulo/
 
-Pêndulo simples não linear:
 
-$$
-\theta'' + \frac{g}{L}\sin(\theta) = 0
-$$
 
 ---
 
@@ -29,41 +25,6 @@ Link da simulação:https://gustavosbarroso.github.io/Physics_lab/DoublePendulum
 
 
 O pêndulo duplo é um sistema não linear acoplado que apresenta comportamento caótico e forte dependência das condições iniciais.
-
-$$
-\theta_1'' =
-\frac{
--g(2m_1+m_2)\sin(\theta_1)
--m_2g\sin(\theta_1-2\theta_2)
--2m_2\sin(\theta_1-\theta_2)
-\left[
-\theta_2'^2L_2+
-\theta_1'^2L_1\cos(\theta_1-\theta_2)
-\right]
-}{
-L_1
-\left[
-2m_1+m_2-m_2\cos(2\theta_1-2\theta_2)
-\right]
-}
-$$
-
-$$
-\theta_2'' =
-\frac{
-2\sin(\theta_1-\theta_2)
-\left[
-\theta_1'^2L_1(m_1+m_2)
-+g(m_1+m_2)\cos(\theta_1)
-+\theta_2'^2L_2m_2\cos(\theta_1-\theta_2)
-\right]
-}{
-L_2
-\left[
-2m_1+m_2-m_2\cos(2\theta_1-2\theta_2)
-\right]
-}
-$$
 
 
 ---
@@ -82,22 +43,6 @@ Simulação da propagação e interferência de ondas utilizando perturbações 
 
 Link da simulação: https://gustavosbarroso.github.io/Physics_lab/RLC/
 
-Circuito RLC submetido a uma tensão externa:
-
-$$
-V(t)=V_0\cos(\omega t)
-$$
-
-$$
-q'(t)=i
-$$
-
-$$
-i'(t)=
-\frac{V_0}{L}\cos(\omega t)
--\frac{R}{L}i
--\frac{1}{LC}q
-$$
 
 ---
 
@@ -106,11 +51,8 @@ $$
 
 Link da simulação:https://gustavosbarroso.github.io/Physics_lab/RC/
 
-Comportamento de carga e descarga de um capacitor em um circuito RC:
+Comportamento de carga e descarga de um capacitor em um circuito RC.
 
-$$
-q' + \frac{1}{RC}q = 0
-$$
 
 ---
 
@@ -118,17 +60,7 @@ $$
 <img width="746" height="591" alt="image" src="https://github.com/user-attachments/assets/8ed96d43-7a60-4898-8795-297ef6d11896" />
 Link: https://gustavosbarroso.github.io/Physics_lab/KapitizaPendulum/
 
-Pêndulo com ponto de suspensão oscilando verticalmente:
-
-$$
-y(t)=A\cos(\omega t)
-$$
-
-$$
-L\theta'' =
--g\sin(\theta)
-+A\omega^2\cos(\omega t)\sin(\theta)
-$$
+Pêndulo com ponto de suspensão oscilando verticalmente
 
 ---
 
@@ -137,19 +69,7 @@ $$
 
 Link da simulação:https://gustavosbarroso.github.io/Physics_lab/InvertedPendulum/
 
-Pêndulo com ponto de suspensão oscilando horizontalmente:
-
-$$
-x(t)=A\cos(\omega t)
-$$
-
-$$
-\theta'' =
--\frac{g}{L}\sin(\theta)
-+\frac{A}{L}\cos(\theta)\cos(\omega t)
-$$
-
----
+Pêndulo com ponto de suspensão oscilando horizontalmente.
 
 ## 🧮 MÉTODOS NUMÉRICOS
 
