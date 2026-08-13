@@ -1,52 +1,74 @@
 <!DOCTYPE html>
+
 <html lang="pt-BR">
 
 <head>
+
     <meta charset="UTF-8">
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <title>Pêndulo Simples</title>
 
     <style>
 
-        * {
-            box-sizing: border-box;
-        }
-
         body {
+
             margin: 0;
+
             background: #f2f2f2;
+
             font-family: Arial, sans-serif;
+
         }
 
         .container {
+
             width: 1250px;
+
             max-width: 95%;
+
             margin: 25px auto;
+
             background: white;
+
             padding: 20px;
+
         }
 
         h1 {
+
             text-align: center;
+
             margin-top: 0;
-            margin-bottom: 20px;
+
         }
 
         #canvas {
+
             width: 100%;
+
             height: auto;
+
             display: block;
+
             border: 1px solid #ccc;
+
             background: white;
+
         }
 
         #pendulum-controls {
+
             width: 900px;
+
             max-width: 100%;
+
             margin: 20px auto;
-            font-family: Arial, sans-serif;
+
         }
 
     </style>
@@ -63,62 +85,29 @@
         <canvas
             id="canvas"
             width="1250"
-            height="650">
-        </canvas>
+            height="650"
+        ></canvas>
 
         <div id="pendulum-controls"></div>
 
     </div>
 
 
-    <!-- IMPORTANTE:
-         pendulo.js precisa estar na MESMA pasta deste HTML -->
+    <!--
+        IMPORTANTE:
+
+        pendulo.js precisa estar na mesma pasta
+        deste index.html.
+    -->
+
     <script src="./pendulo.js"></script>
 
 
     <script>
 
-        // Verifica se o JavaScript foi carregado
-
-        if (typeof SimplePendulum === "undefined") {
-
-            document.body.innerHTML = `
-                <div style="
-                    font-family: Arial;
-                    padding: 40px;
-                    color: #b00020;
-                ">
-                    <h2>Erro ao carregar pendulo.js</h2>
-
-                    <p>
-                        O navegador não encontrou a classe
-                        <strong>SimplePendulum</strong>.
-                    </p>
-
-                    <p>
-                        Verifique se <strong>pendulo.js</strong>
-                        está na mesma pasta que este arquivo HTML.
-                    </p>
-                </div>
-            `;
-
-            throw new Error(
-                "SimplePendulum não foi encontrado. Verifique pendulo.js."
-            );
-        }
-
-
-        // =====================================================
-        // CANVAS
-        // =====================================================
-
         const canvas =
             document.getElementById("canvas");
 
-
-        // =====================================================
-        // CRIA PÊNDULO
-        // =====================================================
 
         const pendulo =
             new SimplePendulum(
@@ -126,6 +115,7 @@
                 canvas,
 
                 {
+
                     g: 9.81,
 
                     L: 1.0,
@@ -133,6 +123,7 @@
                     theta0: 1.0,
 
                     omega0: 0.0
+
                 }
 
             );
