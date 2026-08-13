@@ -57,10 +57,6 @@ class RLCircuit {
         this.x0 = 120;
         this.x1 = 620;
 
-        /*
-         * O circuito foi deslocado para baixo para deixar
-         * uma região livre no topo para informações.
-         */
         this.y0 = 180;
         this.y1 = 440;
 
@@ -614,8 +610,6 @@ class RLCircuit {
         const y1 = this.y1;
 
 
-        // Lado esquerdo
-
         for (
             let y = y0;
             y <= y1;
@@ -628,8 +622,6 @@ class RLCircuit {
             });
         }
 
-
-        // Parte inferior
 
         for (
             let x = x0;
@@ -644,8 +636,6 @@ class RLCircuit {
         }
 
 
-        // Lado direito
-
         for (
             let y = y1;
             y >= y0;
@@ -658,8 +648,6 @@ class RLCircuit {
             });
         }
 
-
-        // Parte superior
 
         for (
             let x = x1;
@@ -851,12 +839,12 @@ class RLCircuit {
         ctx.fillText(
             "L",
             (coilStart + coilEnd) / 2,
-            y0 - 22
+            y0 - 28
         );
 
 
         // =====================================================
-        // LADO DIREITO - PARTE SUPERIOR
+        // LADO DIREITO
         // =====================================================
 
         ctx.beginPath();
@@ -879,7 +867,6 @@ class RLCircuit {
         // =====================================================
 
         ctx.lineWidth = 4;
-
 
         ctx.beginPath();
 
@@ -952,7 +939,7 @@ class RLCircuit {
 
 
         // =====================================================
-        // FIO INFERIOR ATÉ O RESISTOR
+        // FIO INFERIOR
         // =====================================================
 
         ctx.beginPath();
@@ -1036,7 +1023,7 @@ class RLCircuit {
 
 
         // =====================================================
-        // FIO DO RESISTOR ATÉ A FONTE
+        // FIO ATÉ A FONTE
         // =====================================================
 
         ctx.beginPath();
@@ -1087,8 +1074,13 @@ class RLCircuit {
         const sourceY =
             this.sourceY;
 
-        const radius =
-            38;
+        /*
+         * Fonte ligeiramente menor:
+         * antes: 38 px
+         * agora: 32 px
+         */
+
+        const radius = 32;
 
 
         // =====================================================
@@ -1155,13 +1147,13 @@ class RLCircuit {
 
             const x =
                 sourceX -
-                25 +
-                50 * t;
+                21 +
+                42 * t;
 
 
             const y =
                 sourceY +
-                12 *
+                10 *
                 Math.sin(
                     2 *
                     Math.PI *
@@ -1277,14 +1269,6 @@ class RLCircuit {
         const p =
             this.params;
 
-
-        /*
-         * HUD colocado no topo.
-         *
-         * O circuito começa em y = 180,
-         * então o HUD não interfere mais
-         * com os elementos.
-         */
 
         const x = 20;
         const y = 20;
@@ -2010,9 +1994,7 @@ class RLCircuit {
         );
 
 
-        // =====================================================
-        // FUNDO
-        // =====================================================
+        // Fundo
 
         ctx.fillStyle =
             "white";
@@ -2026,30 +2008,22 @@ class RLCircuit {
         );
 
 
-        // =====================================================
-        // CIRCUITO
-        // =====================================================
+        // Circuito
 
         this.drawCircuit(ctx);
 
 
-        // =====================================================
-        // ELÉTRONS
-        // =====================================================
+        // Elétrons
 
         this.drawElectrons(ctx);
 
 
-        // =====================================================
-        // INFORMAÇÕES
-        // =====================================================
+        // Informações
 
         this.drawHUD(ctx);
 
 
-        // =====================================================
-        // GRÁFICO
-        // =====================================================
+        // Gráfico
 
         this.drawGraph(ctx);
     }
