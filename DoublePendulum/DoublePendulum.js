@@ -22,9 +22,16 @@ class DoublePendulum {
             // =================================================
             // ÂNGULOS SEMPRE EM RADIANOS
             // =================================================
+            //
+            // θ₁₀ = 60° = 1.0471975511965976 rad
+            // θ₂₀ = 30° = 0.5235987755982988 rad
+            //
+            // Não existe conversão de graus durante
+            // a simulação.
+            // =================================================
 
-            theta10: Math.PI / 3,
-            theta20: Math.PI / 6,
+            theta10: 1.0471975511965976,
+            theta20: 0.5235987755982988,
 
             omega10: 0.0,
             omega20: 0.0,
@@ -96,6 +103,14 @@ class DoublePendulum {
 
     f(state, t) {
 
+        // =====================================================
+        // ESTADO
+        // =====================================================
+        //
+        // θ₁ e θ₂ em radianos
+        // ω₁ e ω₂ em rad/s
+        // =====================================================
+
         const theta1 = state[0];
         const omega1 = state[1];
 
@@ -112,9 +127,16 @@ class DoublePendulum {
 
         const g = p.g;
 
+        // =====================================================
+        // DIFERENÇA ANGULAR
+        // =====================================================
+
         const delta =
             theta1 - theta2;
 
+        // =====================================================
+        // DENOMINADOR DA ACELERAÇÃO ANGULAR 1
+        // =====================================================
 
         const denominator1 =
             L1 *
@@ -127,6 +149,9 @@ class DoublePendulum {
                 )
             );
 
+        // =====================================================
+        // ACELERAÇÃO ANGULAR 1
+        // =====================================================
 
         const acceleration1 =
 
@@ -170,6 +195,9 @@ class DoublePendulum {
 
             denominator1;
 
+        // =====================================================
+        // DENOMINADOR DA ACELERAÇÃO ANGULAR 2
+        // =====================================================
 
         const denominator2 =
             L2 *
@@ -182,6 +210,9 @@ class DoublePendulum {
                 )
             );
 
+        // =====================================================
+        // ACELERAÇÃO ANGULAR 2
+        // =====================================================
 
         const acceleration2 =
 
@@ -223,6 +254,9 @@ class DoublePendulum {
 
             denominator2;
 
+        // =====================================================
+        // SISTEMA
+        // =====================================================
 
         return [
 
@@ -307,6 +341,9 @@ class DoublePendulum {
         const h =
             (b - a) / N;
 
+        // =====================================================
+        // ESTADO INICIAL
+        // =====================================================
 
         let state = [
 
@@ -318,7 +355,6 @@ class DoublePendulum {
 
         ];
 
-
         this.time = [];
 
         this.theta1 = [];
@@ -327,6 +363,9 @@ class DoublePendulum {
         this.theta2 = [];
         this.omega2 = [];
 
+        // =====================================================
+        // INTEGRAÇÃO
+        // =====================================================
 
         for (
             let n = 0;
@@ -337,6 +376,9 @@ class DoublePendulum {
             const t =
                 a + n * h;
 
+            // =================================================
+            // SALVA ESTADO
+            // =================================================
 
             this.time.push(t);
 
@@ -356,10 +398,8 @@ class DoublePendulum {
                 state[3]
             );
 
-
             if (n === N)
                 break;
-
 
             // =================================================
             // k1
@@ -376,7 +416,6 @@ class DoublePendulum {
                     h
 
                 );
-
 
             // =================================================
             // k2
@@ -406,7 +445,6 @@ class DoublePendulum {
 
                 );
 
-
             // =================================================
             // k3
             // =================================================
@@ -435,7 +473,6 @@ class DoublePendulum {
 
                 );
 
-
             // =================================================
             // k4
             // =================================================
@@ -457,7 +494,6 @@ class DoublePendulum {
                     h
 
                 );
-
 
             // =================================================
             // ATUALIZA ESTADO
@@ -509,20 +545,16 @@ class DoublePendulum {
                 "double-pendulum-controls"
             );
 
-
         if (old)
             old.remove();
-
 
         const container =
             document.createElement(
                 "div"
             );
 
-
         container.id =
             "double-pendulum-controls";
-
 
         container.style.width =
             "900px";
@@ -533,7 +565,6 @@ class DoublePendulum {
         container.style.fontFamily =
             "Arial";
 
-
         // =====================================================
         // TÍTULO
         // =====================================================
@@ -543,18 +574,14 @@ class DoublePendulum {
                 "h2"
             );
 
-
         title.innerText =
             "Parâmetros do pêndulo duplo";
-
 
         container.appendChild(
             title
         );
 
-
         this.sliders = {};
-
 
         // =====================================================
         // CONFIGURAÇÕES
@@ -603,7 +630,11 @@ class DoublePendulum {
             },
 
             // =================================================
-            // θ₁₀ EM RADIANOS
+            // θ₁₀
+            // =================================================
+            //
+            // Unidade: radianos
+            // Intervalo: -π até π
             // =================================================
 
             {
@@ -615,7 +646,11 @@ class DoublePendulum {
             },
 
             // =================================================
-            // θ₂₀ EM RADIANOS
+            // θ₂₀
+            // =================================================
+            //
+            // Unidade: radianos
+            // Intervalo: -π até π
             // =================================================
 
             {
@@ -626,6 +661,10 @@ class DoublePendulum {
                 step: 0.01
             },
 
+            // =================================================
+            // ω₁₀
+            // =================================================
+
             {
                 name: "omega10",
                 label: "ω₁₀ (rad/s)",
@@ -633,6 +672,10 @@ class DoublePendulum {
                 max: 10,
                 step: 0.1
             },
+
+            // =================================================
+            // ω₂₀
+            // =================================================
 
             {
                 name: "omega20",
@@ -643,7 +686,6 @@ class DoublePendulum {
             }
 
         ];
-
 
         // =====================================================
         // CRIA SLIDERS
@@ -657,7 +699,6 @@ class DoublePendulum {
                         "div"
                     );
 
-
                 row.style.display =
                     "flex";
 
@@ -666,7 +707,6 @@ class DoublePendulum {
 
                 row.style.marginBottom =
                     "8px";
-
 
                 // =================================================
                 // LABEL
@@ -677,14 +717,11 @@ class DoublePendulum {
                         "label"
                     );
 
-
                 label.style.width =
                     "110px";
 
-
                 label.innerText =
                     config.label;
-
 
                 // =================================================
                 // SLIDER
@@ -695,10 +732,8 @@ class DoublePendulum {
                         "input"
                     );
 
-
                 slider.type =
                     "range";
-
 
                 slider.min =
                     config.min;
@@ -709,7 +744,6 @@ class DoublePendulum {
                 slider.step =
                     config.step;
 
-
                 // =================================================
                 // VALOR INICIAL
                 // =================================================
@@ -719,14 +753,11 @@ class DoublePendulum {
                         config.name
                     ];
 
-
                 slider.value =
                     initialValue;
 
-
                 slider.style.flex =
                     "1";
-
 
                 // =================================================
                 // VALOR MOSTRADO
@@ -737,19 +768,16 @@ class DoublePendulum {
                         "span"
                     );
 
-
                 value.style.width =
                     "80px";
 
                 value.style.marginLeft =
                     "10px";
 
-
                 value.innerText =
                     Number(
                         initialValue
-                    ).toFixed(2);
-
+                    ).toFixed(3);
 
                 // =================================================
                 // EVENTO
@@ -759,28 +787,25 @@ class DoublePendulum {
                     "input",
                     () => {
 
+                        // =========================================
+                        // O SLIDER JÁ ESTÁ EM RADIANOS
+                        // =========================================
+
                         const v =
                             Number(
                                 slider.value
                             );
 
-
-                        // =========================================
-                        // O VALOR JÁ ESTÁ EM RADIANOS
-                        // =========================================
-
                         this.params[
                             config.name
                         ] = v;
 
-
                         // =========================================
-                        // MOSTRA O VALOR EM RADIANOS
+                        // MOSTRA RADIANOS
                         // =========================================
 
                         value.innerText =
-                            v.toFixed(2);
-
+                            v.toFixed(3);
 
                         // =========================================
                         // RECALCULA
@@ -792,7 +817,6 @@ class DoublePendulum {
 
                     }
                 );
-
 
                 row.appendChild(
                     label
@@ -806,11 +830,9 @@ class DoublePendulum {
                     value
                 );
 
-
                 container.appendChild(
                     row
                 );
-
 
                 this.sliders[
                     config.name
@@ -819,7 +841,6 @@ class DoublePendulum {
 
             }
         );
-
 
         // =====================================================
         // INSERE DEPOIS DO CANVAS
@@ -850,22 +871,20 @@ class DoublePendulum {
 
             );
 
-
         // =====================================================
         // ÂNGULOS DA SOLUÇÃO
         // =====================================================
 
+        // θ₁ e θ₂ em radianos
+
         const theta1 =
             this.theta1[index] || 0;
-
 
         const theta2 =
             this.theta2[index] || 0;
 
-
         const p =
             this.params;
-
 
         // =====================================================
         // POSIÇÕES
@@ -874,10 +893,8 @@ class DoublePendulum {
         const x0 =
             this.pivotX;
 
-
         const y0 =
             this.pivotY;
-
 
         const x1 =
             x0 +
@@ -885,13 +902,11 @@ class DoublePendulum {
             p.L1 *
             Math.sin(theta1);
 
-
         const y1 =
             y0 +
             this.scale *
             p.L1 *
             Math.cos(theta1);
-
 
         const x2 =
             x1 +
@@ -899,13 +914,11 @@ class DoublePendulum {
             p.L2 *
             Math.sin(theta2);
 
-
         const y2 =
             y1 +
             this.scale *
             p.L2 *
             Math.cos(theta2);
-
 
         // =====================================================
         // ÁREA DE DESENHO
@@ -913,14 +926,12 @@ class DoublePendulum {
 
         ctx.save();
 
-
         // =====================================================
         // PONTO DE SUSPENSÃO
         // =====================================================
 
         ctx.fillStyle =
             "black";
-
 
         ctx.beginPath();
 
@@ -934,7 +945,6 @@ class DoublePendulum {
 
         ctx.fill();
 
-
         // =====================================================
         // PRIMEIRA HASTE
         // =====================================================
@@ -944,7 +954,6 @@ class DoublePendulum {
 
         ctx.lineWidth =
             5;
-
 
         ctx.beginPath();
 
@@ -959,7 +968,6 @@ class DoublePendulum {
         );
 
         ctx.stroke();
-
 
         // =====================================================
         // SEGUNDA HASTE
@@ -979,14 +987,12 @@ class DoublePendulum {
 
         ctx.stroke();
 
-
         // =====================================================
         // MASSA 1
         // =====================================================
 
         ctx.fillStyle =
             "#1976d2";
-
 
         ctx.beginPath();
 
@@ -1000,14 +1006,12 @@ class DoublePendulum {
 
         ctx.fill();
 
-
         // =====================================================
         // MASSA 2
         // =====================================================
 
         ctx.fillStyle =
             "#f57c00";
-
 
         ctx.beginPath();
 
@@ -1020,7 +1024,6 @@ class DoublePendulum {
         );
 
         ctx.fill();
-
 
         // =====================================================
         // CENTRO DA MASSA 1
@@ -1038,13 +1041,11 @@ class DoublePendulum {
         ctx.textBaseline =
             "middle";
 
-
         ctx.fillText(
             "m₁",
             x1,
             y1
         );
-
 
         // =====================================================
         // CENTRO DA MASSA 2
@@ -1055,20 +1056,6 @@ class DoublePendulum {
             x2,
             y2
         );
-
-
-        // =====================================================
-        // INDICADOR VISUAL DE θ REMOVIDO
-        //
-        // Os ângulos continuam disponíveis:
-        // - no HUD;
-        // - no gráfico;
-        // - nas arrays theta1/theta2;
-        // - na solução RK4.
-        //
-        // Todos em radianos.
-        // =====================================================
-
 
         ctx.restore();
     }
@@ -1088,17 +1075,13 @@ class DoublePendulum {
 
             );
 
-
         if (index < 1)
             return;
-
 
         const p =
             this.params;
 
-
         ctx.save();
-
 
         ctx.lineWidth =
             1;
@@ -1106,9 +1089,7 @@ class DoublePendulum {
         ctx.strokeStyle =
             "#dddddd";
 
-
         ctx.beginPath();
-
 
         const start =
             Math.max(
@@ -1116,20 +1097,19 @@ class DoublePendulum {
                 index - 300
             );
 
-
         for (
             let k = start;
             k <= index;
             k++
         ) {
 
+            // θ₁ e θ₂ em radianos
+
             const theta1 =
                 this.theta1[k];
 
-
             const theta2 =
                 this.theta2[k];
-
 
             const x1 =
                 this.pivotX +
@@ -1137,13 +1117,11 @@ class DoublePendulum {
                 p.L1 *
                 Math.sin(theta1);
 
-
             const y1 =
                 this.pivotY +
                 this.scale *
                 p.L1 *
                 Math.cos(theta1);
-
 
             const x2 =
                 x1 +
@@ -1151,13 +1129,11 @@ class DoublePendulum {
                 p.L2 *
                 Math.sin(theta2);
 
-
             const y2 =
                 y1 +
                 this.scale *
                 p.L2 *
                 Math.cos(theta2);
-
 
             if (k === start)
 
@@ -1174,9 +1150,7 @@ class DoublePendulum {
                 );
         }
 
-
         ctx.stroke();
-
 
         ctx.restore();
     }
@@ -1191,7 +1165,6 @@ class DoublePendulum {
         const p =
             this.params;
 
-
         const index =
             Math.min(
 
@@ -1200,26 +1173,20 @@ class DoublePendulum {
 
             );
 
-
         const theta1 =
             this.theta1[index] || 0;
-
 
         const omega1 =
             this.omega1[index] || 0;
 
-
         const theta2 =
             this.theta2[index] || 0;
-
 
         const omega2 =
             this.omega2[index] || 0;
 
-
         const t =
             this.time[index] || 0;
-
 
         // =====================================================
         // HUD
@@ -1231,9 +1198,7 @@ class DoublePendulum {
         const width = 270;
         const height = 125;
 
-
         ctx.save();
-
 
         // =====================================================
         // CAIXA
@@ -1247,7 +1212,6 @@ class DoublePendulum {
 
         ctx.lineWidth =
             1;
-
 
         ctx.beginPath();
 
@@ -1265,7 +1229,6 @@ class DoublePendulum {
 
         ctx.stroke();
 
-
         // =====================================================
         // TÍTULO
         // =====================================================
@@ -1282,7 +1245,6 @@ class DoublePendulum {
         ctx.textBaseline =
             "alphabetic";
 
-
         ctx.fillText(
 
             "Pêndulo duplo",
@@ -1292,14 +1254,12 @@ class DoublePendulum {
 
         );
 
-
         // =====================================================
         // TEXTO
         // =====================================================
 
         ctx.font =
             "9px Arial";
-
 
         // =====================================================
         // COLUNA 1
@@ -1311,13 +1271,11 @@ class DoublePendulum {
             y + 36
         );
 
-
         ctx.fillText(
             `m₁ = ${p.m1.toFixed(2)} kg`,
             x + 9,
             y + 51
         );
-
 
         ctx.fillText(
             `θ₁₀ = ${p.theta10.toFixed(3)} rad`,
@@ -1325,20 +1283,17 @@ class DoublePendulum {
             y + 66
         );
 
-
         ctx.fillText(
             `θ₁ = ${theta1.toFixed(3)} rad`,
             x + 9,
             y + 81
         );
 
-
         ctx.fillText(
             `ω₁ = ${omega1.toFixed(2)} rad/s`,
             x + 9,
             y + 96
         );
-
 
         // =====================================================
         // COLUNA 2
@@ -1347,13 +1302,11 @@ class DoublePendulum {
         const col2 =
             x + 135;
 
-
         ctx.fillText(
             `L₂ = ${p.L2.toFixed(2)} m`,
             col2,
             y + 36
         );
-
 
         ctx.fillText(
             `m₂ = ${p.m2.toFixed(2)} kg`,
@@ -1361,13 +1314,11 @@ class DoublePendulum {
             y + 51
         );
 
-
         ctx.fillText(
             `θ₂₀ = ${p.theta20.toFixed(3)} rad`,
             col2,
             y + 66
         );
-
 
         ctx.fillText(
             `θ₂ = ${theta2.toFixed(3)} rad`,
@@ -1375,17 +1326,11 @@ class DoublePendulum {
             y + 81
         );
 
-
         ctx.fillText(
             `ω₂ = ${omega2.toFixed(2)} rad/s`,
             col2,
             y + 96
         );
-
-
-        // =====================================================
-        // INFORMAÇÕES EXTRAS
-        // =====================================================
 
         ctx.fillText(
             `g = ${p.g.toFixed(2)} m/s²`,
@@ -1393,13 +1338,11 @@ class DoublePendulum {
             y + 111
         );
 
-
         ctx.fillText(
             `t = ${t.toFixed(2)} s`,
             x + 9,
             y + 111
         );
-
 
         ctx.restore();
     }
@@ -1414,20 +1357,16 @@ class DoublePendulum {
         const graphX =
             700;
 
-
         const graphY =
             70;
-
 
         const graphW =
             this.canvas.width -
             graphX -
             40;
 
-
         const graphH =
             400;
-
 
         // =====================================================
         // TÍTULO
@@ -1442,7 +1381,6 @@ class DoublePendulum {
         ctx.textAlign =
             "left";
 
-
         ctx.fillText(
 
             "Resposta do pêndulo",
@@ -1452,7 +1390,6 @@ class DoublePendulum {
             graphY - 20
 
         );
-
 
         // =====================================================
         // BORDA
@@ -1464,7 +1401,6 @@ class DoublePendulum {
         ctx.lineWidth =
             1;
 
-
         ctx.strokeRect(
 
             graphX,
@@ -1473,7 +1409,6 @@ class DoublePendulum {
             graphH
 
         );
-
 
         // =====================================================
         // DADOS
@@ -1487,17 +1422,14 @@ class DoublePendulum {
 
             );
 
-
         if (n < 2)
             return;
-
 
         // =====================================================
         // ESCALA
         // =====================================================
 
         let maxAbs = 0;
-
 
         for (
             let k = 0;
@@ -1521,13 +1453,10 @@ class DoublePendulum {
                 );
         }
 
-
         if (maxAbs < 0.001)
             maxAbs = 1;
 
-
         maxAbs *= 1.15;
-
 
         // =====================================================
         // EIXO ZERO
@@ -1537,28 +1466,22 @@ class DoublePendulum {
             graphY +
             graphH / 2;
 
-
         ctx.strokeStyle =
             "#999";
 
-
         ctx.beginPath();
-
 
         ctx.moveTo(
             graphX,
             centerY
         );
 
-
         ctx.lineTo(
             graphX + graphW,
             centerY
         );
 
-
         ctx.stroke();
-
 
         // =====================================================
         // TICKS Y
@@ -1567,13 +1490,11 @@ class DoublePendulum {
         const ticks =
             6;
 
-
         ctx.font =
             "11px Arial";
 
         ctx.fillStyle =
             "black";
-
 
         for (
             let k = -ticks;
@@ -1585,7 +1506,6 @@ class DoublePendulum {
                 maxAbs *
                 k /
                 ticks;
-
 
             const y =
                 centerY -
@@ -1599,69 +1519,45 @@ class DoublePendulum {
                     graphH / 2
                 );
 
-
-            // =================================================
-            // GRID
-            // =================================================
-
             if (k !== 0) {
 
                 ctx.strokeStyle =
                     "#eeeeee";
 
-
                 ctx.beginPath();
-
 
                 ctx.moveTo(
                     graphX,
                     y
                 );
 
-
                 ctx.lineTo(
                     graphX + graphW,
                     y
                 );
 
-
                 ctx.stroke();
             }
-
-
-            // =================================================
-            // TICK
-            // =================================================
 
             ctx.strokeStyle =
                 "#777";
 
-
             ctx.beginPath();
-
 
             ctx.moveTo(
                 graphX - 5,
                 y
             );
 
-
             ctx.lineTo(
                 graphX + 5,
                 y
             );
 
-
             ctx.stroke();
-
-
-            // =================================================
-            // VALOR EM RADIANOS
-            // =================================================
 
             ctx.fillStyle =
                 "black";
-
 
             ctx.fillText(
 
@@ -1673,14 +1569,12 @@ class DoublePendulum {
             );
         }
 
-
         // =====================================================
         // TICKS X
         // =====================================================
 
         const xTicks =
             5;
-
 
         for (
             let k = 0;
@@ -1693,39 +1587,31 @@ class DoublePendulum {
                 k /
                 xTicks;
 
-
             const x =
                 graphX +
                 graphW *
                 k /
                 xTicks;
 
-
             ctx.strokeStyle =
                 "#777";
 
-
             ctx.beginPath();
-
 
             ctx.moveTo(
                 x,
                 centerY - 5
             );
 
-
             ctx.lineTo(
                 x,
                 centerY + 5
             );
 
-
             ctx.stroke();
-
 
             ctx.fillStyle =
                 "black";
-
 
             ctx.fillText(
 
@@ -1740,7 +1626,6 @@ class DoublePendulum {
             );
         }
 
-
         // =====================================================
         // LABEL X
         // =====================================================
@@ -1750,7 +1635,6 @@ class DoublePendulum {
 
         ctx.textAlign =
             "center";
-
 
         ctx.fillText(
 
@@ -1765,13 +1649,11 @@ class DoublePendulum {
 
         );
 
-
         // =====================================================
         // LABEL Y
         // =====================================================
 
         ctx.save();
-
 
         ctx.translate(
 
@@ -1782,15 +1664,12 @@ class DoublePendulum {
 
         );
 
-
         ctx.rotate(
             -Math.PI / 2
         );
 
-
         ctx.textAlign =
             "center";
-
 
         ctx.fillText(
 
@@ -1801,9 +1680,7 @@ class DoublePendulum {
 
         );
 
-
         ctx.restore();
-
 
         // =====================================================
         // CONVERSÃO X
@@ -1821,7 +1698,6 @@ class DoublePendulum {
 
                     graphW;
             };
-
 
         // =====================================================
         // CONVERSÃO Y
@@ -1842,7 +1718,6 @@ class DoublePendulum {
                     );
             };
 
-
         // =====================================================
         // θ₁(t)
         // =====================================================
@@ -1853,9 +1728,7 @@ class DoublePendulum {
         ctx.strokeStyle =
             "#1976d2";
 
-
         ctx.beginPath();
-
 
         for (
             let k = 0;
@@ -1868,12 +1741,10 @@ class DoublePendulum {
                     this.time[k]
                 );
 
-
             const y =
                 convertY(
                     this.theta1[k]
                 );
-
 
             if (k === 0)
 
@@ -1890,9 +1761,7 @@ class DoublePendulum {
                 );
         }
 
-
         ctx.stroke();
-
 
         // =====================================================
         // θ₂(t)
@@ -1901,9 +1770,7 @@ class DoublePendulum {
         ctx.strokeStyle =
             "#f57c00";
 
-
         ctx.beginPath();
-
 
         for (
             let k = 0;
@@ -1916,12 +1783,10 @@ class DoublePendulum {
                     this.time[k]
                 );
 
-
             const y =
                 convertY(
                     this.theta2[k]
                 );
-
 
             if (k === 0)
 
@@ -1938,9 +1803,7 @@ class DoublePendulum {
                 );
         }
 
-
         ctx.stroke();
-
 
         // =====================================================
         // LEGENDA
@@ -1952,10 +1815,8 @@ class DoublePendulum {
         ctx.textAlign =
             "left";
 
-
         ctx.fillStyle =
             "#1976d2";
-
 
         ctx.fillText(
 
@@ -1969,10 +1830,8 @@ class DoublePendulum {
 
         );
 
-
         ctx.fillStyle =
             "#f57c00";
-
 
         ctx.fillText(
 
@@ -1997,14 +1856,11 @@ class DoublePendulum {
         const ctx =
             this.ctx;
 
-
         const w =
             this.canvas.width;
 
-
         const h =
             this.canvas.height;
-
 
         // =====================================================
         // LIMPA
@@ -2017,7 +1873,6 @@ class DoublePendulum {
             h
         );
 
-
         // =====================================================
         // FUNDO
         // =====================================================
@@ -2025,14 +1880,12 @@ class DoublePendulum {
         ctx.fillStyle =
             "white";
 
-
         ctx.fillRect(
             0,
             0,
             w,
             h
         );
-
 
         // =====================================================
         // TRAJETÓRIA
@@ -2042,7 +1895,6 @@ class DoublePendulum {
             ctx
         );
 
-
         // =====================================================
         // PÊNDULO
         // =====================================================
@@ -2051,7 +1903,6 @@ class DoublePendulum {
             ctx
         );
 
-
         // =====================================================
         // HUD
         // =====================================================
@@ -2059,7 +1910,6 @@ class DoublePendulum {
         this.drawHUD(
             ctx
         );
-
 
         // =====================================================
         // GRÁFICO
@@ -2080,26 +1930,25 @@ class DoublePendulum {
         if (this.running)
             return;
 
-
         this.running = true;
-
 
         const loop = () => {
 
             if (!this.running)
                 return;
 
+            // =================================================
+            // DESENHA
+            // =================================================
 
             this.draw();
 
-
             // =================================================
-            // AVANÇA TEMPO
+            // AVANÇA
             // =================================================
 
             this.frame +=
                 this.animationSpeed;
-
 
             if (
                 this.frame >=
@@ -2107,15 +1956,12 @@ class DoublePendulum {
             ) {
 
                 this.frame = 0;
-
             }
-
 
             requestAnimationFrame(
                 loop
             );
         };
-
 
         loop();
     }
@@ -2147,6 +1993,9 @@ class DoublePendulum {
 
         };
 
+        // =====================================================
+        // ATUALIZA SLIDERS
+        // =====================================================
 
         Object.keys(
             newParams
@@ -2157,21 +2006,20 @@ class DoublePendulum {
                     this.sliders[key]
                 ) {
 
-                    // =========================================
-                    // TODOS OS VALORES, INCLUSIVE θ,
-                    // JÁ ESTÃO EM RADIANOS
-                    // =========================================
-
-                    const value =
-                        newParams[key];
-
+                    // Todos os parâmetros angulares
+                    // já estão em radianos.
 
                     this.sliders[key].value =
-                        value;
+                        newParams[key];
+
                 }
+
             }
         );
 
+        // =====================================================
+        // RECALCULA
+        // =====================================================
 
         this.solve();
 
