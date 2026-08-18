@@ -1,10 +1,9 @@
 class MassChainInterference {
 
-    constructor(canvasChain, options = {}) {
+    constructor(canvas, options = {}) {
 
-        this.canvasChain = canvasChain;
-
-        this.ctxChain = canvasChain.getContext("2d");
+        this.canvas = canvas;
+        this.ctx = canvas.getContext("2d");
 
         // ==========================
         // PARÂMETROS
@@ -65,11 +64,10 @@ class MassChainInterference {
 
     inicial() {
 
-        let N = this.params.N;
+        const N = this.params.N;
 
-        let x0 = new Array(N).fill(0);
-        let v0 = new Array(N).fill(0);
-
+        const x0 = new Array(N).fill(0);
+        const v0 = new Array(N).fill(0);
 
         for (let i = 0; i < N; i++) {
 
@@ -88,7 +86,6 @@ class MassChainInterference {
             );
         }
 
-
         return [
             ...x0,
             ...v0
@@ -102,16 +99,13 @@ class MassChainInterference {
 
     f(state, t) {
 
-        let N = this.params.N;
-        let k = this.params.k;
-        let m = this.params.m;
+        const N = this.params.N;
+        const k = this.params.k;
+        const m = this.params.m;
 
+        const x = state.slice(0, N);
 
-        let x = state.slice(0, N);
-
-
-        let a = new Array(N).fill(0);
-
+        const a = new Array(N).fill(0);
 
         for (let i = 0; i < N; i++) {
 
@@ -142,7 +136,6 @@ class MassChainInterference {
                     );
             }
         }
-
 
         return [
             ...state.slice(N),
@@ -189,53 +182,45 @@ class MassChainInterference {
 
     RK4() {
 
-        let a = 0;
-        let b = 20;
-        let steps = 400;
+        const a = 0;
+        const b = 20;
+        const steps = 400;
 
-        let h = (b - a) / steps;
-
+        const h = (b - a) / steps;
 
         let state = this.inicial();
-
 
         this.time = [];
         this.x = [];
         this.v = [];
 
-
         for (let i = 0; i <= steps; i++) {
 
-            let t = a + i * h;
-
+            const t = a + i * h;
 
             this.time.push(t);
 
-
-            let N = this.params.N;
-
+            const N = this.params.N;
 
             this.x.push(
                 state.slice(0, N)
             );
 
-
             this.v.push(
                 state.slice(N)
             );
-
 
             if (i === steps)
                 break;
 
 
-            let k1 = this.mul(
+            const k1 = this.mul(
                 this.f(state, t),
                 h
             );
 
 
-            let k2 = this.mul(
+            const k2 = this.mul(
                 this.f(
                     this.add(
                         state,
@@ -247,7 +232,7 @@ class MassChainInterference {
             );
 
 
-            let k3 = this.mul(
+            const k3 = this.mul(
                 this.f(
                     this.add(
                         state,
@@ -259,7 +244,7 @@ class MassChainInterference {
             );
 
 
-            let k4 = this.mul(
+            const k4 = this.mul(
                 this.f(
                     this.add(state, k3),
                     t + h
@@ -293,6 +278,8 @@ class MassChainInterference {
         this.RK4();
 
         this.frame = 0;
+
+        this.draw();
     }
 
 
@@ -300,12 +287,10 @@ class MassChainInterference {
     // DESENHO DA CADEIA
     // ==========================
 
-    drawChain() {
+    draw() {
 
-        let ctx = this.ctxChain;
-
-        let canvas = this.canvasChain;
-
+        const ctx = this.ctx;
+        const canvas = this.canvas;
 
         ctx.clearRect(
             0,
@@ -315,7 +300,12 @@ class MassChainInterference {
         );
 
 
-        let N = this.params.N;
+        const N = this.params.N;
+
+        const currentX = this.x[this.frame];
+
+        if (!currentX)
+            return;
 
 
         // ==========================
@@ -324,7 +314,6 @@ class MassChainInterference {
 
         ctx.fillStyle = "black";
         ctx.font = "18px Arial";
-
         ctx.textAlign = "center";
 
         ctx.fillText(
@@ -335,23 +324,21 @@ class MassChainInterference {
 
 
         // ==========================
-        // EIXOS
+        // GEOMETRIA
         // ==========================
 
-        let marginLeft = 40;
-        let marginRight = 20;
+        const marginLeft = 40;
+        const marginRight = 20;
 
-        let width =
+        const width =
             canvas.width -
             marginLeft -
             marginRight;
 
-
-        let centerY =
+        const centerY =
             canvas.height / 2;
 
-
-        let scaleX =
+        const scaleX =
             width / Math.max(N - 1, 1);
 
 
@@ -378,39 +365,24 @@ class MassChainInterference {
 
 
         // ==========================
-        // POSIÇÕES ATUAIS
-        // ==========================
-
-        let currentX =
-            this.x[this.frame];
-
-
-        if (!currentX)
-            return;
-
-
-        // ==========================
-        // LINHA DA CADEIA
+        // CADEIA
         // ==========================
 
         ctx.strokeStyle = "black";
         ctx.fillStyle = "black";
         ctx.lineWidth = 2;
 
-
         ctx.beginPath();
-
 
         for (let i = 0; i < N; i++) {
 
-            let px =
+            const px =
                 marginLeft +
                 i * scaleX;
 
-            let py =
+            const py =
                 centerY -
                 currentX[i] * 80;
-
 
             if (i === 0)
                 ctx.moveTo(px, py);
@@ -418,24 +390,22 @@ class MassChainInterference {
                 ctx.lineTo(px, py);
         }
 
-
         ctx.stroke();
 
 
         // ==========================
-        // MASSAS INDIVIDUAIS
+        // MASSAS
         // ==========================
 
         for (let i = 0; i < N; i++) {
 
-            let px =
+            const px =
                 marginLeft +
                 i * scaleX;
 
-            let py =
+            const py =
                 centerY -
                 currentX[i] * 80;
-
 
             ctx.beginPath();
 
@@ -470,49 +440,39 @@ class MassChainInterference {
     // ANIMAÇÃO
     // ==========================
 
-    draw() {
-
-        this.drawChain();
-    }
-
-
     iniciar() {
 
         if (this.running)
             return;
 
-
         this.running = true;
-
 
         const loop = () => {
 
             if (!this.running)
                 return;
 
-
             this.draw();
 
-
             this.frame++;
-
 
             if (
                 this.frame >=
                 this.time.length
             ) {
-
                 this.frame = 0;
             }
-
 
             requestAnimationFrame(loop);
         };
 
-
         loop();
     }
 
+
+    // ==========================
+    // PARAR
+    // ==========================
 
     parar() {
 
@@ -530,7 +490,6 @@ class MassChainInterference {
             ...this.params,
             ...newParams
         };
-
 
         this.solve();
     }
