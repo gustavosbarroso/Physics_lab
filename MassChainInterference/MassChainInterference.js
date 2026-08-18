@@ -40,6 +40,10 @@ class MassChainInterference {
         this.frame = 0;
 
 
+        // ==========================
+        // RESOLVE
+        // ==========================
+
         this.solve();
     }
 
@@ -69,6 +73,7 @@ class MassChainInterference {
         const x0 = new Array(N).fill(0);
         const v0 = new Array(N).fill(0);
 
+
         for (let i = 0; i < N; i++) {
 
             x0[i] += this.gauss(
@@ -85,6 +90,7 @@ class MassChainInterference {
                 this.params.A2
             );
         }
+
 
         return [
             ...x0,
@@ -103,28 +109,33 @@ class MassChainInterference {
         const k = this.params.k;
         const m = this.params.m;
 
+
         const x = state.slice(0, N);
 
         const a = new Array(N).fill(0);
 
+
         for (let i = 0; i < N; i++) {
 
+            // Primeira massa
             if (i === 0) {
 
                 a[i] =
                     (k / m) *
                     (x[i + 1] - x[i]);
-
             }
 
+
+            // Última massa
             else if (i === N - 1) {
 
                 a[i] =
                     (k / m) *
                     (x[i - 1] - x[i]);
-
             }
 
+
+            // Massas internas
             else {
 
                 a[i] =
@@ -136,6 +147,7 @@ class MassChainInterference {
                     );
             }
         }
+
 
         return [
             ...state.slice(N),
@@ -151,7 +163,8 @@ class MassChainInterference {
     add(a, b) {
 
         return a.map(
-            (value, i) => value + b[i]
+            (value, i) =>
+                value + b[i]
         );
     }
 
@@ -159,7 +172,8 @@ class MassChainInterference {
     mul(a, scalar) {
 
         return a.map(
-            value => value * scalar
+            value =>
+                value * scalar
         );
     }
 
@@ -184,87 +198,136 @@ class MassChainInterference {
 
         const a = 0;
         const b = 20;
+
         const steps = 400;
 
-        const h = (b - a) / steps;
+        const h =
+            (b - a) / steps;
 
-        let state = this.inicial();
+
+        let state =
+            this.inicial();
+
 
         this.time = [];
         this.x = [];
         this.v = [];
 
+
         for (let i = 0; i <= steps; i++) {
 
-            const t = a + i * h;
+            const t =
+                a + i * h;
+
 
             this.time.push(t);
 
-            const N = this.params.N;
 
+            const N =
+                this.params.N;
+
+
+            // Posição
             this.x.push(
                 state.slice(0, N)
             );
 
+
+            // Velocidade
             this.v.push(
                 state.slice(N)
             );
+
 
             if (i === steps)
                 break;
 
 
-            const k1 = this.mul(
-                this.f(state, t),
-                h
-            );
+            // ======================
+            // k1
+            // ======================
 
-
-            const k2 = this.mul(
-                this.f(
-                    this.add(
-                        state,
-                        this.mul(k1, 0.5)
-                    ),
-                    t + h / 2
-                ),
-                h
-            );
-
-
-            const k3 = this.mul(
-                this.f(
-                    this.add(
-                        state,
-                        this.mul(k2, 0.5)
-                    ),
-                    t + h / 2
-                ),
-                h
-            );
-
-
-            const k4 = this.mul(
-                this.f(
-                    this.add(state, k3),
-                    t + h
-                ),
-                h
-            );
-
-
-            state = this.add(
-                state,
+            const k1 =
                 this.mul(
-                    this.add4(
-                        k1,
-                        k2,
-                        k3,
-                        k4
+                    this.f(state, t),
+                    h
+                );
+
+
+            // ======================
+            // k2
+            // ======================
+
+            const k2 =
+                this.mul(
+                    this.f(
+                        this.add(
+                            state,
+                            this.mul(
+                                k1,
+                                0.5
+                            )
+                        ),
+                        t + h / 2
                     ),
-                    1 / 6
-                )
-            );
+                    h
+                );
+
+
+            // ======================
+            // k3
+            // ======================
+
+            const k3 =
+                this.mul(
+                    this.f(
+                        this.add(
+                            state,
+                            this.mul(
+                                k2,
+                                0.5
+                            )
+                        ),
+                        t + h / 2
+                    ),
+                    h
+                );
+
+
+            // ======================
+            // k4
+            // ======================
+
+            const k4 =
+                this.mul(
+                    this.f(
+                        this.add(
+                            state,
+                            k3
+                        ),
+                        t + h
+                    ),
+                    h
+                );
+
+
+            // ======================
+            // NOVO ESTADO
+            // ======================
+
+            state =
+                this.add(
+                    state,
+                    this.mul(
+                        this.add4(
+                            k1,
+                            k2,
+                            k3,
+                            k4
+                        ),
+                        1 / 6
+                    )
+                );
         }
     }
 
@@ -278,19 +341,25 @@ class MassChainInterference {
         this.RK4();
 
         this.frame = 0;
-
-        this.draw();
     }
 
 
     // ==========================
-    // DESENHO DA CADEIA
+    // DESENHO
     // ==========================
 
     draw() {
 
-        const ctx = this.ctx;
-        const canvas = this.canvas;
+        const ctx =
+            this.ctx;
+
+        const canvas =
+            this.canvas;
+
+
+        // ==========================
+        // LIMPA CANVAS
+        // ==========================
 
         ctx.clearRect(
             0,
@@ -300,9 +369,13 @@ class MassChainInterference {
         );
 
 
-        const N = this.params.N;
+        const N =
+            this.params.N;
 
-        const currentX = this.x[this.frame];
+
+        const currentX =
+            this.x[this.frame];
+
 
         if (!currentX)
             return;
@@ -312,9 +385,15 @@ class MassChainInterference {
         // TÍTULO
         // ==========================
 
-        ctx.fillStyle = "black";
-        ctx.font = "18px Arial";
-        ctx.textAlign = "center";
+        ctx.fillStyle =
+            "black";
+
+        ctx.font =
+            "18px Arial";
+
+        ctx.textAlign =
+            "center";
+
 
         ctx.fillText(
             "Interferência em cadeia de massas",
@@ -335,19 +414,29 @@ class MassChainInterference {
             marginLeft -
             marginRight;
 
+
         const centerY =
             canvas.height / 2;
 
+
         const scaleX =
-            width / Math.max(N - 1, 1);
+            width /
+            Math.max(
+                N - 1,
+                1
+            );
 
 
         // ==========================
         // LINHA DE EQUILÍBRIO
         // ==========================
 
-        ctx.strokeStyle = "#cccccc";
-        ctx.lineWidth = 1;
+        ctx.strokeStyle =
+            "#cccccc";
+
+        ctx.lineWidth =
+            1;
+
 
         ctx.beginPath();
 
@@ -357,7 +446,8 @@ class MassChainInterference {
         );
 
         ctx.lineTo(
-            canvas.width - marginRight,
+            canvas.width -
+            marginRight,
             centerY
         );
 
@@ -368,11 +458,18 @@ class MassChainInterference {
         // CADEIA
         // ==========================
 
-        ctx.strokeStyle = "black";
-        ctx.fillStyle = "black";
-        ctx.lineWidth = 2;
+        ctx.strokeStyle =
+            "black";
+
+        ctx.fillStyle =
+            "black";
+
+        ctx.lineWidth =
+            2;
+
 
         ctx.beginPath();
+
 
         for (let i = 0; i < N; i++) {
 
@@ -380,15 +477,28 @@ class MassChainInterference {
                 marginLeft +
                 i * scaleX;
 
+
             const py =
                 centerY -
                 currentX[i] * 80;
 
-            if (i === 0)
-                ctx.moveTo(px, py);
-            else
-                ctx.lineTo(px, py);
+
+            if (i === 0) {
+
+                ctx.moveTo(
+                    px,
+                    py
+                );
+
+            } else {
+
+                ctx.lineTo(
+                    px,
+                    py
+                );
+            }
         }
+
 
         ctx.stroke();
 
@@ -403,11 +513,14 @@ class MassChainInterference {
                 marginLeft +
                 i * scaleX;
 
+
             const py =
                 centerY -
                 currentX[i] * 80;
 
+
             ctx.beginPath();
+
 
             ctx.arc(
                 px,
@@ -417,6 +530,7 @@ class MassChainInterference {
                 2 * Math.PI
             );
 
+
             ctx.fill();
         }
 
@@ -425,8 +539,12 @@ class MassChainInterference {
         // TEMPO
         // ==========================
 
-        ctx.font = "13px Arial";
-        ctx.textAlign = "right";
+        ctx.font =
+            "13px Arial";
+
+        ctx.textAlign =
+            "right";
+
 
         ctx.fillText(
             `t = ${this.time[this.frame].toFixed(2)} s`,
@@ -445,26 +563,37 @@ class MassChainInterference {
         if (this.running)
             return;
 
-        this.running = true;
+
+        this.running =
+            true;
+
 
         const loop = () => {
 
             if (!this.running)
                 return;
 
+
             this.draw();
 
+
             this.frame++;
+
 
             if (
                 this.frame >=
                 this.time.length
             ) {
+
                 this.frame = 0;
             }
 
-            requestAnimationFrame(loop);
+
+            requestAnimationFrame(
+                loop
+            );
         };
+
 
         loop();
     }
@@ -476,7 +605,8 @@ class MassChainInterference {
 
     parar() {
 
-        this.running = false;
+        this.running =
+            false;
     }
 
 
@@ -484,13 +614,39 @@ class MassChainInterference {
     // ATUALIZAR PARÂMETROS
     // ==========================
 
-    atualizarParametros(newParams) {
+    atualizarParametros(
+        newParams
+    ) {
 
         this.params = {
             ...this.params,
             ...newParams
         };
 
+
         this.solve();
+
+
+        // Redesenha imediatamente
+        this.draw();
     }
 }
+
+
+// ==========================================
+// INICIALIZAÇÃO
+// ==========================================
+
+const canvas =
+    document.getElementById(
+        "massChainCanvas"
+    );
+
+
+const massChain =
+    new MassChainInterference(
+        canvas
+    );
+
+
+massChain.iniciar();
