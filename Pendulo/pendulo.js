@@ -11,11 +11,11 @@ class SimplePendulum {
 
         this.params = {
 
-            g: 9.81,          // gravidade [m/s²]
-            L: 1.0,           // comprimento [m]
+            g: 9.81,
+            L: 1.0,
 
-            theta0: 0.5,      // posição angular inicial [rad]
-            omega0: 0.0,      // velocidade angular inicial [rad/s]
+            theta0: 0.5,
+            omega0: 0.0,
 
             ...options
         };
@@ -50,7 +50,10 @@ class SimplePendulum {
         // =====================================================
 
         this.pivotX = 300;
-        this.pivotY = 130;
+
+        // Pêndulo deslocado para baixo para evitar
+        // sobreposição com o HUD
+        this.pivotY = 210;
 
         this.pendulumLength = 260;
 
@@ -1175,20 +1178,6 @@ class SimplePendulum {
 
             col2,
             y + 114
-
-        );
-
-
-        ctx.font =
-            "bold 11px Arial";
-
-
-        ctx.fillText(
-
-            "Aproximação de pequeno ângulo",
-
-            x + 12,
-            y + 132
 
         );
 
