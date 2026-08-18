@@ -308,6 +308,7 @@ class MassChainInterference {
 
         let canvas = this.canvasChain;
 
+
         ctx.clearRect(
             0,
             0,
@@ -319,7 +320,9 @@ class MassChainInterference {
         let N = this.params.N;
 
 
-        // Título
+        // ==========================
+        // TÍTULO
+        // ==========================
 
         ctx.fillStyle = "black";
         ctx.font = "18px Arial";
@@ -333,7 +336,9 @@ class MassChainInterference {
         );
 
 
-        // Eixos
+        // ==========================
+        // EIXOS
+        // ==========================
 
         let marginLeft = 40;
         let marginRight = 20;
@@ -352,7 +357,9 @@ class MassChainInterference {
             width / Math.max(N - 1, 1);
 
 
-        // Linha de equilíbrio
+        // ==========================
+        // LINHA DE EQUILÍBRIO
+        // ==========================
 
         ctx.strokeStyle = "#cccccc";
         ctx.lineWidth = 1;
@@ -372,7 +379,9 @@ class MassChainInterference {
         ctx.stroke();
 
 
-        // Massas
+        // ==========================
+        // POSIÇÕES ATUAIS
+        // ==========================
 
         let currentX =
             this.x[this.frame];
@@ -381,6 +390,10 @@ class MassChainInterference {
         if (!currentX)
             return;
 
+
+        // ==========================
+        // LINHA DA CADEIA
+        // ==========================
 
         ctx.strokeStyle = "black";
         ctx.fillStyle = "black";
@@ -411,7 +424,9 @@ class MassChainInterference {
         ctx.stroke();
 
 
-        // Massas individuais
+        // ==========================
+        // MASSAS INDIVIDUAIS
+        // ==========================
 
         for (let i = 0; i < N; i++) {
 
@@ -438,20 +453,16 @@ class MassChainInterference {
         }
 
 
-        // Labels
+        // ==========================
+        // TEMPO
+        // ==========================
 
         ctx.font = "13px Arial";
-        ctx.textAlign = "left";
-
-        ctx.fillText(
-            `N = ${N}`,
-            10,
-            canvas.height - 10
-        );
+        ctx.textAlign = "right";
 
         ctx.fillText(
             `t = ${this.time[this.frame].toFixed(2)} s`,
-            canvas.width - 100,
+            canvas.width - 10,
             canvas.height - 10
         );
     }
@@ -494,7 +505,9 @@ class MassChainInterference {
             marginBottom;
 
 
-        // Título
+        // ==========================
+        // TÍTULO
+        // ==========================
 
         ctx.fillStyle = "black";
         ctx.font = "18px Arial";
@@ -507,7 +520,9 @@ class MassChainInterference {
         );
 
 
-        // Eixos
+        // ==========================
+        // EIXOS
+        // ==========================
 
         ctx.strokeStyle = "black";
         ctx.lineWidth = 1;
@@ -533,6 +548,10 @@ class MassChainInterference {
         ctx.stroke();
 
 
+        // ==========================
+        // MASSA CENTRAL
+        // ==========================
+
         let central =
             Math.floor(this.params.N / 2);
 
@@ -547,7 +566,9 @@ class MassChainInterference {
             return;
 
 
-        // Escala Y
+        // ==========================
+        // ESCALA Y
+        // ==========================
 
         let maxAbs =
             Math.max(
@@ -559,7 +580,9 @@ class MassChainInterference {
         maxAbs *= 1.1;
 
 
-        // Curva
+        // ==========================
+        // CURVA
+        // ==========================
 
         ctx.strokeStyle = "blue";
         ctx.lineWidth = 2;
@@ -606,7 +629,9 @@ class MassChainInterference {
         ctx.stroke();
 
 
-        // Linha central y = 0
+        // ==========================
+        // LINHA CENTRAL y = 0
+        // ==========================
 
         ctx.strokeStyle = "#cccccc";
         ctx.lineWidth = 1;
@@ -627,11 +652,12 @@ class MassChainInterference {
         ctx.stroke();
 
 
-        // Labels
+        // ==========================
+        // LABEL EIXO X
+        // ==========================
 
         ctx.fillStyle = "black";
         ctx.font = "12px Arial";
-
 
         ctx.textAlign = "center";
 
@@ -641,6 +667,10 @@ class MassChainInterference {
             canvas.height - 10
         );
 
+
+        // ==========================
+        // LABEL EIXO Y
+        // ==========================
 
         ctx.save();
 
@@ -658,15 +688,6 @@ class MassChainInterference {
         );
 
         ctx.restore();
-
-
-        ctx.textAlign = "left";
-
-        ctx.fillText(
-            `massa ${central}`,
-            marginLeft + 10,
-            marginTop + 15
-        );
     }
 
 
