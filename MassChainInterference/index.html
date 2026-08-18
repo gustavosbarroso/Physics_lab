@@ -84,14 +84,7 @@
 
         <canvas
             id="canvasChain"
-            width="600"
-            height="350">
-        </canvas>
-
-
-        <canvas
-            id="canvasPlot"
-            width="600"
+            width="700"
             height="350">
         </canvas>
 
@@ -117,6 +110,7 @@
                 max="59"
                 step="0.1"
                 value="18">
+
         </div>
 
 
@@ -136,6 +130,7 @@
                 max="59"
                 step="0.1"
                 value="42">
+
         </div>
 
 
@@ -155,6 +150,7 @@
                 max="10"
                 step="0.1"
                 value="3">
+
         </div>
 
 
@@ -174,6 +170,7 @@
                 max="10"
                 step="0.1"
                 value="3">
+
         </div>
 
 
@@ -193,6 +190,7 @@
                 max="2"
                 step="0.01"
                 value="1">
+
         </div>
 
 
@@ -212,6 +210,7 @@
                 max="2"
                 step="0.01"
                 value="-1">
+
         </div>
 
 
@@ -233,12 +232,6 @@
             );
 
 
-        const canvasPlot =
-            document.getElementById(
-                "canvasPlot"
-            );
-
-
         // ==========================
         // CLASSE
         // ==========================
@@ -246,7 +239,6 @@
         const cadeia =
             new MassChainInterference(
                 canvasChain,
-                canvasPlot,
                 {
 
                     N: 60,
@@ -358,7 +350,9 @@
             };
 
 
-            // Atualiza valores mostrados
+            // ==========================
+            // VALORES MOSTRADOS
+            // ==========================
 
             values.c1.textContent =
                 params.c1.toFixed(1);
@@ -379,7 +373,9 @@
                 params.A2.toFixed(2);
 
 
-            // Atualiza a simulação
+            // ==========================
+            // ATUALIZA SIMULAÇÃO
+            // ==========================
 
             cadeia.atualizarParametros(
                 params
@@ -387,7 +383,9 @@
         }
 
 
-        // Eventos
+        // ==========================
+        // EVENTOS
+        // ==========================
 
         for (const key in sliders) {
 
@@ -398,7 +396,9 @@
         }
 
 
-        // Valores iniciais
+        // ==========================
+        // VALORES INICIAIS
+        // ==========================
 
         atualizar();
 
