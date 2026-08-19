@@ -78,17 +78,6 @@ Pêndulo com ponto de suspensão oscilando horizontalmente.
 **[▶ Abrir simulação](https://gustavosbarroso.github.io/Physics_lab/InvertedPendulum/)**
 
 ---
-
-## 🧮 MÉTODOS NUMÉRICOS
-
-As simulações são baseadas na solução numérica de equações diferenciais ordinárias.
-
-As implementações originais foram desenvolvidas em Python, utilizando métodos de integração numérica, como o **método de Runge-Kutta de quarta ordem (RK4)**.
-
-As adaptações para a web estão sendo desenvolvidas utilizando **HTML, CSS e JavaScript**.
-
----
-
 ## 🌐 LABORATÓRIO VIRTUAL DE FÍSICA
 
 Todas as simulações interativas estão disponíveis no site do projeto:
