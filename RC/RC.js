@@ -31,7 +31,7 @@ class RCCircuit {
         // ELÉTRONS
         // =====================================================
 
-        this.numElectrons = 40;
+        this.numElectrons = 50;
         this.electronPos = [];
 
         // =====================================================
@@ -68,11 +68,9 @@ class RCCircuit {
         const V0 = this.params.V0;
 
         /*
-         * Pela lei das malhas:
-         *
          * V0 - R i - q/C = 0
          *
-         * Como i = dq/dt:
+         * i = dq/dt
          *
          * dq/dt = (V0 - q/C) / R
          */
@@ -145,7 +143,6 @@ class RCCircuit {
 
             const t =
                 a + n * h;
-
 
             this.time.push(t);
 
@@ -243,6 +240,7 @@ class RCCircuit {
                         ),
 
                         1 / 6
+
                     )
                 );
         }
@@ -256,10 +254,8 @@ class RCCircuit {
         const C = this.params.C;
         const V0 = this.params.V0;
 
-
         this.current =
             this.q.map(
-
                 q =>
                     (V0 - q / C) / R
             );
@@ -387,7 +383,6 @@ class RCCircuit {
 
         ctx.save();
 
-
         ctx.strokeStyle =
             "black";
 
@@ -403,7 +398,9 @@ class RCCircuit {
 
         ctx.beginPath();
 
+
         // Fio superior
+
         ctx.moveTo(
             x0,
             y0
@@ -414,7 +411,9 @@ class RCCircuit {
             y0
         );
 
+
         // Fio direito - parte superior
+
         ctx.moveTo(
             x1,
             y0
@@ -425,7 +424,9 @@ class RCCircuit {
             205
         );
 
+
         // Fio direito - parte inferior
+
         ctx.moveTo(
             x1,
             245
@@ -435,8 +436,10 @@ class RCCircuit {
             x1,
             y1
         );
+
 
         // Fio inferior
+
         ctx.moveTo(
             x1,
             y1
@@ -447,7 +450,9 @@ class RCCircuit {
             y1
         );
 
+
         // Fio esquerdo - parte inferior
+
         ctx.moveTo(
             x0,
             y1
@@ -458,7 +463,9 @@ class RCCircuit {
             245
         );
 
+
         // Fio esquerdo - parte superior
+
         ctx.moveTo(
             x0,
             195
@@ -468,6 +475,7 @@ class RCCircuit {
             x0,
             y0
         );
+
 
         ctx.stroke();
 
@@ -479,7 +487,6 @@ class RCCircuit {
         ctx.beginPath();
 
         const xr = [
-
             170,
             195,
             220,
@@ -487,7 +494,6 @@ class RCCircuit {
             270,
             295,
             320
-
         ];
 
 
@@ -521,13 +527,11 @@ class RCCircuit {
                 );
         }
 
-
         ctx.stroke();
 
 
         ctx.font =
             "16px Arial";
-
 
         ctx.fillText(
             "R",
@@ -541,7 +545,6 @@ class RCCircuit {
         // =====================================================
 
         ctx.lineWidth = 4;
-
 
         ctx.beginPath();
 
@@ -574,7 +577,6 @@ class RCCircuit {
         ctx.font =
             "16px Arial";
 
-
         ctx.fillText(
             "C",
             x1 + 35,
@@ -588,10 +590,13 @@ class RCCircuit {
 
         ctx.lineWidth = 2;
 
-        ctx.strokeStyle = "black";
-        ctx.fillStyle = "white";
+        ctx.strokeStyle =
+            "black";
 
-        // Corpo circular da fonte
+        ctx.fillStyle =
+            "white";
+
+
         ctx.beginPath();
 
         ctx.arc(
@@ -607,6 +612,7 @@ class RCCircuit {
 
 
         // Terminal positivo
+
         ctx.beginPath();
 
         ctx.moveTo(
@@ -618,6 +624,7 @@ class RCCircuit {
             x0 + 10,
             211
         );
+
 
         ctx.moveTo(
             x0,
@@ -633,6 +640,7 @@ class RCCircuit {
 
 
         // Terminal negativo
+
         ctx.beginPath();
 
         ctx.moveTo(
@@ -680,19 +688,44 @@ class RCCircuit {
                 this.loopPath(s);
 
 
+            // =================================================
+            // ESPAÇO ENTRE AS PLACAS
+            // =================================================
+            //
+            // O elétron continua seguindo sua trajetória
+            // normalmente, mas não é desenhado entre:
+            //
+            //       y = 205
+            //       y = 245
+            //
+            // no lado direito do capacitor.
+            //
+            // =================================================
+
+            const entrePlacas =
+                x >= x1 - 3 &&
+                x <= x1 + 3 &&
+                y > 205 &&
+                y < 245;
+
+
+            if (entrePlacas)
+                continue;
+
+
+            // =================================================
+            // DESENHA ELÉTRON
+            // =================================================
+
             ctx.beginPath();
 
-
             ctx.arc(
-
                 x,
                 y,
                 3,
                 0,
                 2 * Math.PI
-
             );
-
 
             ctx.fill();
         }
@@ -707,7 +740,6 @@ class RCCircuit {
 
         ctx.font =
             "18px Arial";
-
 
         ctx.fillText(
             "Circuito RC com fonte contínua",
@@ -727,10 +759,6 @@ class RCCircuit {
     drawGraph() {
 
         const ctx = this.ctx;
-
-        // =====================================================
-        // GEOMETRIA
-        // =====================================================
 
         const graphX = 500;
         const graphY = 70;
@@ -757,12 +785,9 @@ class RCCircuit {
 
 
         ctx.fillText(
-
             "Carga e corrente (RC)",
-
             graphX + 65,
             graphY - 20
-
         );
 
 
@@ -777,12 +802,10 @@ class RCCircuit {
 
 
         ctx.strokeRect(
-
             graphX,
             graphY,
             graphW,
             graphH
-
         );
 
 
@@ -792,11 +815,8 @@ class RCCircuit {
 
         const n =
             Math.min(
-
                 this.frame + 1,
-
                 this.time.length
-
             );
 
 
@@ -814,7 +834,6 @@ class RCCircuit {
                 n
             );
 
-
         const iData =
             this.current.slice(
                 0,
@@ -823,7 +842,7 @@ class RCCircuit {
 
 
         // =====================================================
-        // ESCALA VERTICAL
+        // ESCALA
         // =====================================================
 
         let maxAbs = 0;
@@ -835,11 +854,8 @@ class RCCircuit {
 
             maxAbs =
                 Math.max(
-
                     maxAbs,
-
                     Math.abs(value)
-
                 );
         }
 
@@ -850,11 +866,8 @@ class RCCircuit {
 
             maxAbs =
                 Math.max(
-
                     maxAbs,
-
                     Math.abs(value)
-
                 );
         }
 
@@ -897,7 +910,7 @@ class RCCircuit {
 
 
         // =====================================================
-        // TICKS E NÚMEROS DO EIXO Y
+        // TICKS Y
         // =====================================================
 
         const yTicks = 6;
@@ -982,18 +995,15 @@ class RCCircuit {
 
 
             ctx.fillText(
-
                 value.toFixed(2),
-
                 graphX - 10,
                 y + 4
-
             );
         }
 
 
         // =====================================================
-        // TICKS E NÚMEROS DO EIXO X
+        // TICKS X
         // =====================================================
 
         const xTicks = 5;
@@ -1068,15 +1078,9 @@ class RCCircuit {
 
 
             ctx.fillText(
-
                 time.toFixed(1),
-
                 x,
-
-                graphY +
-                graphH +
-                18
-
+                graphY + graphH + 18
             );
         }
 
@@ -1093,16 +1097,9 @@ class RCCircuit {
 
 
         ctx.fillText(
-
             "t [s]",
-
-            graphX +
-            graphW / 2,
-
-            graphY +
-            graphH +
-            55
-
+            graphX + graphW / 2,
+            graphY + graphH + 55
         );
 
 
@@ -1112,48 +1109,36 @@ class RCCircuit {
 
         ctx.save();
 
-
         ctx.translate(
-
             graphX - 60,
-
-            graphY +
-            graphH / 2
-
+            graphY + graphH / 2
         );
-
 
         ctx.rotate(
             -Math.PI / 2
         );
-
 
         ctx.textAlign =
             "center";
 
 
         ctx.fillText(
-
             "q(t) [C] / i(t) [A]",
-
             0,
             0
-
         );
-
 
         ctx.restore();
 
 
         // =====================================================
-        // CONVERSÃO X
+        // CONVERSÃO
         // =====================================================
 
         const convertX =
             t => {
 
                 return graphX +
-
                     (
                         t / 10
                     ) *
@@ -1161,20 +1146,14 @@ class RCCircuit {
             };
 
 
-        // =====================================================
-        // CONVERSÃO Y
-        // =====================================================
-
         const convertY =
             value => {
 
                 return centerY -
-
                     (
                         value /
                         maxAbs
                     ) *
-
                     (
                         graphH / 2
                     );
@@ -1203,7 +1182,6 @@ class RCCircuit {
                 convertX(
                     this.time[k]
                 );
-
 
             const y =
                 convertY(
@@ -1251,7 +1229,6 @@ class RCCircuit {
                     this.time[k]
                 );
 
-
             const y =
                 convertY(
                     this.current[k]
@@ -1293,15 +1270,9 @@ class RCCircuit {
 
 
         ctx.fillText(
-
             "q(t) [C]",
-
-            graphX +
-            graphW -
-            80,
-
+            graphX + graphW - 80,
             graphY + 25
-
         );
 
 
@@ -1310,15 +1281,9 @@ class RCCircuit {
 
 
         ctx.fillText(
-
             "i(t) [A]",
-
-            graphX +
-            graphW -
-            80,
-
+            graphX + graphW - 80,
             graphY + 45
-
         );
 
 
@@ -1337,16 +1302,12 @@ class RCCircuit {
 
         const frame =
             Math.min(
-
                 this.frame,
-
                 this.q.length - 1
-
             );
 
 
         ctx.save();
-
 
         ctx.fillStyle =
             "black";
@@ -1356,62 +1317,44 @@ class RCCircuit {
 
 
         ctx.fillText(
-
             `R = ${this.params.R.toFixed(2)} Ω`,
-
             40,
             390
-
         );
 
 
         ctx.fillText(
-
             `C = ${this.params.C.toFixed(2)} F`,
-
             180,
             390
-
         );
 
 
         ctx.fillText(
-
             `V₀ = ${this.params.V0.toFixed(2)} V`,
-
             320,
             390
-
         );
 
 
         ctx.fillText(
-
             `q = ${this.q[frame].toFixed(3)} C`,
-
             470,
             390
-
         );
 
 
         ctx.fillText(
-
             `i = ${this.current[frame].toFixed(3)} A`,
-
             620,
             390
-
         );
 
 
         ctx.fillText(
-
             `t = ${this.time[frame].toFixed(2)} s`,
-
             760,
             390
-
         );
 
 
@@ -1426,12 +1369,10 @@ class RCCircuit {
     draw() {
 
         this.ctx.clearRect(
-
             0,
             0,
             this.canvas.width,
             this.canvas.height
-
         );
 
 
@@ -1501,7 +1442,6 @@ class RCCircuit {
             ) {
 
                 this.electronPos[j] =
-
                     (
                         this.electronPos[j] +
                         speed
@@ -1590,18 +1530,13 @@ const canvas =
 
 const circuito =
     new RCCircuit(
-
         canvas,
-
         {
-
             R: 2.0,
             C: 1.0,
             q0: 0.0,
             V0: 1.0
-
         }
-
     );
 
 
@@ -1662,9 +1597,7 @@ const valueV0 =
 // ============================================================
 
 sliderR.addEventListener(
-
     "input",
-
     () => {
 
         const value =
@@ -1674,9 +1607,7 @@ sliderR.addEventListener(
 
 
         circuito.atualizarParametros({
-
             R: value
-
         });
 
 
@@ -1691,9 +1622,7 @@ sliderR.addEventListener(
 // ============================================================
 
 sliderC.addEventListener(
-
     "input",
-
     () => {
 
         const value =
@@ -1703,9 +1632,7 @@ sliderC.addEventListener(
 
 
         circuito.atualizarParametros({
-
             C: value
-
         });
 
 
@@ -1720,9 +1647,7 @@ sliderC.addEventListener(
 // ============================================================
 
 sliderQ0.addEventListener(
-
     "input",
-
     () => {
 
         const value =
@@ -1732,9 +1657,7 @@ sliderQ0.addEventListener(
 
 
         circuito.atualizarParametros({
-
             q0: value
-
         });
 
 
@@ -1749,9 +1672,7 @@ sliderQ0.addEventListener(
 // ============================================================
 
 sliderV0.addEventListener(
-
     "input",
-
     () => {
 
         const value =
@@ -1761,9 +1682,7 @@ sliderV0.addEventListener(
 
 
         circuito.atualizarParametros({
-
             V0: value
-
         });
 
 
