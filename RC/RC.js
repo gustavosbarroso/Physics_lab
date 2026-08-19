@@ -95,7 +95,7 @@ class RCCircuit {
     // =========================================================
     // EDO DO CIRCUITO RC
     //
-    // dv_c/dt = (V0 - v_c)/(RC)
+    // dv_c/dt = (V0 - vc)/(RC)
     // =========================================================
 
     f(state, t) {
@@ -442,7 +442,9 @@ class RCCircuit {
         // =====================================================
         // SEGMENTO 1
         //
-        // PLACA SUPERIOR -> FIO
+        // FIO DIREITO ACIMA DO CAPACITOR
+        //
+        // TERMINA EXATAMENTE NA PLACA SUPERIOR
         // =====================================================
 
         if (
@@ -697,7 +699,7 @@ class RCCircuit {
         //
         // FIO VERTICAL
         //
-        // TERMINA NA PLACA INFERIOR
+        // TERMINA EXATAMENTE NA PLACA INFERIOR
         // =====================================================
 
         const d2 =
@@ -1083,6 +1085,8 @@ class RCCircuit {
 
     // =========================================================
     // DESENHO DOS ELÉTRONS
+    //
+    // MASCARAMENTO IGUAL AO RLC
     // =========================================================
 
     drawElectrons() {
@@ -1099,32 +1103,31 @@ class RCCircuit {
 
 
         // =====================================================
-        // FUNÇÃO DE PROTEÇÃO
+        // REGIÃO DE MASCARAMENTO DO CAPACITOR
         //
-        // EXATAMENTE COMO NO RLC:
-        //
-        // SE O CENTRO DO ELÉTRON ESTIVER NO VÃO
-        // ENTRE AS PLACAS, ELE NÃO É DESENHADO.
-        //
-        // ISSO É APENAS MASCARAMENTO VISUAL.
+        // O elétron pode chegar até a placa, mas nunca
+        // será desenhado dentro do espaço entre as placas.
         // =====================================================
 
-        const insideCapacitor = (x, y) => {
+        const insideCapacitor =
+            (x, y) => {
 
-            return (
+                return (
 
-                x >= this.x1 - 4 &&
+                    x >=
+                        this.x1 - 4 &&
 
-                x <= this.x1 + 4 &&
+                    x <=
+                        this.x1 + 4 &&
 
-                y >
-                this.capY1 &&
+                    y >
+                        this.capY1 &&
 
-                y <
-                this.capY2
+                    y <
+                        this.capY2
 
-            );
-        };
+                );
+            };
 
 
         // =====================================================
@@ -1132,18 +1135,33 @@ class RCCircuit {
         // =====================================================
 
         for (
-            const s of this.electronTop
+            let j = 0;
+            j <
+            this.electronTop.length;
+            j++
         ) {
 
-            const [
-                x,
-                y
-            ] =
+            const s =
+                this.electronTop[j];
+
+
+            const point =
                 this.topElectronPath(s);
 
 
+            if (!point)
+                continue;
+
+
+            const x =
+                point[0];
+
+            const y =
+                point[1];
+
+
             // -------------------------------------------------
-            // NÃO DESENHA ELÉTRON NO VÃO
+            // MASCARAMENTO
             // -------------------------------------------------
 
             if (
@@ -1157,15 +1175,21 @@ class RCCircuit {
             }
 
 
+            // -------------------------------------------------
+            // ELÉTRON
+            // -------------------------------------------------
+
             ctx.beginPath();
 
 
             ctx.arc(
+
                 x,
                 y,
                 3,
                 0,
                 2 * Math.PI
+
             );
 
 
@@ -1178,18 +1202,33 @@ class RCCircuit {
         // =====================================================
 
         for (
-            const s of this.electronBottom
+            let j = 0;
+            j <
+            this.electronBottom.length;
+            j++
         ) {
 
-            const [
-                x,
-                y
-            ] =
+            const s =
+                this.electronBottom[j];
+
+
+            const point =
                 this.bottomElectronPath(s);
 
 
+            if (!point)
+                continue;
+
+
+            const x =
+                point[0];
+
+            const y =
+                point[1];
+
+
             // -------------------------------------------------
-            // NÃO DESENHA ELÉTRON NO VÃO
+            // MASCARAMENTO
             // -------------------------------------------------
 
             if (
@@ -1203,15 +1242,21 @@ class RCCircuit {
             }
 
 
+            // -------------------------------------------------
+            // ELÉTRON
+            // -------------------------------------------------
+
             ctx.beginPath();
 
 
             ctx.arc(
+
                 x,
                 y,
                 3,
                 0,
                 2 * Math.PI
+
             );
 
 
