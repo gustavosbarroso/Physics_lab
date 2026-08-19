@@ -305,7 +305,6 @@ class RCCircuit {
                 "rc-controls"
             );
 
-
         if (old)
             old.remove();
 
@@ -508,11 +507,9 @@ class RCCircuit {
                     label
                 );
 
-
                 row.appendChild(
                     slider
                 );
-
 
                 row.appendChild(
                     value
@@ -601,9 +598,10 @@ class RCCircuit {
         // =====================================================
         // LADO DIREITO
         //
-        // A trajetória é contínua como no RLC.
-        // O vão do capacitor é tratado visualmente
-        // pelo mascaramento.
+        // O caminho continua passando pelo capacitor.
+        //
+        // O elétron será ocultado visualmente quando
+        // estiver entre as placas.
         // =====================================================
 
         for (
@@ -696,10 +694,8 @@ class RCCircuit {
         ctx.lineWidth =
             3;
 
-
         ctx.strokeStyle =
             "black";
-
 
         ctx.fillStyle =
             "black";
@@ -711,18 +707,15 @@ class RCCircuit {
 
         ctx.beginPath();
 
-
         ctx.moveTo(
             x0,
             y0
         );
 
-
         ctx.lineTo(
             x0,
             y1
         );
-
 
         ctx.stroke();
 
@@ -733,18 +726,15 @@ class RCCircuit {
 
         ctx.beginPath();
 
-
         ctx.moveTo(
             x0,
             y0
         );
 
-
         ctx.lineTo(
             x1,
             y0
         );
-
 
         ctx.stroke();
 
@@ -755,18 +745,15 @@ class RCCircuit {
 
         ctx.beginPath();
 
-
         ctx.moveTo(
             x1,
             y0
         );
 
-
         ctx.lineTo(
             x1,
             this.capY1
         );
-
 
         ctx.stroke();
 
@@ -787,21 +774,17 @@ class RCCircuit {
         ctx.lineWidth =
             3;
 
-
         ctx.beginPath();
-
 
         ctx.moveTo(
             x1,
             this.capY2
         );
 
-
         ctx.lineTo(
             x1,
             y1
         );
-
 
         ctx.stroke();
 
@@ -813,30 +796,23 @@ class RCCircuit {
         ctx.font =
             "bold 18px Arial";
 
-
         ctx.fillStyle =
             "black";
 
-
         ctx.textAlign =
             "left";
-
 
         ctx.textBaseline =
             "middle";
 
 
         ctx.fillText(
-
             "C",
-
             x1 + 38,
-
             (
                 this.capY1 +
                 this.capY2
             ) / 2
-
         );
 
 
@@ -846,18 +822,15 @@ class RCCircuit {
 
         ctx.beginPath();
 
-
         ctx.moveTo(
             x1,
             y1
         );
 
-
         ctx.lineTo(
             this.resEnd,
             y1
         );
-
 
         ctx.stroke();
 
@@ -945,18 +918,15 @@ class RCCircuit {
 
         ctx.beginPath();
 
-
         ctx.moveTo(
             resStart,
             y1
         );
 
-
         ctx.lineTo(
             x0,
             y1
         );
-
 
         ctx.stroke();
 
@@ -968,30 +938,23 @@ class RCCircuit {
         ctx.font =
             "bold 18px Arial";
 
-
         ctx.fillStyle =
             "black";
 
-
         ctx.textAlign =
             "center";
-
 
         ctx.textBaseline =
             "top";
 
 
         ctx.fillText(
-
             "R",
-
             (
                 resStart +
                 resEnd
             ) / 2,
-
             y1 + 22
-
         );
 
 
@@ -1018,17 +981,12 @@ class RCCircuit {
 
 
         ctx.fillRect(
-
             sourceX - 6,
-
             sourceY -
             radius -
             6,
-
             12,
-
             2 * radius + 12
-
         );
 
 
@@ -1039,24 +997,19 @@ class RCCircuit {
         ctx.strokeStyle =
             "black";
 
-
         ctx.lineWidth =
             3;
 
 
         ctx.beginPath();
 
-
         ctx.arc(
-
             sourceX,
             sourceY,
             radius,
             0,
             2 * Math.PI
-
         );
-
 
         ctx.stroke();
 
@@ -1068,26 +1021,20 @@ class RCCircuit {
         ctx.font =
             "bold 22px Arial";
 
-
         ctx.textAlign =
             "center";
 
-
         ctx.textBaseline =
             "middle";
-
 
         ctx.fillStyle =
             "black";
 
 
         ctx.fillText(
-
             "+",
-
             sourceX,
             sourceY - 13
-
         );
 
 
@@ -1096,12 +1043,9 @@ class RCCircuit {
         // =====================================================
 
         ctx.fillText(
-
             "−",
-
             sourceX,
             sourceY + 13
-
         );
 
 
@@ -1112,18 +1056,14 @@ class RCCircuit {
         ctx.font =
             "bold 16px Arial";
 
-
         ctx.textBaseline =
             "top";
 
 
         ctx.fillText(
-
             "DC",
-
             sourceX,
             sourceY + radius + 8
-
         );
 
 
@@ -1147,7 +1087,6 @@ class RCCircuit {
         ctx.strokeStyle =
             "black";
 
-
         ctx.lineWidth =
             4;
 
@@ -1160,18 +1099,13 @@ class RCCircuit {
         // =====================================================
 
         ctx.moveTo(
-
             x1 - 25,
             this.capY1
-
         );
 
-
         ctx.lineTo(
-
             x1 + 25,
             this.capY1
-
         );
 
 
@@ -1180,18 +1114,13 @@ class RCCircuit {
         // =====================================================
 
         ctx.moveTo(
-
             x1 - 25,
             this.capY2
-
         );
 
-
         ctx.lineTo(
-
             x1 + 25,
             this.capY2
-
         );
 
 
@@ -1204,6 +1133,11 @@ class RCCircuit {
 
     // =========================================================
     // ELÉTRONS
+    //
+    // Mesmo método utilizado no RLC:
+    //
+    // o caminho continua passando pelo capacitor,
+    // mas o elétron não é desenhado dentro do vão.
     // =========================================================
 
     drawElectrons(ctx) {
@@ -1245,80 +1179,42 @@ class RCCircuit {
 
 
             // =================================================
+            // VÃO DO CAPACITOR
+            // =================================================
+
+            const insideCapacitor =
+                point.x >= this.x1 - 4 &&
+                point.x <= this.x1 + 4 &&
+                point.y > this.capY1 &&
+                point.y < this.capY2;
+
+
+            // =================================================
+            // NÃO DESENHA O ELÉTRON NO VÃO
+            // =================================================
+
+            if (insideCapacitor)
+                continue;
+
+
+            // =================================================
             // DESENHA O ELÉTRON
-            //
-            // Não mascaramos aqui.
-            //
-            // A máscara é aplicada posteriormente no draw(),
-            // exatamente como uma camada gráfica.
             // =================================================
 
             ctx.beginPath();
 
 
             ctx.arc(
-
                 point.x,
                 point.y,
                 4,
                 0,
                 2 * Math.PI
-
             );
 
 
             ctx.fill();
         }
-
-
-        ctx.restore();
-    }
-
-
-    // =========================================================
-    // MASCARAMENTO DO VÃO DO CAPACITOR
-    // =========================================================
-
-    maskCapacitorGap(ctx) {
-
-        const x1 =
-            this.x1;
-
-
-        const y1 =
-            this.capY1;
-
-        const y2 =
-            this.capY2;
-
-
-        ctx.save();
-
-
-        // =====================================================
-        // MÁSCARA
-        //
-        // A área é maior que o diâmetro dos elétrons.
-        //
-        // Nenhuma parte do elétron pode permanecer visível
-        // dentro do vão.
-        // =====================================================
-
-        ctx.fillStyle =
-            "white";
-
-
-        ctx.fillRect(
-
-            x1 - 10,
-
-            y1,
-
-            20,
-
-            y2 - y1
-
-        );
 
 
         ctx.restore();
@@ -1354,10 +1250,8 @@ class RCCircuit {
         ctx.fillStyle =
             "rgba(255,255,255,0.95)";
 
-
         ctx.strokeStyle =
             "#777";
-
 
         ctx.lineWidth =
             1;
@@ -1365,15 +1259,12 @@ class RCCircuit {
 
         ctx.beginPath();
 
-
         ctx.roundRect(
-
             x,
             y,
             width,
             height,
             8
-
         );
 
 
@@ -1384,17 +1275,13 @@ class RCCircuit {
 
         const index =
             Math.min(
-
                 this.frame,
-
                 this.q.length - 1
-
             );
 
 
         const q =
             this.q[index] || 0;
-
 
         const i =
             this.current[index] || 0;
@@ -1407,26 +1294,20 @@ class RCCircuit {
         ctx.fillStyle =
             "black";
 
-
         ctx.font =
             "bold 14px Arial";
 
-
         ctx.textAlign =
             "left";
-
 
         ctx.textBaseline =
             "alphabetic";
 
 
         ctx.fillText(
-
             "Circuito RC",
-
             x + 12,
             y + 20
-
         );
 
 
@@ -1439,32 +1320,23 @@ class RCCircuit {
 
 
         ctx.fillText(
-
             `R = ${p.R.toFixed(2)} Ω`,
-
             x + 12,
             y + 42
-
         );
 
 
         ctx.fillText(
-
             `C = ${p.C.toFixed(2)} F`,
-
             x + 12,
             y + 60
-
         );
 
 
         ctx.fillText(
-
             `V₀ = ${p.V0.toFixed(2)} V`,
-
             x + 12,
             y + 78
-
         );
 
 
@@ -1477,32 +1349,23 @@ class RCCircuit {
 
 
         ctx.fillText(
-
             `q₀ = ${p.q0.toFixed(2)} C`,
-
             col2,
             y + 42
-
         );
 
 
         ctx.fillText(
-
             `q(t) = ${q.toFixed(3)} C`,
-
             col2,
             y + 60
-
         );
 
 
         ctx.fillText(
-
             `i(t) = ${i.toFixed(3)} A`,
-
             col2,
             y + 78
-
         );
 
 
@@ -1540,22 +1403,17 @@ class RCCircuit {
         ctx.font =
             "bold 18px Arial";
 
-
         ctx.fillStyle =
             "black";
-
 
         ctx.textAlign =
             "left";
 
 
         ctx.fillText(
-
             "Resposta do circuito",
-
             graphX + 120,
             graphY - 20
-
         );
 
 
@@ -1566,18 +1424,15 @@ class RCCircuit {
         ctx.strokeStyle =
             "#777";
 
-
         ctx.lineWidth =
             1;
 
 
         ctx.strokeRect(
-
             graphX,
             graphY,
             graphW,
             graphH
-
         );
 
 
@@ -1587,11 +1442,8 @@ class RCCircuit {
 
         const n =
             Math.min(
-
                 this.frame + 1,
-
                 this.time.length
-
             );
 
 
@@ -1603,19 +1455,15 @@ class RCCircuit {
 
         const qData =
             this.q.slice(
-
                 0,
                 n
-
             );
 
 
         const iData =
             this.current.slice(
-
                 0,
                 n
-
             );
 
 
@@ -1633,13 +1481,10 @@ class RCCircuit {
 
             maxAbs =
                 Math.max(
-
                     maxAbs,
-
                     Math.abs(
                         value
                     )
-
                 );
         }
 
@@ -1650,13 +1495,10 @@ class RCCircuit {
 
             maxAbs =
                 Math.max(
-
                     maxAbs,
-
                     Math.abs(
                         value
                     )
-
                 );
         }
 
@@ -1687,18 +1529,14 @@ class RCCircuit {
 
 
         ctx.moveTo(
-
             graphX,
             centerY
-
         );
 
 
         ctx.lineTo(
-
             graphX + graphW,
             centerY
-
         );
 
 
@@ -1715,7 +1553,6 @@ class RCCircuit {
 
         ctx.font =
             "11px Arial";
-
 
         ctx.fillStyle =
             "black";
@@ -1752,18 +1589,14 @@ class RCCircuit {
 
 
             ctx.moveTo(
-
                 graphX - 5,
                 y
-
             );
 
 
             ctx.lineTo(
-
                 graphX + 5,
                 y
-
             );
 
 
@@ -1782,18 +1615,14 @@ class RCCircuit {
 
 
                 ctx.moveTo(
-
                     graphX,
                     y
-
                 );
 
 
                 ctx.lineTo(
-
                     graphX + graphW,
                     y
-
                 );
 
 
@@ -1806,13 +1635,9 @@ class RCCircuit {
 
 
             ctx.fillText(
-
                 value.toFixed(2),
-
                 graphX - 50,
-
                 y + 4
-
             );
         }
 
@@ -1852,18 +1677,14 @@ class RCCircuit {
 
 
             ctx.moveTo(
-
                 x,
                 centerY - 5
-
             );
 
 
             ctx.lineTo(
-
                 x,
                 centerY + 5
-
             );
 
 
@@ -1875,15 +1696,11 @@ class RCCircuit {
 
 
             ctx.fillText(
-
                 time.toFixed(1),
-
                 x - 10,
-
                 graphY +
                 graphH +
                 20
-
             );
         }
 
@@ -1895,22 +1712,17 @@ class RCCircuit {
         ctx.font =
             "14px Arial";
 
-
         ctx.textAlign =
             "center";
 
 
         ctx.fillText(
-
             "t [s]",
-
             graphX +
             graphW / 2,
-
             graphY +
             graphH +
             45
-
         );
 
 
@@ -1922,12 +1734,9 @@ class RCCircuit {
 
 
         ctx.translate(
-
             graphX - 70,
-
             graphY +
             graphH / 2
-
         );
 
 
@@ -1941,12 +1750,9 @@ class RCCircuit {
 
 
         ctx.fillText(
-
             "q(t) [C] / i(t) [A]",
-
             0,
             0
-
         );
 
 
@@ -1966,7 +1772,6 @@ class RCCircuit {
                         this.tf
                     ) *
                     graphW;
-
             };
 
 
@@ -1981,7 +1786,6 @@ class RCCircuit {
                     (
                         graphH / 2
                     );
-
             };
 
 
@@ -1991,7 +1795,6 @@ class RCCircuit {
 
         ctx.lineWidth =
             2;
-
 
         ctx.strokeStyle =
             "#1976d2";
@@ -2076,7 +1879,6 @@ class RCCircuit {
                 ctx.moveTo(
                     x,
                     y
-
                 );
 
             } else {
@@ -2099,7 +1901,6 @@ class RCCircuit {
         ctx.font =
             "13px Arial";
 
-
         ctx.textAlign =
             "left";
 
@@ -2109,15 +1910,11 @@ class RCCircuit {
 
 
         ctx.fillText(
-
             "q(t) [C]",
-
             graphX +
             graphW -
             90,
-
             graphY + 25
-
         );
 
 
@@ -2126,15 +1923,11 @@ class RCCircuit {
 
 
         ctx.fillText(
-
             "i(t) [A]",
-
             graphX +
             graphW -
             90,
-
             graphY + 45
-
         );
     }
 
@@ -2152,7 +1945,6 @@ class RCCircuit {
         const w =
             this.canvas.width;
 
-
         const h =
             this.canvas.height;
 
@@ -2162,12 +1954,10 @@ class RCCircuit {
         // =====================================================
 
         ctx.clearRect(
-
             0,
             0,
             w,
             h
-
         );
 
 
@@ -2180,12 +1970,10 @@ class RCCircuit {
 
 
         ctx.fillRect(
-
             0,
             0,
             w,
             h
-
         );
 
 
@@ -2208,21 +1996,7 @@ class RCCircuit {
 
 
         // =====================================================
-        // MASCARAMENTO
-        //
-        // ESTA É A ETAPA QUE APAGA VISUALMENTE QUALQUER
-        // ELÉTRON QUE TENHA PASSADO PELO VÃO.
-        // =====================================================
-
-        this.maskCapacitorGap(
-            ctx
-        );
-
-
-        // =====================================================
         // REDESENHA AS PLACAS
-        //
-        // A máscara não cobre as placas.
         // =====================================================
 
         this.drawCapacitor(
@@ -2283,11 +2057,8 @@ class RCCircuit {
 
                 const index =
                     Math.min(
-
                         this.frame,
-
                         this.current.length - 1
-
                     );
 
 
@@ -2405,8 +2176,8 @@ class RCCircuit {
         this.params = {
 
             ...this.params,
-            ...newParams
 
+            ...newParams
         };
 
 
