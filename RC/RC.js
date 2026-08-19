@@ -26,7 +26,6 @@ class RCCircuit {
         this.time = [];
         this.q = [];
         this.current = [];
-        this.voltage = [];
 
         // =====================================================
         // ELÉTRONS
@@ -69,15 +68,11 @@ class RCCircuit {
         const V0 = this.params.V0;
 
         /*
-         * Lei das malhas:
+         * Pela lei das malhas:
          *
          * V0 - R i - q/C = 0
          *
-         * Como:
-         *
-         * i = dq/dt
-         *
-         * então:
+         * Como i = dq/dt:
          *
          * dq/dt = (V0 - q/C) / R
          */
@@ -140,7 +135,6 @@ class RCCircuit {
         this.time = [];
         this.q = [];
         this.current = [];
-        this.voltage = [];
 
 
         for (
@@ -268,23 +262,6 @@ class RCCircuit {
 
                 q =>
                     (V0 - q / C) / R
-            );
-
-
-        // =====================================================
-        // TENSÃO NO CAPACITOR
-        // =====================================================
-
-        /*
-         * V(t) = q(t) / C
-         */
-
-        this.voltage =
-            this.q.map(
-
-                q =>
-                    q / C
-
             );
     }
 
@@ -437,7 +414,7 @@ class RCCircuit {
             y0
         );
 
-        // Fio direito superior
+        // Fio direito - parte superior
         ctx.moveTo(
             x1,
             y0
@@ -448,7 +425,7 @@ class RCCircuit {
             205
         );
 
-        // Fio direito inferior
+        // Fio direito - parte inferior
         ctx.moveTo(
             x1,
             245
@@ -470,7 +447,7 @@ class RCCircuit {
             y1
         );
 
-        // Fio esquerdo inferior
+        // Fio esquerdo - parte inferior
         ctx.moveTo(
             x0,
             y1
@@ -481,7 +458,7 @@ class RCCircuit {
             245
         );
 
-        // Fio esquerdo superior
+        // Fio esquerdo - parte superior
         ctx.moveTo(
             x0,
             195
@@ -614,7 +591,7 @@ class RCCircuit {
         ctx.strokeStyle = "black";
         ctx.fillStyle = "white";
 
-
+        // Corpo circular da fonte
         ctx.beginPath();
 
         ctx.arc(
@@ -676,7 +653,6 @@ class RCCircuit {
 
         ctx.fillStyle =
             "black";
-
 
         ctx.fillText(
             "V₀",
@@ -752,6 +728,10 @@ class RCCircuit {
 
         const ctx = this.ctx;
 
+        // =====================================================
+        // GEOMETRIA
+        // =====================================================
+
         const graphX = 500;
         const graphY = 70;
 
@@ -778,9 +758,9 @@ class RCCircuit {
 
         ctx.fillText(
 
-            "q(t), i(t) e V(t) — circuito RC",
+            "Carga e corrente (RC)",
 
-            graphX + 20,
+            graphX + 65,
             graphY - 20
 
         );
@@ -842,13 +822,6 @@ class RCCircuit {
             );
 
 
-        const vData =
-            this.voltage.slice(
-                0,
-                n
-            );
-
-
         // =====================================================
         // ESCALA VERTICAL
         // =====================================================
@@ -873,21 +846,6 @@ class RCCircuit {
 
         for (
             const value of iData
-        ) {
-
-            maxAbs =
-                Math.max(
-
-                    maxAbs,
-
-                    Math.abs(value)
-
-                );
-        }
-
-
-        for (
-            const value of vData
         ) {
 
             maxAbs =
@@ -939,7 +897,7 @@ class RCCircuit {
 
 
         // =====================================================
-        // TICKS Y
+        // TICKS E NÚMEROS DO EIXO Y
         // =====================================================
 
         const yTicks = 6;
@@ -1035,7 +993,7 @@ class RCCircuit {
 
 
         // =====================================================
-        // TICKS X
+        // TICKS E NÚMEROS DO EIXO X
         // =====================================================
 
         const xTicks = 5;
@@ -1176,7 +1134,7 @@ class RCCircuit {
 
         ctx.fillText(
 
-            "q(t) [C] / i(t) [A] / V(t) [V]",
+            "q(t) [C] / i(t) [A]",
 
             0,
             0
@@ -1188,7 +1146,7 @@ class RCCircuit {
 
 
         // =====================================================
-        // CONVERSÕES
+        // CONVERSÃO X
         // =====================================================
 
         const convertX =
@@ -1202,6 +1160,10 @@ class RCCircuit {
                     graphW;
             };
 
+
+        // =====================================================
+        // CONVERSÃO Y
+        // =====================================================
 
         const convertY =
             value => {
@@ -1316,53 +1278,6 @@ class RCCircuit {
 
 
         // =====================================================
-        // V(t)
-        // =====================================================
-
-        ctx.strokeStyle =
-            "#388e3c";
-
-        ctx.beginPath();
-
-
-        for (
-            let k = 0;
-            k < n;
-            k++
-        ) {
-
-            const x =
-                convertX(
-                    this.time[k]
-                );
-
-
-            const y =
-                convertY(
-                    this.voltage[k]
-                );
-
-
-            if (k === 0)
-
-                ctx.moveTo(
-                    x,
-                    y
-                );
-
-            else
-
-                ctx.lineTo(
-                    x,
-                    y
-                );
-        }
-
-
-        ctx.stroke();
-
-
-        // =====================================================
         // LEGENDA
         // =====================================================
 
@@ -1383,9 +1298,9 @@ class RCCircuit {
 
             graphX +
             graphW -
-            90,
+            80,
 
-            graphY + 20
+            graphY + 25
 
         );
 
@@ -1400,26 +1315,9 @@ class RCCircuit {
 
             graphX +
             graphW -
-            90,
+            80,
 
-            graphY + 40
-
-        );
-
-
-        ctx.fillStyle =
-            "#388e3c";
-
-
-        ctx.fillText(
-
-            "V(t) [V]",
-
-            graphX +
-            graphW -
-            90,
-
-            graphY + 60
+            graphY + 45
 
         );
 
@@ -1509,20 +1407,10 @@ class RCCircuit {
 
         ctx.fillText(
 
-            `V = ${this.voltage[frame].toFixed(3)} V`,
-
-            760,
-            390
-
-        );
-
-
-        ctx.fillText(
-
             `t = ${this.time[frame].toFixed(2)} s`,
 
             760,
-            415
+            390
 
         );
 
@@ -1574,6 +1462,10 @@ class RCCircuit {
                 return;
 
 
+            // =================================================
+            // REINICIA
+            // =================================================
+
             if (
                 this.frame >=
                 this.time.length
@@ -1585,9 +1477,18 @@ class RCCircuit {
             }
 
 
+            // =================================================
+            // VELOCIDADE DOS ELÉTRONS
+            // =================================================
+
             const i =
                 this.current[this.frame] || 0;
 
+
+            /*
+             * O sinal da corrente determina
+             * o sentido do movimento.
+             */
 
             const speed =
                 0.02 * i;
@@ -1616,8 +1517,16 @@ class RCCircuit {
             }
 
 
+            // =================================================
+            // DESENHA
+            // =================================================
+
             this.draw();
 
+
+            // =================================================
+            // AVANÇA
+            // =================================================
 
             this.frame++;
 
@@ -1705,15 +1614,18 @@ const sliderR =
         "sliderR"
     );
 
+
 const sliderC =
     document.getElementById(
         "sliderC"
     );
 
+
 const sliderQ0 =
     document.getElementById(
         "sliderQ0"
     );
+
 
 const sliderV0 =
     document.getElementById(
@@ -1726,15 +1638,18 @@ const valueR =
         "valueR"
     );
 
+
 const valueC =
     document.getElementById(
         "valueC"
     );
 
+
 const valueQ0 =
     document.getElementById(
         "valueQ0"
     );
+
 
 const valueV0 =
     document.getElementById(
@@ -1861,7 +1776,5 @@ sliderV0.addEventListener(
 // ============================================================
 // INICIA
 // ============================================================
-
-circuito.draw();
 
 circuito.iniciar();
