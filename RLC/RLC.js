@@ -114,12 +114,6 @@ class RLCircuit {
 
         const p = this.params;
 
-        /*
-         * Fonte AC:
-         *
-         * V(t) = V0 cos(ωt)
-         */
-
         const Vt =
             p.V0 *
             Math.cos(
@@ -604,14 +598,23 @@ class RLCircuit {
     // =========================================================
     // CAMINHO DOS ELÉTRONS
     //
-    // IMPORTANTE:
-    // O caminho NÃO atravessa o capacitor.
+    // O caminho é ABERTO.
     //
-    // Os elétrons percorrem:
+    // Ele começa na placa superior:
     //
-    // placa superior → circuito externo → placa inferior
+    //       placa superior
+    //             ↓
+    //        fio superior
+    //             ↓
+    //             L
+    //             ↓
+    //        fonte / R
+    //             ↓
+    //        fio inferior
+    //             ↓
+    //       placa inferior
     //
-    // e nunca passam entre capY1 e capY2.
+    // NÃO existe caminho entre as placas.
     // =========================================================
 
     createCircuitPath() {
@@ -626,13 +629,13 @@ class RLCircuit {
 
 
         // =====================================================
-        // COMEÇA NA PLACA SUPERIOR DO CAPACITOR
+        // 1. PLACA SUPERIOR → TOPO
         // =====================================================
 
         for (
             let y = this.capY1;
-            y <= y1;
-            y += 3
+            y >= y0;
+            y -= 3
         ) {
 
             this.path.push({
@@ -643,7 +646,7 @@ class RLCircuit {
 
 
         // =====================================================
-        // PARTE INFERIOR
+        // 2. PARTE SUPERIOR
         // =====================================================
 
         for (
@@ -654,19 +657,19 @@ class RLCircuit {
 
             this.path.push({
                 x: x,
-                y: y1
+                y: y0
             });
         }
 
 
         // =====================================================
-        // LADO ESQUERDO
+        // 3. LADO ESQUERDO
         // =====================================================
 
         for (
-            let y = y1 - 3;
-            y >= y0;
-            y -= 3
+            let y = y0 + 3;
+            y <= y1;
+            y += 3
         ) {
 
             this.path.push({
@@ -677,7 +680,7 @@ class RLCircuit {
 
 
         // =====================================================
-        // PARTE SUPERIOR
+        // 4. PARTE INFERIOR
         // =====================================================
 
         for (
@@ -688,19 +691,19 @@ class RLCircuit {
 
             this.path.push({
                 x: x,
-                y: y0
+                y: y1
             });
         }
 
 
         // =====================================================
-        // DESCIDA ATÉ A PLACA SUPERIOR
+        // 5. FIO ATÉ A PLACA INFERIOR
         // =====================================================
 
         for (
-            let y = y0 + 3;
-            y <= this.capY1;
-            y += 3
+            let y = y1 - 3;
+            y >= this.capY2;
+            y -= 3
         ) {
 
             this.path.push({
@@ -715,6 +718,10 @@ class RLCircuit {
     }
 
 
+    // =========================================================
+    // RESET DOS ELÉTRONS
+    // =========================================================
+
     resetElectrons() {
 
         this.electronPositions = [];
@@ -728,7 +735,9 @@ class RLCircuit {
 
             this.electronPositions.push(
 
-                k *
+                (
+                    k + 0.5
+                ) *
                 (
                     this.pathLength - 1
                 ) /
@@ -894,7 +903,7 @@ class RLCircuit {
 
 
         // =====================================================
-        // LADO DIREITO - PARTE SUPERIOR
+        // FIO SUPERIOR ATÉ A PLACA
         // =====================================================
 
         ctx.beginPath();
@@ -946,7 +955,7 @@ class RLCircuit {
 
 
         // =====================================================
-        // FIO APÓS CAPACITOR
+        // FIO DA PLACA INFERIOR
         // =====================================================
 
         ctx.lineWidth = 3;
@@ -1268,17 +1277,13 @@ class RLCircuit {
             k++
         ) {
 
-            let index =
-                Math.floor(
-                    this.electronPositions[k]
-                );
-
-
-            index =
+            const index =
                 Math.max(
                     0,
                     Math.min(
-                        index,
+                        Math.floor(
+                            this.electronPositions[k]
+                        ),
                         this.pathLength - 1
                     )
                 );
@@ -2129,7 +2134,7 @@ class RLCircuit {
 
 
             // =================================================
-            // VELOCIDADE DOS ELÉTRONS
+            // CORRENTE ATUAL
             // =================================================
 
             const index =
@@ -2146,59 +2151,76 @@ class RLCircuit {
                 this.current[index] || 0;
 
 
+            // =================================================
+            // VELOCIDADE
+            // =================================================
+
             const speed =
                 0.5 +
                 Math.abs(current) * 2;
 
 
-            /*
-             * i(t) representa a corrente convencional.
-             *
-             * Os elétrons possuem carga negativa,
-             * portanto se movimentam no sentido
-             * oposto ao da corrente convencional.
-             */
+            // =================================================
+            // DIREÇÃO DOS ELÉTRONS
+            //
+            // Corrente convencional:
+            //      →
+            //
+            // Elétrons:
+            //      ←
+            // =================================================
 
             const direction =
                 -Math.sign(
-                    current || 1
+                    current
                 );
 
 
-            for (
-                let k = 0;
-                k < this.electronPositions.length;
-                k++
-            ) {
+            // =================================================
+            // MOVIMENTO
+            // =================================================
 
-                this.electronPositions[k] +=
-                    speed *
-                    direction;
+            if (direction !== 0) {
 
-
-                // =================================================
-                // LIMITE NA PLACA SUPERIOR
-                // =================================================
-
-                if (
-                    this.electronPositions[k] < 0
+                for (
+                    let k = 0;
+                    k < this.electronPositions.length;
+                    k++
                 ) {
 
-                    this.electronPositions[k] = 0;
-                }
+                    this.electronPositions[k] +=
+                        speed *
+                        direction;
 
 
-                // =================================================
-                // LIMITE NA PLACA INFERIOR
-                // =================================================
+                    // =================================================
+                    // PLACA SUPERIOR
+                    //
+                    // Não deixa o elétron ultrapassar a placa.
+                    // =================================================
 
-                if (
-                    this.electronPositions[k] >=
-                    this.pathLength - 1
-                ) {
+                    if (
+                        this.electronPositions[k] < 0
+                    ) {
 
-                    this.electronPositions[k] =
-                        this.pathLength - 1;
+                        this.electronPositions[k] = 0;
+                    }
+
+
+                    // =================================================
+                    // PLACA INFERIOR
+                    //
+                    // Não deixa o elétron ultrapassar a placa.
+                    // =================================================
+
+                    if (
+                        this.electronPositions[k] >
+                        this.pathLength - 1
+                    ) {
+
+                        this.electronPositions[k] =
+                            this.pathLength - 1;
+                    }
                 }
             }
 
