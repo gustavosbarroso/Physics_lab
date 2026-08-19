@@ -47,7 +47,7 @@ class RCCircuit {
         // CONFIGURAÇÃO DOS ELÉTRONS
         // =====================================================
 
-        this.electronCount = 100;
+        this.electronCount = 200;
         this.electronPositions = [];
 
 
