@@ -59,7 +59,10 @@ class RCCircuit {
         this.y0 = 120;
         this.y1 = 320;
 
-        // Capacitor
+        // =====================================================
+        // CAPACITOR
+        // =====================================================
+
         this.capY1 = 205;
         this.capY2 = 245;
 
@@ -80,7 +83,11 @@ class RCCircuit {
     // =========================================================
     // SISTEMA DIFERENCIAL
     //
-    // RC dv_c/dt + v_c = V0
+    // RC:
+    //
+    // dv_c/dt + v_c/(RC) = V0/(RC)
+    //
+    // portanto:
     //
     // dv_c/dt = (V0 - v_c)/(RC)
     // =========================================================
@@ -97,7 +104,9 @@ class RCCircuit {
             (V0 - vc) /
             (R * C);
 
-        return [dvc_dt];
+        return [
+            dvc_dt
+        ];
     }
 
 
@@ -156,8 +165,10 @@ class RCCircuit {
         // =====================================================
 
         let state = [
+
             this.params.q0 /
             this.params.C
+
         ];
 
         this.time = [];
@@ -197,10 +208,12 @@ class RCCircuit {
 
             const k1 =
                 this.mul(
+
                     this.f(
                         state,
                         t
                     ),
+
                     h
                 );
 
@@ -287,7 +300,7 @@ class RCCircuit {
         // =====================================================
         // CORRENTE
         //
-        // i = (V0 - vc)/R
+        // i = (V0 - vc) / R
         // =====================================================
 
         const R =
@@ -298,8 +311,11 @@ class RCCircuit {
 
         this.current =
             this.vc.map(
+
                 vc =>
-                    (V0 - vc) / R
+                    (V0 - vc) /
+                    R
+
             );
     }
 
@@ -318,6 +334,11 @@ class RCCircuit {
 
     // =========================================================
     // RESET DOS ELÉTRONS
+    //
+    // Os elétrons começam distribuídos apenas nos
+    // caminhos condutores.
+    //
+    // Nenhum elétron é colocado no vão do capacitor.
     // =========================================================
 
     resetElectrons() {
@@ -332,11 +353,16 @@ class RCCircuit {
             i++
         ) {
 
+            // Evita colocar exatamente na borda
+            // do caminho.
+
             const s =
-                i / this.numElectrons;
+                (i + 0.5) /
+                this.numElectrons;
 
 
             this.electronTop.push(s);
+
             this.electronBottom.push(s);
         }
     }
@@ -345,16 +371,20 @@ class RCCircuit {
     // =========================================================
     // CAMINHO DO RAMO SUPERIOR
     //
-    // O parâmetro s é definido no SENTIDO POSITIVO DO
-    // MOVIMENTO DOS ELÉTRONS para i > 0:
+    // s = 0
+    //     placa superior do capacitor
     //
-    // s = 0 -> placa superior do capacitor
+    // s = 1
+    //     terminal positivo da fonte
     //
-    // s = 1 -> terminal positivo da fonte
-    //
-    // Portanto:
+    // Caminho:
     //
     // capacitor -> resistor -> fonte
+    //
+    // IMPORTANTE:
+    //
+    // O caminho termina na placa superior.
+    // Não existe continuação pelo capacitor.
     // =========================================================
 
     topElectronPath(s) {
@@ -368,7 +398,7 @@ class RCCircuit {
 
 
         // =====================================================
-        // CAPACITOR -> RESISTOR
+        // CAPACITOR SUPERIOR -> RESISTOR
         // =====================================================
 
         if (s < 0.30) {
@@ -408,7 +438,9 @@ class RCCircuit {
                 ) * u;
 
 
-            // Mesmo zigue-zague visual do resistor
+            // Mesmo zigue-zague visual
+            // do resistor.
+
             const segments = 6;
 
             const phase =
@@ -424,7 +456,9 @@ class RCCircuit {
             let y = y0;
 
 
-            if (segment < segments) {
+            if (
+                segment < segments
+            ) {
 
                 const yA =
                     segment % 2 === 0
@@ -479,11 +513,13 @@ class RCCircuit {
     // =========================================================
     // CAMINHO DO RAMO INFERIOR
     //
-    // SENTIDO POSITIVO:
+    // s = 0
+    //     fonte negativa
     //
-    // fonte negativa -> placa inferior
+    // s = 1
+    //     placa inferior do capacitor
     //
-    // O caminho TERMINA na placa.
+    // O caminho TERMINA na placa inferior.
     //
     // Não existe continuação através do capacitor.
     // =========================================================
@@ -493,6 +529,7 @@ class RCCircuit {
         const x0 = this.x0;
         const x1 = this.x1;
         const y1 = this.y1;
+
 
         return [
 
@@ -693,7 +730,9 @@ class RCCircuit {
         ctx.beginPath();
 
 
-        // placa superior
+        // -----------------------------------------------------
+        // PLACA SUPERIOR
+        // -----------------------------------------------------
 
         ctx.moveTo(
             x1 - 25,
@@ -706,7 +745,9 @@ class RCCircuit {
         );
 
 
-        // placa inferior
+        // -----------------------------------------------------
+        // PLACA INFERIOR
+        // -----------------------------------------------------
 
         ctx.moveTo(
             x1 - 25,
@@ -1522,6 +1563,10 @@ class RCCircuit {
 
             // =================================================
             // REINICIA A SIMULAÇÃO
+            //
+            // Apenas reinicia o tempo.
+            // Não existe salto físico de elétrons
+            // através do capacitor.
             // =================================================
 
             if (
@@ -1548,8 +1593,7 @@ class RCCircuit {
             // =================================================
             // VELOCIDADE
             //
-            // A velocidade depende somente do módulo da
-            // corrente.
+            // A velocidade depende do módulo da corrente.
             // =================================================
 
             const speed =
@@ -1579,6 +1623,15 @@ class RCCircuit {
 
             // =================================================
             // RAMO SUPERIOR
+            //
+            // NÃO HÁ WRAP-AROUND.
+            //
+            // O elétron fica preso entre:
+            //
+            // s = 0  -> placa superior
+            // s = 1  -> fonte positiva
+            //
+            // Isso impede qualquer passagem pelo capacitor.
             // =================================================
 
             for (
@@ -1593,28 +1646,41 @@ class RCCircuit {
 
 
                 // -------------------------------------------------
-                // CAMINHO CIRCULAR APENAS DENTRO DO RAMO SUPERIOR
+                // BARREIRA DA PLACA SUPERIOR
+                // -------------------------------------------------
+
+                if (
+                    this.electronTop[j] < 0
+                ) {
+
+                    this.electronTop[j] = 0;
+                }
+
+
+                // -------------------------------------------------
+                // LIMITE DA FONTE POSITIVA
                 // -------------------------------------------------
 
                 if (
                     this.electronTop[j] > 1
                 ) {
 
-                    this.electronTop[j] -= 1;
-                }
-
-
-                if (
-                    this.electronTop[j] < 0
-                ) {
-
-                    this.electronTop[j] += 1;
+                    this.electronTop[j] = 1;
                 }
             }
 
 
             // =====================================================
             // RAMO INFERIOR
+            //
+            // NÃO HÁ WRAP-AROUND.
+            //
+            // O elétron fica preso entre:
+            //
+            // s = 0  -> fonte negativa
+            // s = 1  -> placa inferior
+            //
+            // Novamente, o capacitor é uma barreira.
             // =====================================================
 
             for (
@@ -1629,13 +1695,19 @@ class RCCircuit {
 
 
                 // -------------------------------------------------
-                // LIMITES FÍSICOS
-                //
-                // O ramo inferior também não atravessa o
-                // capacitor.
-                //
-                // Quando o elétron chega à placa, ele fica
-                // exatamente na placa até a corrente inverter.
+                // LIMITE DA FONTE NEGATIVA
+                // -------------------------------------------------
+
+                if (
+                    this.electronBottom[j] < 0
+                ) {
+
+                    this.electronBottom[j] = 0;
+                }
+
+
+                // -------------------------------------------------
+                // BARREIRA DA PLACA INFERIOR
                 // -------------------------------------------------
 
                 if (
@@ -1643,14 +1715,6 @@ class RCCircuit {
                 ) {
 
                     this.electronBottom[j] = 1;
-                }
-
-
-                if (
-                    this.electronBottom[j] < 0
-                ) {
-
-                    this.electronBottom[j] = 0;
                 }
             }
 
@@ -1805,7 +1869,9 @@ sliderR.addEventListener(
 
 
         circuito.atualizarParametros({
+
             R: value
+
         });
 
 
@@ -1830,7 +1896,9 @@ sliderC.addEventListener(
 
 
         circuito.atualizarParametros({
+
             C: value
+
         });
 
 
@@ -1855,7 +1923,9 @@ sliderQ0.addEventListener(
 
 
         circuito.atualizarParametros({
+
             q0: value
+
         });
 
 
@@ -1880,7 +1950,9 @@ sliderV0.addEventListener(
 
 
         circuito.atualizarParametros({
+
             V0: value
+
         });
 
 
