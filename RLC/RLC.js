@@ -47,7 +47,7 @@ class RLCircuit {
         // CONFIGURAÇÃO DA ANIMAÇÃO
         // =====================================================
 
-        this.electronCount = 20;
+        this.electronCount = 50;
         this.electronPositions = [];
 
         // =====================================================
@@ -322,47 +322,6 @@ class RLCircuit {
         this.RK4();
 
         this.frame = 0;
-    }
-
-
-    // =========================================================
-    // CLASSIFICAÇÃO
-    // =========================================================
-
-    regime() {
-
-        const p = this.params;
-
-        const omega0 =
-            1 /
-            Math.sqrt(
-                p.L * p.C
-            );
-
-        const gamma =
-            p.R /
-            (2 * p.L);
-
-
-        if (
-            Math.abs(
-                gamma - omega0
-            ) < 1e-3
-        ) {
-
-            return "Criticamente amortecido";
-        }
-
-
-        if (
-            gamma > omega0
-        ) {
-
-            return "Superamortecido";
-        }
-
-
-        return "Subamortecido";
     }
 
 
@@ -1255,9 +1214,6 @@ class RLCircuit {
 
             // =================================================
             // ESPAÇO ENTRE AS PLACAS
-            //
-            // O elétron CONTINUA percorrendo o caminho.
-            // Apenas não o desenhamos nessa região.
             // =================================================
 
             const insideCapacitor =
@@ -1308,7 +1264,7 @@ class RLCircuit {
         const y = 20;
 
         const width = 315;
-        const height = 120;
+        const height = 105;
 
 
         ctx.save();
@@ -1422,30 +1378,11 @@ class RLCircuit {
 
 
         // =====================================================
-        // REGIME
-        // =====================================================
-
-        ctx.font =
-            "bold 11px Arial";
-
-
-        ctx.fillText(
-            `Regime: ${this.regime()}`,
-            x + 12,
-            y + 100
-        );
-
-
-        // =====================================================
         // COLUNA 2
         // =====================================================
 
         const col2 =
             x + 205;
-
-
-        ctx.font =
-            "12px Arial";
 
 
         ctx.fillText(
@@ -1473,13 +1410,6 @@ class RLCircuit {
             `i(t) = ${i.toFixed(3)} A`,
             col2,
             y + 96
-        );
-
-
-        ctx.fillText(
-            `t = ${t.toFixed(2)} s`,
-            col2,
-            y + 114
         );
 
 
@@ -2054,8 +1984,6 @@ class RLCircuit {
         );
 
 
-        // Fundo
-
         ctx.fillStyle =
             "white";
 
@@ -2068,22 +1996,11 @@ class RLCircuit {
         );
 
 
-        // Circuito
-
         this.drawCircuit(ctx);
-
-
-        // Elétrons
 
         this.drawElectrons(ctx);
 
-
-        // Informações
-
         this.drawHUD(ctx);
-
-
-        // Gráfico
 
         this.drawGraph(ctx);
     }
