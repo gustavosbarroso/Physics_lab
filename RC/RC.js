@@ -93,9 +93,9 @@ class RCCircuit {
 
 
     // =========================================================
-    // EDO DO CIRCUITO RC
+    // EDO
     //
-    // dv_c/dt = (V0 - v_c)/(RC)
+    // dv_c/dt = (V0 - vc)/(RC)
     // =========================================================
 
     f(state, t) {
@@ -106,12 +106,10 @@ class RCCircuit {
         const C = this.params.C;
         const V0 = this.params.V0;
 
-        const dvc_dt =
-            (V0 - vc) /
-            (R * C);
-
         return [
-            dvc_dt
+
+            (V0 - vc) / (R * C)
+
         ];
     }
 
@@ -139,10 +137,12 @@ class RCCircuit {
     add4(a, b, c, d) {
 
         return [
+
             a[0] +
             2 * b[0] +
             2 * c[0] +
             d[0]
+
         ];
     }
 
@@ -163,10 +163,6 @@ class RCCircuit {
 
         // =====================================================
         // CONDIÇÃO INICIAL
-        //
-        // q0 = C * vc0
-        //
-        // vc0 = q0 / C
         // =====================================================
 
         let state = [
@@ -195,11 +191,9 @@ class RCCircuit {
 
             this.time.push(t);
 
-
             this.vc.push(
                 state[0]
             );
-
 
             this.q.push(
 
@@ -218,7 +212,7 @@ class RCCircuit {
 
 
             // =================================================
-            // RK4
+            // K1
             // =================================================
 
             const k1 =
@@ -230,8 +224,13 @@ class RCCircuit {
                     ),
 
                     h
+
                 );
 
+
+            // =================================================
+            // K2
+            // =================================================
 
             const k2 =
                 this.mul(
@@ -239,12 +238,14 @@ class RCCircuit {
                     this.f(
 
                         this.add(
+
                             state,
 
                             this.mul(
                                 k1,
                                 0.5
                             )
+
                         ),
 
                         t + h / 2
@@ -255,6 +256,10 @@ class RCCircuit {
 
                 );
 
+
+            // =================================================
+            // K3
+            // =================================================
 
             const k3 =
                 this.mul(
@@ -262,12 +267,14 @@ class RCCircuit {
                     this.f(
 
                         this.add(
+
                             state,
 
                             this.mul(
                                 k2,
                                 0.5
                             )
+
                         ),
 
                         t + h / 2
@@ -278,6 +285,10 @@ class RCCircuit {
 
                 );
 
+
+            // =================================================
+            // K4
+            // =================================================
 
             const k4 =
                 this.mul(
@@ -297,6 +308,10 @@ class RCCircuit {
 
                 );
 
+
+            // =================================================
+            // ATUALIZAÇÃO
+            // =================================================
 
             state =
                 this.add(
@@ -322,8 +337,6 @@ class RCCircuit {
 
         // =====================================================
         // CORRENTE
-        //
-        // i = (V0 - vc)/R
         // =====================================================
 
         const R =
@@ -337,6 +350,7 @@ class RCCircuit {
             this.vc.map(
 
                 vc =>
+
                     (V0 - vc) /
                     R
 
@@ -387,9 +401,9 @@ class RCCircuit {
     // =========================================================
     // CAMINHO SUPERIOR
     //
-    // TERMINA FISICAMENTE NA PLACA SUPERIOR.
+    // TERMINA EXATAMENTE NA PLACA SUPERIOR.
     //
-    // NÃO EXISTE SEGMENTO ATRAVESSANDO O VÃO.
+    // NÃO EXISTE TRECHO ENTRE AS PLACAS.
     // =========================================================
 
     topElectronPath(s) {
@@ -458,7 +472,7 @@ class RCCircuit {
         // =====================================================
         // SEGMENTO 1
         //
-        // PLACA SUPERIOR -> FIO
+        // FIO -> PLACA SUPERIOR
         // =====================================================
 
         if (
@@ -474,7 +488,7 @@ class RCCircuit {
 
                 x1,
 
-                capY1 -
+                y0 +
                 (
                     capY1 -
                     y0
@@ -487,7 +501,9 @@ class RCCircuit {
         // =====================================================
         // SEGMENTO 2
         //
-        // FIO HORIZONTAL
+        // PLACA SUPERIOR -> FIO
+        //
+        // ESTE TRECHO É PERCORRIDO NO SENTIDO CONTRÁRIO
         // =====================================================
 
         const d2 =
@@ -591,12 +607,15 @@ class RCCircuit {
                 (
                     yB -
                     yA
-                ) * local;
+                ) *
+                local;
 
 
             return [
+
                 x,
                 y
+
             ];
         }
 
@@ -614,9 +633,12 @@ class RCCircuit {
 
         const u =
             Math.min(
+
                 1,
+
                 d4 /
                 sourceLength
+
             );
 
 
@@ -637,9 +659,9 @@ class RCCircuit {
     // =========================================================
     // CAMINHO INFERIOR
     //
-    // TERMINA FISICAMENTE NA PLACA INFERIOR.
+    // TERMINA EXATAMENTE NA PLACA INFERIOR.
     //
-    // NÃO EXISTE SEGMENTO ATRAVESSANDO O VÃO.
+    // NÃO EXISTE TRECHO ENTRE AS PLACAS.
     // =========================================================
 
     bottomElectronPath(s) {
@@ -715,9 +737,7 @@ class RCCircuit {
         // =====================================================
         // SEGMENTO 2
         //
-        // FIO VERTICAL
-        //
-        // TERMINA NA PLACA INFERIOR
+        // FIO -> PLACA INFERIOR
         // =====================================================
 
         const d2 =
@@ -727,9 +747,12 @@ class RCCircuit {
 
         const u =
             Math.min(
+
                 1,
+
                 d2 /
                 verticalLength
+
             );
 
 
@@ -805,9 +828,7 @@ class RCCircuit {
 
 
         // -----------------------------------------------------
-        // FIO DIREITO ACIMA DO CAPACITOR
-        //
-        // TERMINA EXATAMENTE NA PLACA SUPERIOR
+        // FIO DIREITO SUPERIOR
         // -----------------------------------------------------
 
         ctx.moveTo(
@@ -822,9 +843,7 @@ class RCCircuit {
 
 
         // -----------------------------------------------------
-        // FIO DIREITO ABAIXO DO CAPACITOR
-        //
-        // COMEÇA EXATAMENTE NA PLACA INFERIOR
+        // FIO DIREITO INFERIOR
         // -----------------------------------------------------
 
         ctx.moveTo(
@@ -855,8 +874,6 @@ class RCCircuit {
 
         // -----------------------------------------------------
         // FIO ESQUERDO
-        //
-        // INTERRUPÇÃO PARA A FONTE
         // -----------------------------------------------------
 
         ctx.moveTo(
@@ -893,13 +910,13 @@ class RCCircuit {
 
         const xr = [
 
-            this.resistorStart,
+            170,
             195,
             220,
             245,
             270,
             295,
-            this.resistorEnd
+            320
 
         ];
 
@@ -963,8 +980,6 @@ class RCCircuit {
         ctx.beginPath();
 
 
-        // PLACA SUPERIOR
-
         ctx.moveTo(
             x1 - 25,
             this.capY1
@@ -975,8 +990,6 @@ class RCCircuit {
             this.capY1
         );
 
-
-        // PLACA INFERIOR
 
         ctx.moveTo(
             x1 - 25,
@@ -1122,9 +1135,9 @@ class RCCircuit {
 
 
     // =========================================================
-    // DESENHO DOS ELÉTRONS
+    // ELÉTRONS
     //
-    // MASCARAMENTO IGUAL AO RLC
+    // MASCARAMENTO EXATAMENTE COMO NO RLC
     // =========================================================
 
     drawElectrons() {
@@ -1141,9 +1154,20 @@ class RCCircuit {
 
 
         // =====================================================
-        // MASCARAMENTO DO VÃO DO CAPACITOR
+        // ESPAÇO ENTRE AS PLACAS
         //
-        // EXATAMENTE A LÓGICA DO RLC
+        // MESMA LÓGICA DO RLC:
+        //
+        // point.x >= x1 - 4
+        // point.x <= x1 + 4
+        // point.y > capY1
+        // point.y < capY2
+        //
+        // SE ESTIVER AQUI:
+        //
+        // continue;
+        //
+        // O ELÉTRON NÃO É DESENHADO.
         // =====================================================
 
         const insideCapacitor = (x, y) => {
@@ -1170,21 +1194,18 @@ class RCCircuit {
             const s of this.electronTop
         ) {
 
-            const [
-                x,
-                y
-            ] =
+            const point =
                 this.topElectronPath(s);
 
 
-            // -------------------------------------------------
+            // =================================================
             // MASCARAMENTO
-            // -------------------------------------------------
+            // =================================================
 
             if (
                 insideCapacitor(
-                    x,
-                    y
+                    point[0],
+                    point[1]
                 )
             ) {
 
@@ -1192,19 +1213,21 @@ class RCCircuit {
             }
 
 
-            // -------------------------------------------------
-            // DESENHA ELÉTRON
-            // -------------------------------------------------
+            // =================================================
+            // ELÉTRON
+            // =================================================
 
             ctx.beginPath();
 
 
             ctx.arc(
-                x,
-                y,
+
+                point[0],
+                point[1],
                 3,
                 0,
                 2 * Math.PI
+
             );
 
 
@@ -1220,21 +1243,18 @@ class RCCircuit {
             const s of this.electronBottom
         ) {
 
-            const [
-                x,
-                y
-            ] =
+            const point =
                 this.bottomElectronPath(s);
 
 
-            // -------------------------------------------------
+            // =================================================
             // MASCARAMENTO
-            // -------------------------------------------------
+            // =================================================
 
             if (
                 insideCapacitor(
-                    x,
-                    y
+                    point[0],
+                    point[1]
                 )
             ) {
 
@@ -1242,19 +1262,21 @@ class RCCircuit {
             }
 
 
-            // -------------------------------------------------
-            // DESENHA ELÉTRON
-            // -------------------------------------------------
+            // =================================================
+            // ELÉTRON
+            // =================================================
 
             ctx.beginPath();
 
 
             ctx.arc(
-                x,
-                y,
+
+                point[0],
+                point[1],
                 3,
                 0,
                 2 * Math.PI
+
             );
 
 
@@ -1316,16 +1338,17 @@ class RCCircuit {
         ctx.strokeStyle =
             "#777";
 
-
         ctx.lineWidth =
             1;
 
 
         ctx.strokeRect(
+
             graphX,
             graphY,
             graphW,
             graphH
+
         );
 
 
@@ -1725,9 +1748,12 @@ class RCCircuit {
             t => {
 
                 return graphX +
+
                     (
-                        t / 10
+                        t /
+                        10
                     ) *
+
                     graphW;
 
             };
@@ -1737,10 +1763,12 @@ class RCCircuit {
             value => {
 
                 return centerY -
+
                     (
                         value /
                         maxAbs
                     ) *
+
                     (
                         graphH / 2
                     );
@@ -2054,7 +2082,7 @@ class RCCircuit {
 
 
             // =================================================
-            // REINÍCIO DA SIMULAÇÃO
+            // REINÍCIO
             // =================================================
 
             if (
@@ -2069,7 +2097,7 @@ class RCCircuit {
 
 
             // =================================================
-            // CORRENTE ATUAL
+            // CORRENTE
             // =================================================
 
             const i =
@@ -2169,7 +2197,7 @@ class RCCircuit {
 
 
             // =================================================
-            // AVANÇA O TEMPO
+            // AVANÇA
             // =================================================
 
             this.frame++;
@@ -2391,7 +2419,7 @@ sliderQ0.addEventListener(
 
 
 // ============================================================
-// FONTE V0
+// FONTE
 // ============================================================
 
 sliderV0.addEventListener(
