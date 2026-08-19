@@ -374,24 +374,6 @@ class RCCircuit {
 
     // =========================================================
     // CAMINHO SUPERIOR
-    //
-    // SENTIDO POSITIVO:
-    //
-    // s = 0  -> placa superior do capacitor
-    //
-    // s = 1  -> fonte positiva
-    //
-    //
-    // GEOMETRIA REAL:
-    //
-    // placa superior
-    //      |
-    //      |
-    //      +--------- resistor ---------+
-    //                                    |
-    //                                    fonte
-    //
-    // NÃO EXISTE CAMINHO ENTRE capY1 E capY2.
     // =========================================================
 
     topElectronPath(s) {
@@ -416,7 +398,7 @@ class RCCircuit {
 
 
         // =====================================================
-        // COMPRIMENTOS REAIS DOS SEGMENTOS
+        // COMPRIMENTOS
         // =====================================================
 
         const verticalCap =
@@ -460,9 +442,7 @@ class RCCircuit {
         // =====================================================
         // SEGMENTO 1
         //
-        // PLACA SUPERIOR -> FIO VERTICAL
-        //
-        // (380,205) -> (380,120)
+        // PLACA SUPERIOR -> FIO
         // =====================================================
 
         if (
@@ -492,8 +472,6 @@ class RCCircuit {
         // SEGMENTO 2
         //
         // FIO HORIZONTAL
-        //
-        // (380,120) -> (320,120)
         // =====================================================
 
         const d2 =
@@ -528,10 +506,6 @@ class RCCircuit {
         // SEGMENTO 3
         //
         // RESISTOR
-        //
-        // (320,120) -> (170,120)
-        //
-        // O caminho acompanha o zigue-zague do resistor.
         // =====================================================
 
         const d3 =
@@ -556,15 +530,12 @@ class RCCircuit {
                 ) * u;
 
 
-            // -------------------------------------------------
-            // ZIGUE-ZAGUE
-            // -------------------------------------------------
-
             const segments = 6;
 
             const phase =
                 u *
                 segments;
+
 
             let segment =
                 Math.floor(
@@ -618,8 +589,6 @@ class RCCircuit {
         // SEGMENTO 4
         //
         // RESISTOR -> FONTE
-        //
-        // (170,120) -> (70,120)
         // =====================================================
 
         const d4 =
@@ -651,25 +620,6 @@ class RCCircuit {
 
     // =========================================================
     // CAMINHO INFERIOR
-    //
-    // SENTIDO POSITIVO:
-    //
-    // s = 0 -> fonte negativa
-    //
-    // s = 1 -> placa inferior
-    //
-    //
-    // GEOMETRIA REAL:
-    //
-    // fonte -----------------------+
-    //                               |
-    //                               |
-    //                            placa inferior
-    //
-    // O CAMINHO TERMINA EM capY2.
-    //
-    // NÃO EXISTE QUALQUER SEGMENTO
-    // ENTRE capY1 E capY2.
     // =========================================================
 
     bottomElectronPath(s) {
@@ -688,7 +638,7 @@ class RCCircuit {
 
 
         // =====================================================
-        // COMPRIMENTOS REAIS
+        // COMPRIMENTOS
         // =====================================================
 
         const horizontalLength =
@@ -717,8 +667,6 @@ class RCCircuit {
         // SEGMENTO 1
         //
         // FIO INFERIOR
-        //
-        // (70,320) -> (380,320)
         // =====================================================
 
         if (
@@ -749,9 +697,7 @@ class RCCircuit {
         //
         // FIO VERTICAL
         //
-        // (380,320) -> (380,245)
-        //
-        // TERMINA EXATAMENTE NA PLACA INFERIOR.
+        // TERMINA NA PLACA INFERIOR
         // =====================================================
 
         const d2 =
@@ -823,9 +769,7 @@ class RCCircuit {
         ctx.beginPath();
 
 
-        // -----------------------------------------------------
         // FIO SUPERIOR
-        // -----------------------------------------------------
 
         ctx.moveTo(
             x0,
@@ -838,9 +782,7 @@ class RCCircuit {
         );
 
 
-        // -----------------------------------------------------
         // FIO DIREITO ACIMA DO CAPACITOR
-        // -----------------------------------------------------
 
         ctx.moveTo(
             x1,
@@ -853,9 +795,7 @@ class RCCircuit {
         );
 
 
-        // -----------------------------------------------------
         // FIO DIREITO ABAIXO DO CAPACITOR
-        // -----------------------------------------------------
 
         ctx.moveTo(
             x1,
@@ -868,9 +808,7 @@ class RCCircuit {
         );
 
 
-        // -----------------------------------------------------
         // FIO INFERIOR
-        // -----------------------------------------------------
 
         ctx.moveTo(
             x1,
@@ -883,9 +821,7 @@ class RCCircuit {
         );
 
 
-        // -----------------------------------------------------
         // FIO ESQUERDO
-        // -----------------------------------------------------
 
         ctx.moveTo(
             x0,
@@ -991,10 +927,6 @@ class RCCircuit {
         ctx.beginPath();
 
 
-        // -----------------------------------------------------
-        // PLACA SUPERIOR
-        // -----------------------------------------------------
-
         ctx.moveTo(
             x1 - 25,
             this.capY1
@@ -1005,10 +937,6 @@ class RCCircuit {
             this.capY1
         );
 
-
-        // -----------------------------------------------------
-        // PLACA INFERIOR
-        // -----------------------------------------------------
 
         ctx.moveTo(
             x1 - 25,
@@ -1171,6 +1099,35 @@ class RCCircuit {
 
 
         // =====================================================
+        // FUNÇÃO DE PROTEÇÃO
+        //
+        // EXATAMENTE COMO NO RLC:
+        //
+        // SE O CENTRO DO ELÉTRON ESTIVER NO VÃO
+        // ENTRE AS PLACAS, ELE NÃO É DESENHADO.
+        //
+        // ISSO É APENAS MASCARAMENTO VISUAL.
+        // =====================================================
+
+        const insideCapacitor = (x, y) => {
+
+            return (
+
+                x >= this.x1 - 4 &&
+
+                x <= this.x1 + 4 &&
+
+                y >
+                this.capY1 &&
+
+                y <
+                this.capY2
+
+            );
+        };
+
+
+        // =====================================================
         // RAMO SUPERIOR
         // =====================================================
 
@@ -1183,6 +1140,21 @@ class RCCircuit {
                 y
             ] =
                 this.topElectronPath(s);
+
+
+            // -------------------------------------------------
+            // NÃO DESENHA ELÉTRON NO VÃO
+            // -------------------------------------------------
+
+            if (
+                insideCapacitor(
+                    x,
+                    y
+                )
+            ) {
+
+                continue;
+            }
 
 
             ctx.beginPath();
@@ -1214,6 +1186,21 @@ class RCCircuit {
                 y
             ] =
                 this.bottomElectronPath(s);
+
+
+            // -------------------------------------------------
+            // NÃO DESENHA ELÉTRON NO VÃO
+            // -------------------------------------------------
+
+            if (
+                insideCapacitor(
+                    x,
+                    y
+                )
+            ) {
+
+                continue;
+            }
 
 
             ctx.beginPath();
@@ -2059,19 +2046,6 @@ class RCCircuit {
 
             // =================================================
             // SENTIDO
-            //
-            // i > 0:
-            //
-            // ramo superior:
-            // capacitor -> fonte
-            //
-            // ramo inferior:
-            // fonte -> capacitor
-            //
-            //
-            // i < 0:
-            //
-            // sentidos invertidos.
             // =================================================
 
             const direction =
@@ -2080,13 +2054,6 @@ class RCCircuit {
 
             // =================================================
             // RAMO SUPERIOR
-            //
-            // 0 <= s <= 1
-            //
-            // s = 0 -> PLACA SUPERIOR
-            // s = 1 -> FONTE
-            //
-            // NÃO HÁ WRAP-AROUND.
             // =================================================
 
             for (
@@ -2120,13 +2087,6 @@ class RCCircuit {
 
             // =================================================
             // RAMO INFERIOR
-            //
-            // 0 <= s <= 1
-            //
-            // s = 0 -> FONTE
-            // s = 1 -> PLACA INFERIOR
-            //
-            // NÃO HÁ WRAP-AROUND.
             // =================================================
 
             for (
