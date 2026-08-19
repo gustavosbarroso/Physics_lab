@@ -1,1647 +1,1780 @@
-class RCCircuit { 
+class RCCircuit {
 
-    constructor(canvas, options = {}) { 
+    constructor(canvas, options = {}) {
 
-        this.canvas = canvas; 
-        this.ctx = canvas.getContext("2d"); 
+        this.canvas = canvas;
+        this.ctx = canvas.getContext("2d");
 
-        // ===================================================== 
-        // PARÂMETROS 
-        // ===================================================== 
+        // =====================================================
+        // PARÂMETROS
+        // =====================================================
 
-        this.params = { 
+        this.params = {
 
-            R: 2.0, 
-            C: 1.0, 
-            q0: 1.0, 
+            R: 2.0,
+            C: 1.0,
+            q0: 0.0,
+            V0: 1.0,
 
-            ...options 
-        }; 
+            ...options
+        };
 
-        // ===================================================== 
-        // DADOS DA SOLUÇÃO 
-        // ===================================================== 
+        // =====================================================
+        // DADOS DA SOLUÇÃO
+        // =====================================================
 
-        this.time = []; 
-        this.q = []; 
-        this.current = []; 
+        this.time = [];
+        this.q = [];
+        this.current = [];
 
-        // ===================================================== 
-        // ELÉTRONS 
-        // ===================================================== 
+        // =====================================================
+        // ELÉTRONS
+        // =====================================================
 
-        this.numElectrons = 40; 
-        this.electronPos = []; 
+        this.numElectrons = 40;
+        this.electronPos = [];
 
-        // ===================================================== 
-        // ANIMAÇÃO 
-        // ===================================================== 
+        // =====================================================
+        // ANIMAÇÃO
+        // =====================================================
 
-        this.frame = 0; 
-        this.running = false; 
+        this.frame = 0;
+        this.running = false;
 
-        // ===================================================== 
-        // SOLUÇÃO 
-        // ===================================================== 
+        // =====================================================
+        // SOLUÇÃO
+        // =====================================================
 
-        this.solve(); 
+        this.solve();
 
-        // ===================================================== 
-        // ELÉTRONS 
-        // ===================================================== 
+        // =====================================================
+        // ELÉTRONS
+        // =====================================================
 
-        this.resetElectrons(); 
-    } 
+        this.resetElectrons();
+    }
 
 
-    // ========================================================= 
-    // SISTEMA RC 
-    // ========================================================= 
+    // =========================================================
+    // SISTEMA RC COM FONTE CONTÍNUA
+    // =========================================================
 
-    f(state, t) { 
+    f(state, t) {
 
-        const q = state[0]; 
+        const q = state[0];
 
-        const R = this.params.R; 
-        const C = this.params.C; 
+        const R = this.params.R;
+        const C = this.params.C;
+        const V0 = this.params.V0;
 
-        const dqdt = 
-            -(1 / (R * C)) * q; 
+        /*
+         * Pela lei das malhas:
+         *
+         * V0 - R i - q/C = 0
+         *
+         * Como i = dq/dt:
+         *
+         * dq/dt = (V0 - q/C) / R
+         */
 
-        return [dqdt]; 
-    } 
+        const dqdt =
+            (V0 - q / C) / R;
 
+        return [dqdt];
+    }
 
-    // ========================================================= 
-    // OPERAÇÕES VETORIAIS 
-    // ========================================================= 
 
-    add(a, b) { 
+    // =========================================================
+    // OPERAÇÕES VETORIAIS
+    // =========================================================
 
-        return [ 
-            a[0] + b[0] 
-        ]; 
-    } 
+    add(a, b) {
 
+        return [
+            a[0] + b[0]
+        ];
+    }
 
-    mul(a, x) { 
 
-        return [ 
-            a[0] * x 
-        ]; 
-    } 
+    mul(a, x) {
 
+        return [
+            a[0] * x
+        ];
+    }
 
-    add4(a, b, c, d) { 
 
-        return [ 
-            a[0] + 
-            2 * b[0] + 
-            2 * c[0] + 
-            d[0] 
-        ]; 
-    } 
+    add4(a, b, c, d) {
 
+        return [
+            a[0] +
+            2 * b[0] +
+            2 * c[0] +
+            d[0]
+        ];
+    }
 
-    // ========================================================= 
-    // RK4 
-    // ========================================================= 
 
-    RK4() { 
+    // =========================================================
+    // RK4
+    // =========================================================
 
-        const a = 0; 
-        const b = 10; 
-        const N = 500; 
+    RK4() {
 
-        const h = 
-            (b - a) / N; 
+        const a = 0;
+        const b = 10;
+        const N = 500;
 
-        let state = [ 
-            this.params.q0 
-        ]; 
+        const h =
+            (b - a) / N;
 
-        this.time = []; 
-        this.q = []; 
-        this.current = []; 
+        let state = [
+            this.params.q0
+        ];
 
+        this.time = [];
+        this.q = [];
+        this.current = [];
 
-        for ( 
-            let n = 0; 
-            n <= N; 
-            n++ 
-        ) { 
 
-            const t = 
-                a + n * h; 
+        for (
+            let n = 0;
+            n <= N;
+            n++
+        ) {
 
+            const t =
+                a + n * h;
 
-            this.time.push(t); 
 
-            this.q.push( 
-                state[0] 
-            ); 
+            this.time.push(t);
 
+            this.q.push(
+                state[0]
+            );
 
-            if (n === N) 
-                break; 
 
+            if (n === N)
+                break;
 
-            const k1 = 
-                this.mul( 
-                    this.f( 
-                        state, 
-                        t 
-                    ), 
-                    h 
-                ); 
 
+            const k1 =
+                this.mul(
+                    this.f(
+                        state,
+                        t
+                    ),
+                    h
+                );
 
-            const k2 = 
-                this.mul( 
 
-                    this.f( 
+            const k2 =
+                this.mul(
 
-                        this.add( 
-                            state, 
-                            this.mul( 
-                                k1, 
-                                0.5 
-                            ) 
-                        ), 
+                    this.f(
 
-                        t + h / 2 
+                        this.add(
+                            state,
+                            this.mul(
+                                k1,
+                                0.5
+                            )
+                        ),
 
-                    ), 
+                        t + h / 2
 
-                    h 
-                ); 
+                    ),
 
+                    h
+                );
 
-            const k3 = 
-                this.mul( 
 
-                    this.f( 
+            const k3 =
+                this.mul(
 
-                        this.add( 
-                            state, 
-                            this.mul( 
-                                k2, 
-                                0.5 
-                            ) 
-                        ), 
+                    this.f(
 
-                        t + h / 2 
+                        this.add(
+                            state,
+                            this.mul(
+                                k2,
+                                0.5
+                            )
+                        ),
 
-                    ), 
+                        t + h / 2
 
-                    h 
-                ); 
+                    ),
 
+                    h
+                );
 
-            const k4 = 
-                this.mul( 
 
-                    this.f( 
+            const k4 =
+                this.mul(
 
-                        this.add( 
-                            state, 
-                            k3 
-                        ), 
+                    this.f(
 
-                        t + h 
+                        this.add(
+                            state,
+                            k3
+                        ),
 
-                    ), 
+                        t + h
 
-                    h 
-                ); 
+                    ),
 
+                    h
+                );
 
-            state = 
-                this.add( 
 
-                    state, 
+            state =
+                this.add(
 
-                    this.mul( 
+                    state,
 
-                        this.add4( 
-                            k1, 
-                            k2, 
-                            k3, 
-                            k4 
-                        ), 
+                    this.mul(
 
-                        1 / 6 
-                    ) 
-                ); 
-        } 
+                        this.add4(
+                            k1,
+                            k2,
+                            k3,
+                            k4
+                        ),
 
+                        1 / 6
+                    )
+                );
+        }
 
-        // ===================================================== 
-        // CORRENTE 
-        // ===================================================== 
 
-        const R = this.params.R; 
-        const C = this.params.C; 
+        // =====================================================
+        // CORRENTE
+        // =====================================================
 
+        const R = this.params.R;
+        const C = this.params.C;
+        const V0 = this.params.V0;
 
-        this.current = 
-            this.q.map( 
 
-                q => 
-                    -(1 / (R * C)) * q 
-            ); 
-    } 
+        this.current =
+            this.q.map(
 
+                q =>
+                    (V0 - q / C) / R
+            );
+    }
 
-    // ========================================================= 
-    // SOLVER 
-    // ========================================================= 
 
-    solve() { 
+    // =========================================================
+    // SOLVER
+    // =========================================================
 
-        this.RK4(); 
+    solve() {
 
-        this.frame = 0; 
-    } 
+        this.RK4();
 
+        this.frame = 0;
+    }
 
-    // ========================================================= 
-    // ELÉTRONS 
-    // ========================================================= 
 
-    resetElectrons() { 
+    // =========================================================
+    // ELÉTRONS
+    // =========================================================
 
-        this.electronPos = []; 
+    resetElectrons() {
 
+        this.electronPos = [];
 
-        for ( 
-            let i = 0; 
-            i < this.numElectrons; 
-            i++ 
-        ) { 
 
-            this.electronPos.push( 
-                i / this.numElectrons 
-            ); 
-        } 
-    } 
+        for (
+            let i = 0;
+            i < this.numElectrons;
+            i++
+        ) {
 
+            this.electronPos.push(
+                i / this.numElectrons
+            );
+        }
+    }
 
-    // ========================================================= 
-    // CAMINHO DOS ELÉTRONS 
-    // ========================================================= 
 
-    loopPath(s) { 
+    // =========================================================
+    // CAMINHO DOS ELÉTRONS
+    // =========================================================
 
-        const x0 = 70; 
-        const x1 = 380; 
+    loopPath(s) {
 
-        const y0 = 120; 
-        const y1 = 320; 
+        const x0 = 70;
+        const x1 = 380;
 
+        const y0 = 120;
+        const y1 = 320;
 
-        if (s < 0.25) { 
 
-            return [ 
+        if (s < 0.25) {
 
-                x0 + 
-                (x1 - x0) * 
-                (s / 0.25), 
+            return [
 
-                y0 
+                x0 +
+                (x1 - x0) *
+                (s / 0.25),
 
-            ]; 
+                y0
 
-        } 
+            ];
+        }
 
 
-        else if (s < 0.5) { 
+        else if (s < 0.5) {
 
-            return [ 
+            return [
 
-                x1, 
+                x1,
 
-                y0 + 
-                (y1 - y0) * 
-                ((s - 0.25) / 0.25) 
+                y0 +
+                (y1 - y0) *
+                ((s - 0.25) / 0.25)
 
-            ]; 
+            ];
+        }
 
-        } 
 
+        else if (s < 0.75) {
 
-        else if (s < 0.75) { 
+            return [
 
-            return [ 
+                x1 -
+                (x1 - x0) *
+                ((s - 0.5) / 0.25),
 
-                x1 - 
-                (x1 - x0) * 
-                ((s - 0.5) / 0.25), 
+                y1
 
-                y1 
+            ];
+        }
 
-            ]; 
 
-        } 
+        else {
 
+            return [
 
-        else { 
+                x0,
 
-            return [ 
+                y1 -
+                (y1 - y0) *
+                ((s - 0.75) / 0.25)
 
-                x0, 
+            ];
+        }
+    }
 
-                y1 - 
-                (y1 - y0) * 
-                ((s - 0.75) / 0.25) 
 
-            ]; 
-        } 
-    } 
+    // =========================================================
+    // CIRCUITO
+    // =========================================================
 
+    drawCircuit() {
 
-    // ========================================================= 
-    // CIRCUITO 
-    // ========================================================= 
+        const ctx = this.ctx;
 
-    drawCircuit() { 
+        const x0 = 70;
+        const x1 = 380;
 
-        const ctx = this.ctx; 
+        const y0 = 120;
+        const y1 = 320;
 
-        const x0 = 70; 
-        const x1 = 380; 
 
-        const y0 = 120; 
-        const y1 = 320; 
+        ctx.save();
 
 
-        ctx.save(); 
+        ctx.strokeStyle =
+            "black";
 
+        ctx.fillStyle =
+            "black";
 
-        ctx.strokeStyle = 
-            "black"; 
+        ctx.lineWidth = 2;
 
-        ctx.fillStyle = 
-            "black"; 
 
-        ctx.lineWidth = 2; 
+        // =====================================================
+        // FIOS
+        // =====================================================
 
-
-        // ===================================================== 
-        // FIOS 
-        // ===================================================== 
-
-        ctx.beginPath(); 
+        ctx.beginPath();
 
         // Fio superior
-        ctx.moveTo( 
-            x0, 
-            y0 
-        ); 
+        ctx.moveTo(
+            x0,
+            y0
+        );
 
-        ctx.lineTo( 
-            x1, 
-            y0 
-        ); 
+        ctx.lineTo(
+            x1,
+            y0
+        );
 
         // Fio direito - parte superior
-        ctx.moveTo( 
-            x1, 
-            y0 
-        ); 
+        ctx.moveTo(
+            x1,
+            y0
+        );
 
-        ctx.lineTo( 
-            x1, 
-            205 
-        ); 
+        ctx.lineTo(
+            x1,
+            205
+        );
 
         // Fio direito - parte inferior
-        ctx.moveTo( 
-            x1, 
-            245 
-        ); 
+        ctx.moveTo(
+            x1,
+            245
+        );
 
-        ctx.lineTo( 
-            x1, 
-            y1 
-        ); 
+        ctx.lineTo(
+            x1,
+            y1
+        );
 
         // Fio inferior
-        ctx.moveTo( 
-            x1, 
-            y1 
-        ); 
+        ctx.moveTo(
+            x1,
+            y1
+        );
 
-        ctx.lineTo( 
-            x0, 
-            y1 
-        ); 
+        ctx.lineTo(
+            x0,
+            y1
+        );
 
-        // Fio esquerdo
-        ctx.moveTo( 
-            x0, 
-            y1 
-        ); 
+        // Fio esquerdo - parte inferior
+        ctx.moveTo(
+            x0,
+            y1
+        );
 
-        ctx.lineTo( 
-            x0, 
-            y0 
-        ); 
+        ctx.lineTo(
+            x0,
+            245
+        );
 
-        ctx.stroke(); 
+        // Fio esquerdo - parte superior
+        ctx.moveTo(
+            x0,
+            195
+        );
 
+        ctx.lineTo(
+            x0,
+            y0
+        );
 
-        // ===================================================== 
-        // RESISTOR 
-        // ===================================================== 
+        ctx.stroke();
 
-        ctx.beginPath(); 
 
+        // =====================================================
+        // RESISTOR
+        // =====================================================
 
-        const xr = [ 
+        ctx.beginPath();
 
-            170, 
-            195, 
-            220, 
-            245, 
-            270, 
-            295, 
-            320 
+        const xr = [
 
-        ]; 
+            170,
+            195,
+            220,
+            245,
+            270,
+            295,
+            320
 
+        ];
 
-        for ( 
-            let i = 0; 
-            i < xr.length; 
-            i++ 
-        ) { 
 
-            const y = 
-                y0 + 
-                ( 
-                    i % 2 
-                        ? 12 
-                        : -12 
-                ); 
+        for (
+            let i = 0;
+            i < xr.length;
+            i++
+        ) {
 
+            const y =
+                y0 +
+                (
+                    i % 2
+                        ? 12
+                        : -12
+                );
 
-            if (i === 0) 
 
-                ctx.moveTo( 
-                    xr[i], 
-                    y 
-                ); 
+            if (i === 0)
 
-            else 
+                ctx.moveTo(
+                    xr[i],
+                    y
+                );
 
-                ctx.lineTo( 
-                    xr[i], 
-                    y 
-                ); 
-        } 
+            else
 
+                ctx.lineTo(
+                    xr[i],
+                    y
+                );
+        }
 
-        ctx.stroke(); 
 
+        ctx.stroke();
 
-        ctx.font = 
-            "16px Arial"; 
 
+        ctx.font =
+            "16px Arial";
 
-        ctx.fillText( 
-            "R", 
-            245, 
-            90 
-        ); 
 
+        ctx.fillText(
+            "R",
+            245,
+            90
+        );
 
-        // ===================================================== 
-        // CAPACITOR 
-        // ===================================================== 
 
-        ctx.lineWidth = 4; 
+        // =====================================================
+        // CAPACITOR
+        // =====================================================
 
+        ctx.lineWidth = 4;
 
-        ctx.beginPath(); 
 
+        ctx.beginPath();
 
-        ctx.moveTo( 
-            x1 - 25, 
-            205 
-        ); 
 
-        ctx.lineTo( 
-            x1 + 25, 
-            205 
-        ); 
+        ctx.moveTo(
+            x1 - 25,
+            205
+        );
 
+        ctx.lineTo(
+            x1 + 25,
+            205
+        );
 
-        ctx.moveTo( 
-            x1 - 25, 
-            245 
-        ); 
 
-        ctx.lineTo( 
-            x1 + 25, 
-            245 
-        ); 
+        ctx.moveTo(
+            x1 - 25,
+            245
+        );
 
+        ctx.lineTo(
+            x1 + 25,
+            245
+        );
 
-        ctx.stroke(); 
 
+        ctx.stroke();
 
-        ctx.font = 
-            "16px Arial"; 
 
+        ctx.font =
+            "16px Arial";
 
-        ctx.fillText( 
-            "C", 
-            x1 + 35, 
-            230 
-        ); 
 
+        ctx.fillText(
+            "C",
+            x1 + 35,
+            230
+        );
 
-        // ===================================================== 
-        // ELÉTRONS 
-        // ===================================================== 
 
-        ctx.fillStyle = 
-            "red"; 
+        // =====================================================
+        // FONTE DC V0
+        // =====================================================
 
+        ctx.lineWidth = 2;
 
-        for ( 
-            const s of this.electronPos 
-        ) { 
+        ctx.strokeStyle = "black";
+        ctx.fillStyle = "white";
 
-            const [ 
-                x, 
-                y 
-            ] = 
-                this.loopPath(s); 
+        // Corpo circular da fonte
+        ctx.beginPath();
 
+        ctx.arc(
+            x0,
+            220,
+            25,
+            0,
+            2 * Math.PI
+        );
 
-            ctx.beginPath(); 
+        ctx.fill();
+        ctx.stroke();
 
 
-            ctx.arc( 
+        // Terminal positivo
+        ctx.beginPath();
 
-                x, 
-                y, 
-                3, 
-                0, 
-                2 * Math.PI 
+        ctx.moveTo(
+            x0 - 10,
+            211
+        );
 
-            ); 
+        ctx.lineTo(
+            x0 + 10,
+            211
+        );
 
+        ctx.moveTo(
+            x0,
+            201
+        );
 
-            ctx.fill(); 
-        } 
+        ctx.lineTo(
+            x0,
+            221
+        );
 
+        ctx.stroke();
 
-        // ===================================================== 
-        // TÍTULO 
-        // ===================================================== 
 
-        ctx.fillStyle = 
-            "black"; 
+        // Terminal negativo
+        ctx.beginPath();
 
-        ctx.font = 
-            "18px Arial"; 
+        ctx.moveTo(
+            x0 - 10,
+            229
+        );
 
+        ctx.lineTo(
+            x0 + 10,
+            229
+        );
 
-        ctx.fillText( 
-            "Circuito RC com elétrons", 
-            120, 
-            45 
-        ); 
+        ctx.stroke();
 
 
-        ctx.restore(); 
-    } 
+        ctx.font =
+            "16px Arial";
 
+        ctx.fillStyle =
+            "black";
 
-    // ========================================================= 
-    // GRÁFICO 
-    // ========================================================= 
+        ctx.fillText(
+            "V₀",
+            x0 - 15,
+            275
+        );
 
-    drawGraph() { 
 
-        const ctx = this.ctx; 
+        // =====================================================
+        // ELÉTRONS
+        // =====================================================
 
-        // ===================================================== 
-        // GEOMETRIA 
-        // ===================================================== 
+        ctx.fillStyle =
+            "red";
 
-        const graphX = 500; 
-        const graphY = 70; 
 
-        const graphW = 350; 
-        const graphH = 280; 
+        for (
+            const s of this.electronPos
+        ) {
 
+            const [
+                x,
+                y
+            ] =
+                this.loopPath(s);
 
-        ctx.save(); 
 
+            ctx.beginPath();
 
-        // ===================================================== 
-        // TÍTULO 
-        // ===================================================== 
 
-        ctx.font = 
-            "bold 18px Arial"; 
+            ctx.arc(
 
-        ctx.fillStyle = 
-            "black"; 
+                x,
+                y,
+                3,
+                0,
+                2 * Math.PI
 
-        ctx.textAlign = 
-            "left"; 
+            );
 
 
-        ctx.fillText( 
+            ctx.fill();
+        }
 
-            "Carga e corrente (RC)", 
 
-            graphX + 65, 
-            graphY - 20 
+        // =====================================================
+        // TÍTULO
+        // =====================================================
 
-        ); 
+        ctx.fillStyle =
+            "black";
 
+        ctx.font =
+            "18px Arial";
 
-        // ===================================================== 
-        // BORDA 
-        // ===================================================== 
 
-        ctx.strokeStyle = 
-            "#777"; 
+        ctx.fillText(
+            "Circuito RC com fonte contínua",
+            100,
+            45
+        );
 
-        ctx.lineWidth = 1; 
 
+        ctx.restore();
+    }
 
-        ctx.strokeRect( 
 
-            graphX, 
-            graphY, 
-            graphW, 
-            graphH 
+    // =========================================================
+    // GRÁFICO
+    // =========================================================
 
-        ); 
+    drawGraph() {
 
+        const ctx = this.ctx;
 
-        // ===================================================== 
-        // DADOS 
-        // ===================================================== 
+        // =====================================================
+        // GEOMETRIA
+        // =====================================================
 
-        const n = 
-            Math.min( 
+        const graphX = 500;
+        const graphY = 70;
 
-                this.frame + 1, 
+        const graphW = 350;
+        const graphH = 280;
 
-                this.time.length 
 
-            ); 
+        ctx.save();
 
 
-        if (n < 2) { 
+        // =====================================================
+        // TÍTULO
+        // =====================================================
 
-            ctx.restore(); 
+        ctx.font =
+            "bold 18px Arial";
 
-            return; 
-        } 
+        ctx.fillStyle =
+            "black";
 
+        ctx.textAlign =
+            "left";
 
-        const qData = 
-            this.q.slice( 
-                0, 
-                n 
-            ); 
 
+        ctx.fillText(
 
-        const iData = 
-            this.current.slice( 
-                0, 
-                n 
-            ); 
+            "Carga e corrente (RC)",
 
+            graphX + 65,
+            graphY - 20
 
-        // ===================================================== 
-        // ESCALA VERTICAL 
-        // ===================================================== 
+        );
 
-        let maxAbs = 0; 
 
+        // =====================================================
+        // BORDA
+        // =====================================================
 
-        for ( 
-            const value of qData 
-        ) { 
+        ctx.strokeStyle =
+            "#777";
 
-            maxAbs = 
-                Math.max( 
+        ctx.lineWidth = 1;
 
-                    maxAbs, 
 
-                    Math.abs(value) 
+        ctx.strokeRect(
 
-                ); 
-        } 
+            graphX,
+            graphY,
+            graphW,
+            graphH
 
+        );
 
-        for ( 
-            const value of iData 
-        ) { 
 
-            maxAbs = 
-                Math.max( 
+        // =====================================================
+        // DADOS
+        // =====================================================
 
-                    maxAbs, 
+        const n =
+            Math.min(
 
-                    Math.abs(value) 
+                this.frame + 1,
 
-                ); 
-        } 
+                this.time.length
 
+            );
 
-        if (maxAbs < 0.001) 
-            maxAbs = 1; 
 
+        if (n < 2) {
 
-        maxAbs *= 1.15; 
+            ctx.restore();
 
+            return;
+        }
 
-        // ===================================================== 
-        // EIXO ZERO 
-        // ===================================================== 
 
-        const centerY = 
-            graphY + 
-            graphH / 2; 
+        const qData =
+            this.q.slice(
+                0,
+                n
+            );
 
 
-        ctx.strokeStyle = 
-            "#999"; 
+        const iData =
+            this.current.slice(
+                0,
+                n
+            );
 
-        ctx.lineWidth = 1; 
 
+        // =====================================================
+        // ESCALA VERTICAL
+        // =====================================================
 
-        ctx.beginPath(); 
+        let maxAbs = 0;
 
-        ctx.moveTo( 
-            graphX, 
-            centerY 
-        ); 
 
-        ctx.lineTo( 
-            graphX + graphW, 
-            centerY 
-        ); 
+        for (
+            const value of qData
+        ) {
 
-        ctx.stroke(); 
+            maxAbs =
+                Math.max(
 
+                    maxAbs,
 
-        // ===================================================== 
-        // TICKS E NÚMEROS DO EIXO Y 
-        // ===================================================== 
+                    Math.abs(value)
 
-        const yTicks = 6; 
+                );
+        }
 
 
-        ctx.font = 
-            "11px Arial"; 
+        for (
+            const value of iData
+        ) {
 
-        ctx.textAlign = 
-            "right"; 
+            maxAbs =
+                Math.max(
 
-        ctx.fillStyle = 
-            "black"; 
+                    maxAbs,
 
+                    Math.abs(value)
 
-        for ( 
-            let k = -yTicks; 
-            k <= yTicks; 
-            k++ 
-        ) { 
+                );
+        }
 
-            const value = 
-                maxAbs * 
-                k / 
-                yTicks; 
 
+        if (maxAbs < 0.001)
+            maxAbs = 1;
 
-            const y = 
-                centerY - 
-                ( 
-                    value / 
-                    maxAbs 
-                ) * 
-                ( 
-                    graphH / 2 
-                ); 
 
+        maxAbs *= 1.15;
 
-            // ------------------------------------------------- 
-            // MARCA 
-            // ------------------------------------------------- 
 
-            ctx.strokeStyle = 
-                "#777"; 
+        // =====================================================
+        // EIXO ZERO
+        // =====================================================
 
+        const centerY =
+            graphY +
+            graphH / 2;
 
-            ctx.beginPath(); 
 
-            ctx.moveTo( 
-                graphX - 5, 
-                y 
-            ); 
+        ctx.strokeStyle =
+            "#999";
 
-            ctx.lineTo( 
-                graphX + 5, 
-                y 
-            ); 
+        ctx.lineWidth = 1;
 
-            ctx.stroke(); 
 
+        ctx.beginPath();
 
-            // ------------------------------------------------- 
-            // GRADE 
-            // ------------------------------------------------- 
+        ctx.moveTo(
+            graphX,
+            centerY
+        );
 
-            if (k !== 0) { 
+        ctx.lineTo(
+            graphX + graphW,
+            centerY
+        );
 
-                ctx.strokeStyle = 
-                    "#eeeeee"; 
+        ctx.stroke();
 
 
-                ctx.beginPath(); 
+        // =====================================================
+        // TICKS E NÚMEROS DO EIXO Y
+        // =====================================================
 
-                ctx.moveTo( 
-                    graphX, 
-                    y 
-                ); 
+        const yTicks = 6;
 
-                ctx.lineTo( 
-                    graphX + graphW, 
-                    y 
-                ); 
 
-                ctx.stroke(); 
-            } 
+        ctx.font =
+            "11px Arial";
 
+        ctx.textAlign =
+            "right";
 
-            // ------------------------------------------------- 
-            // NÚMERO 
-            // ------------------------------------------------- 
+        ctx.fillStyle =
+            "black";
 
-            ctx.fillStyle = 
-                "black"; 
 
+        for (
+            let k = -yTicks;
+            k <= yTicks;
+            k++
+        ) {
 
-            ctx.fillText( 
+            const value =
+                maxAbs *
+                k /
+                yTicks;
 
-                value.toFixed(2), 
 
-                graphX - 10, 
-                y + 4 
+            const y =
+                centerY -
+                (
+                    value /
+                    maxAbs
+                ) *
+                (
+                    graphH / 2
+                );
 
-            ); 
-        } 
 
+            ctx.strokeStyle =
+                "#777";
 
-        // ===================================================== 
-        // TICKS E NÚMEROS DO EIXO X 
-        // ===================================================== 
 
-        const xTicks = 5; 
+            ctx.beginPath();
 
+            ctx.moveTo(
+                graphX - 5,
+                y
+            );
 
-        ctx.textAlign = 
-            "center"; 
+            ctx.lineTo(
+                graphX + 5,
+                y
+            );
 
+            ctx.stroke();
 
-        for ( 
-            let k = 0; 
-            k <= xTicks; 
-            k++ 
-        ) { 
 
-            const time = 
-                10 * 
-                k / 
-                xTicks; 
+            if (k !== 0) {
 
+                ctx.strokeStyle =
+                    "#eeeeee";
 
-            const x = 
-                graphX + 
-                graphW * 
-                k / 
-                xTicks; 
 
+                ctx.beginPath();
 
-            // ------------------------------------------------- 
-            // MARCA 
-            // ------------------------------------------------- 
+                ctx.moveTo(
+                    graphX,
+                    y
+                );
 
-            ctx.strokeStyle = 
-                "#777"; 
+                ctx.lineTo(
+                    graphX + graphW,
+                    y
+                );
 
+                ctx.stroke();
+            }
 
-            ctx.beginPath(); 
 
-            ctx.moveTo( 
-                x, 
-                graphY + graphH - 5 
-            ); 
+            ctx.fillStyle =
+                "black";
 
-            ctx.lineTo( 
-                x, 
-                graphY + graphH + 5 
-            ); 
 
-            ctx.stroke(); 
+            ctx.fillText(
 
+                value.toFixed(2),
 
-            // ------------------------------------------------- 
-            // GRADE 
-            // ------------------------------------------------- 
+                graphX - 10,
+                y + 4
 
-            if (k !== 0) { 
+            );
+        }
 
-                ctx.strokeStyle = 
-                    "#eeeeee"; 
 
+        // =====================================================
+        // TICKS E NÚMEROS DO EIXO X
+        // =====================================================
 
-                ctx.beginPath(); 
+        const xTicks = 5;
 
-                ctx.moveTo( 
-                    x, 
-                    graphY 
-                ); 
 
-                ctx.lineTo( 
-                    x, 
-                    graphY + graphH 
-                ); 
+        ctx.textAlign =
+            "center";
 
-                ctx.stroke(); 
-            } 
 
+        for (
+            let k = 0;
+            k <= xTicks;
+            k++
+        ) {
 
-            // ------------------------------------------------- 
-            // NÚMERO 
-            // ------------------------------------------------- 
+            const time =
+                10 *
+                k /
+                xTicks;
 
-            ctx.fillStyle = 
-                "black"; 
 
+            const x =
+                graphX +
+                graphW *
+                k /
+                xTicks;
 
-            ctx.fillText( 
 
-                time.toFixed(1), 
+            ctx.strokeStyle =
+                "#777";
 
-                x, 
 
-                graphY + 
-                graphH + 
-                18 
+            ctx.beginPath();
 
-            ); 
-        } 
+            ctx.moveTo(
+                x,
+                graphY + graphH - 5
+            );
 
+            ctx.lineTo(
+                x,
+                graphY + graphH + 5
+            );
 
-        // ===================================================== 
-        // LABEL X 
-        // ===================================================== 
+            ctx.stroke();
 
-        ctx.font = 
-            "14px Arial"; 
 
-        ctx.textAlign = 
-            "center"; 
+            if (k !== 0) {
 
+                ctx.strokeStyle =
+                    "#eeeeee";
 
-        ctx.fillText( 
 
-            "t [s]", 
+                ctx.beginPath();
 
-            graphX + 
-            graphW / 2, 
+                ctx.moveTo(
+                    x,
+                    graphY
+                );
 
-            graphY + 
-            graphH + 
-            55 
+                ctx.lineTo(
+                    x,
+                    graphY + graphH
+                );
 
-        ); 
+                ctx.stroke();
+            }
 
 
-        // ===================================================== 
-        // LABEL Y 
-        // ===================================================== 
+            ctx.fillStyle =
+                "black";
 
-        ctx.save(); 
 
+            ctx.fillText(
 
-        ctx.translate( 
+                time.toFixed(1),
 
-            graphX - 60, 
+                x,
 
-            graphY + 
-            graphH / 2 
+                graphY +
+                graphH +
+                18
 
-        ); 
+            );
+        }
 
 
-        ctx.rotate( 
-            -Math.PI / 2 
-        ); 
+        // =====================================================
+        // LABEL X
+        // =====================================================
 
+        ctx.font =
+            "14px Arial";
 
-        ctx.textAlign = 
-            "center"; 
+        ctx.textAlign =
+            "center";
 
 
-        ctx.fillText( 
+        ctx.fillText(
 
-            "q(t) [C] / i(t) [A]", 
+            "t [s]",
 
-            0, 
-            0 
+            graphX +
+            graphW / 2,
 
-        ); 
+            graphY +
+            graphH +
+            55
 
+        );
 
-        ctx.restore(); 
 
+        // =====================================================
+        // LABEL Y
+        // =====================================================
 
-        // ===================================================== 
-        // CONVERSÃO X 
-        // ===================================================== 
+        ctx.save();
 
-        const convertX = 
-            t => { 
 
-                return graphX + 
+        ctx.translate(
 
-                    ( 
-                        t / 10 
-                    ) * 
-                    graphW; 
-            }; 
+            graphX - 60,
 
+            graphY +
+            graphH / 2
 
-        // ===================================================== 
-        // CONVERSÃO Y 
-        // ===================================================== 
+        );
 
-        const convertY = 
-            value => { 
 
-                return centerY - 
+        ctx.rotate(
+            -Math.PI / 2
+        );
 
-                    ( 
-                        value / 
-                        maxAbs 
-                    ) * 
 
-                    ( 
-                        graphH / 2 
-                    ); 
-            }; 
+        ctx.textAlign =
+            "center";
 
 
-        // ===================================================== 
-        // q(t) 
-        // ===================================================== 
+        ctx.fillText(
 
-        ctx.lineWidth = 2; 
+            "q(t) [C] / i(t) [A]",
 
-        ctx.strokeStyle = 
-            "#1976d2"; 
+            0,
+            0
 
-        ctx.beginPath(); 
+        );
 
 
-        for ( 
-            let k = 0; 
-            k < n; 
-            k++ 
-        ) { 
+        ctx.restore();
 
-            const x = 
-                convertX( 
-                    this.time[k] 
-                ); 
 
+        // =====================================================
+        // CONVERSÃO X
+        // =====================================================
 
-            const y = 
-                convertY( 
-                    this.q[k] 
-                ); 
+        const convertX =
+            t => {
 
+                return graphX +
 
-            if (k === 0) 
+                    (
+                        t / 10
+                    ) *
+                    graphW;
+            };
 
-                ctx.moveTo( 
-                    x, 
-                    y 
-                ); 
 
-            else 
+        // =====================================================
+        // CONVERSÃO Y
+        // =====================================================
 
-                ctx.lineTo( 
-                    x, 
-                    y 
-                ); 
-        } 
+        const convertY =
+            value => {
 
+                return centerY -
 
-        ctx.stroke(); 
+                    (
+                        value /
+                        maxAbs
+                    ) *
 
+                    (
+                        graphH / 2
+                    );
+            };
 
-        // ===================================================== 
-        // i(t) 
-        // ===================================================== 
 
-        ctx.strokeStyle = 
-            "#f57c00"; 
+        // =====================================================
+        // q(t)
+        // =====================================================
 
-        ctx.beginPath(); 
+        ctx.lineWidth = 2;
 
+        ctx.strokeStyle =
+            "#1976d2";
 
-        for ( 
-            let k = 0; 
-            k < n; 
-            k++ 
-        ) { 
+        ctx.beginPath();
 
-            const x = 
-                convertX( 
-                    this.time[k] 
-                ); 
 
+        for (
+            let k = 0;
+            k < n;
+            k++
+        ) {
 
-            const y = 
-                convertY( 
-                    this.current[k] 
-                ); 
+            const x =
+                convertX(
+                    this.time[k]
+                );
 
 
-            if (k === 0) 
+            const y =
+                convertY(
+                    this.q[k]
+                );
 
-                ctx.moveTo( 
-                    x, 
-                    y 
-                ); 
 
-            else 
+            if (k === 0)
 
-                ctx.lineTo( 
-                    x, 
-                    y 
-                ); 
-        } 
+                ctx.moveTo(
+                    x,
+                    y
+                );
 
+            else
 
-        ctx.stroke(); 
+                ctx.lineTo(
+                    x,
+                    y
+                );
+        }
 
 
-        // ===================================================== 
-        // LEGENDA 
-        // ===================================================== 
+        ctx.stroke();
 
-        ctx.font = 
-            "13px Arial"; 
 
-        ctx.textAlign = 
-            "left"; 
+        // =====================================================
+        // i(t)
+        // =====================================================
 
+        ctx.strokeStyle =
+            "#f57c00";
 
-        ctx.fillStyle = 
-            "#1976d2"; 
+        ctx.beginPath();
 
 
-        ctx.fillText( 
+        for (
+            let k = 0;
+            k < n;
+            k++
+        ) {
 
-            "q(t) [C]", 
+            const x =
+                convertX(
+                    this.time[k]
+                );
 
-            graphX + 
-            graphW - 
-            80, 
 
-            graphY + 25 
+            const y =
+                convertY(
+                    this.current[k]
+                );
 
-        ); 
 
+            if (k === 0)
 
-        ctx.fillStyle = 
-            "#f57c00"; 
+                ctx.moveTo(
+                    x,
+                    y
+                );
 
+            else
 
-        ctx.fillText( 
+                ctx.lineTo(
+                    x,
+                    y
+                );
+        }
 
-            "i(t) [A]", 
 
-            graphX + 
-            graphW - 
-            80, 
+        ctx.stroke();
 
-            graphY + 45 
 
-        ); 
+        // =====================================================
+        // LEGENDA
+        // =====================================================
 
+        ctx.font =
+            "13px Arial";
 
-        ctx.restore(); 
-    } 
+        ctx.textAlign =
+            "left";
 
 
-    // ========================================================= 
-    // INFORMAÇÕES 
-    // ========================================================= 
+        ctx.fillStyle =
+            "#1976d2";
 
-    drawInfo() { 
 
-        const ctx = this.ctx; 
+        ctx.fillText(
 
+            "q(t) [C]",
 
-        const frame = 
-            Math.min( 
+            graphX +
+            graphW -
+            80,
 
-                this.frame, 
+            graphY + 25
 
-                this.q.length - 1 
+        );
 
-            ); 
 
+        ctx.fillStyle =
+            "#f57c00";
 
-        ctx.save(); 
 
+        ctx.fillText(
 
-        ctx.fillStyle = 
-            "black"; 
+            "i(t) [A]",
 
-        ctx.font = 
-            "14px Arial"; 
+            graphX +
+            graphW -
+            80,
 
+            graphY + 45
 
-        ctx.fillText( 
+        );
 
-            `R = ${this.params.R.toFixed(2)} Ω`, 
 
-            40, 
-            390 
+        ctx.restore();
+    }
 
-        ); 
 
+    // =========================================================
+    // INFORMAÇÕES
+    // =========================================================
 
-        ctx.fillText( 
+    drawInfo() {
 
-            `C = ${this.params.C.toFixed(2)} F`, 
+        const ctx = this.ctx;
 
-            180, 
-            390 
 
-        ); 
+        const frame =
+            Math.min(
 
+                this.frame,
 
-        ctx.fillText( 
+                this.q.length - 1
 
-            `q = ${this.q[frame].toFixed(3)} C`, 
+            );
 
-            320, 
-            390 
 
-        ); 
+        ctx.save();
 
 
-        ctx.fillText( 
+        ctx.fillStyle =
+            "black";
 
-            `i = ${this.current[frame].toFixed(3)} A`, 
+        ctx.font =
+            "14px Arial";
 
-            470, 
-            390 
 
-        ); 
+        ctx.fillText(
 
+            `R = ${this.params.R.toFixed(2)} Ω`,
 
-        ctx.fillText( 
+            40,
+            390
 
-            `t = ${this.time[frame].toFixed(2)} s`, 
+        );
 
-            630, 
-            390 
 
-        ); 
+        ctx.fillText(
 
+            `C = ${this.params.C.toFixed(2)} F`,
 
-        ctx.restore(); 
-    } 
+            180,
+            390
 
+        );
 
-    // ========================================================= 
-    // DESENHO 
-    // ========================================================= 
 
-    draw() { 
+        ctx.fillText(
 
-        this.ctx.clearRect( 
+            `V₀ = ${this.params.V0.toFixed(2)} V`,
 
-            0, 
-            0, 
-            this.canvas.width, 
-            this.canvas.height 
+            320,
+            390
 
-        ); 
+        );
 
 
-        this.drawCircuit(); 
+        ctx.fillText(
 
-        this.drawGraph(); 
+            `q = ${this.q[frame].toFixed(3)} C`,
 
-        this.drawInfo(); 
-    } 
+            470,
+            390
 
+        );
 
-    // ========================================================= 
-    // ANIMAÇÃO 
-    // ========================================================= 
 
-    iniciar() { 
+        ctx.fillText(
 
-        if (this.running) 
-            return; 
+            `i = ${this.current[frame].toFixed(3)} A`,
 
+            620,
+            390
 
-        this.running = true; 
+        );
 
 
-        const loop = () => { 
+        ctx.fillText(
 
-            if (!this.running) 
-                return; 
+            `t = ${this.time[frame].toFixed(2)} s`,
 
+            760,
+            390
 
-            // ================================================= 
-            // REINICIA 
-            // ================================================= 
+        );
 
-            if ( 
-                this.frame >= 
-                this.time.length 
-            ) { 
 
-                this.frame = 0; 
+        ctx.restore();
+    }
 
-                this.resetElectrons(); 
-            } 
 
+    // =========================================================
+    // DESENHO
+    // =========================================================
 
-            // ================================================= 
-            // VELOCIDADE DOS ELÉTRONS 
-            // ================================================= 
+    draw() {
 
-            const i = 
-                this.current[this.frame] || 0; 
+        this.ctx.clearRect(
 
+            0,
+            0,
+            this.canvas.width,
+            this.canvas.height
 
-            /* 
-             * O sinal da corrente determina 
-             * o sentido do movimento. 
-             */ 
+        );
 
-            const speed = 
-                0.02 * i; 
 
+        this.drawCircuit();
 
-            for ( 
-                let j = 0; 
-                j < this.electronPos.length; 
-                j++ 
-            ) { 
+        this.drawGraph();
 
-                this.electronPos[j] = 
+        this.drawInfo();
+    }
 
-                    ( 
-                        this.electronPos[j] + 
-                        speed 
-                    ) % 1; 
 
+    // =========================================================
+    // ANIMAÇÃO
+    // =========================================================
 
-                if ( 
-                    this.electronPos[j] < 0 
-                ) { 
+    iniciar() {
 
-                    this.electronPos[j] += 1; 
-                } 
-            } 
+        if (this.running)
+            return;
 
 
-            // ================================================= 
-            // DESENHA 
-            // ================================================= 
+        this.running = true;
 
-            this.draw(); 
 
+        const loop = () => {
 
-            // ================================================= 
-            // AVANÇA 
-            // ================================================= 
+            if (!this.running)
+                return;
 
-            this.frame++; 
 
+            // =================================================
+            // REINICIA
+            // =================================================
 
-            requestAnimationFrame( 
-                loop 
-            ); 
-        }; 
+            if (
+                this.frame >=
+                this.time.length
+            ) {
 
+                this.frame = 0;
 
-        loop(); 
-    } 
+                this.resetElectrons();
+            }
 
 
-    // ========================================================= 
-    // PARAR 
-    // ========================================================= 
+            // =================================================
+            // VELOCIDADE DOS ELÉTRONS
+            // =================================================
 
-    parar() { 
+            const i =
+                this.current[this.frame] || 0;
 
-        this.running = false; 
-    } 
 
+            /*
+             * O sinal da corrente determina
+             * o sentido do movimento.
+             */
 
-    // ========================================================= 
-    // ATUALIZAR PARÂMETROS 
-    // ========================================================= 
+            const speed =
+                0.02 * i;
 
-    atualizarParametros( 
-        newParams 
-    ) { 
 
-        this.params = { 
+            for (
+                let j = 0;
+                j < this.electronPos.length;
+                j++
+            ) {
 
-            ...this.params, 
-            ...newParams 
+                this.electronPos[j] =
 
-        }; 
+                    (
+                        this.electronPos[j] +
+                        speed
+                    ) % 1;
 
 
-        this.solve(); 
+                if (
+                    this.electronPos[j] < 0
+                ) {
 
-        this.frame = 0; 
+                    this.electronPos[j] += 1;
+                }
+            }
 
-        this.resetElectrons(); 
 
-        this.draw(); 
-    } 
-} 
+            // =================================================
+            // DESENHA
+            // =================================================
 
+            this.draw();
 
-// ============================================================ 
-// INICIALIZAÇÃO 
-// ============================================================ 
 
-const canvas = 
-    document.getElementById( 
-        "canvas" 
-    ); 
+            // =================================================
+            // AVANÇA
+            // =================================================
 
+            this.frame++;
 
-const circuito = 
-    new RCCircuit( 
 
-        canvas, 
+            requestAnimationFrame(
+                loop
+            );
+        };
 
-        { 
 
-            R: 2.0, 
-            C: 1.0, 
-            q0: 1.0 
+        loop();
+    }
 
-        } 
 
-    ); 
+    // =========================================================
+    // PARAR
+    // =========================================================
 
+    parar() {
 
-// ============================================================ 
-// SLIDERS 
-// ============================================================ 
+        this.running = false;
+    }
 
-const sliderR = 
-    document.getElementById( 
-        "sliderR" 
-    ); 
 
+    // =========================================================
+    // ATUALIZAR PARÂMETROS
+    // =========================================================
 
-const sliderC = 
-    document.getElementById( 
-        "sliderC" 
-    ); 
+    atualizarParametros(
+        newParams
+    ) {
 
+        this.params = {
 
-const sliderQ0 = 
-    document.getElementById( 
-        "sliderQ0" 
-    ); 
+            ...this.params,
+            ...newParams
 
+        };
 
-const valueR = 
-    document.getElementById( 
-        "valueR" 
-    ); 
 
+        this.solve();
 
-const valueC = 
-    document.getElementById( 
-        "valueC" 
-    ); 
+        this.frame = 0;
 
+        this.resetElectrons();
 
-const valueQ0 = 
-    document.getElementById( 
-        "valueQ0" 
-    ); 
+        this.draw();
+    }
+}
 
 
-// ============================================================ 
-// RESISTÊNCIA 
-// ============================================================ 
+// ============================================================
+// INICIALIZAÇÃO
+// ============================================================
 
-sliderR.addEventListener( 
-    "input", 
-    () => { 
+const canvas =
+    document.getElementById(
+        "canvas"
+    );
 
-        const value = 
-            parseFloat( 
-                sliderR.value 
-            ); 
 
+const circuito =
+    new RCCircuit(
 
-        circuito.atualizarParametros({ 
+        canvas,
 
-            R: value 
+        {
 
-        }); 
+            R: 2.0,
+            C: 1.0,
+            q0: 0.0,
+            V0: 1.0
 
+        }
 
-        valueR.textContent = 
-            value.toFixed(1); 
-    } 
-); 
+    );
 
 
-// ============================================================ 
-// CAPACITÂNCIA 
-// ============================================================ 
+// ============================================================
+// SLIDERS
+// ============================================================
 
-sliderC.addEventListener( 
-    "input", 
-    () => { 
+const sliderR =
+    document.getElementById(
+        "sliderR"
+    );
 
-        const value = 
-            parseFloat( 
-                sliderC.value 
-            ); 
 
+const sliderC =
+    document.getElementById(
+        "sliderC"
+    );
 
-        circuito.atualizarParametros({ 
 
-            C: value 
+const sliderQ0 =
+    document.getElementById(
+        "sliderQ0"
+    );
 
-        }); 
 
+const sliderV0 =
+    document.getElementById(
+        "sliderV0"
+    );
 
-        valueC.textContent = 
-            value.toFixed(1); 
-    } 
-); 
 
+const valueR =
+    document.getElementById(
+        "valueR"
+    );
 
-// ============================================================ 
-// CARGA INICIAL 
-// ============================================================ 
 
-sliderQ0.addEventListener( 
-    "input", 
-    () => { 
+const valueC =
+    document.getElementById(
+        "valueC"
+    );
 
-        const value = 
-            parseFloat( 
-                sliderQ0.value 
-            ); 
 
+const valueQ0 =
+    document.getElementById(
+        "valueQ0"
+    );
 
-        circuito.atualizarParametros({ 
 
-            q0: value 
+const valueV0 =
+    document.getElementById(
+        "valueV0"
+    );
 
-        }); 
 
+// ============================================================
+// RESISTÊNCIA
+// ============================================================
 
-        valueQ0.textContent = 
-            value.toFixed(1); 
-    } 
-); 
+sliderR.addEventListener(
 
+    "input",
 
-// ============================================================ 
-// INICIA 
-// ============================================================ 
+    () => {
+
+        const value =
+            parseFloat(
+                sliderR.value
+            );
+
+
+        circuito.atualizarParametros({
+
+            R: value
+
+        });
+
+
+        valueR.textContent =
+            value.toFixed(1);
+    }
+);
+
+
+// ============================================================
+// CAPACITÂNCIA
+// ============================================================
+
+sliderC.addEventListener(
+
+    "input",
+
+    () => {
+
+        const value =
+            parseFloat(
+                sliderC.value
+            );
+
+
+        circuito.atualizarParametros({
+
+            C: value
+
+        });
+
+
+        valueC.textContent =
+            value.toFixed(1);
+    }
+);
+
+
+// ============================================================
+// CARGA INICIAL
+// ============================================================
+
+sliderQ0.addEventListener(
+
+    "input",
+
+    () => {
+
+        const value =
+            parseFloat(
+                sliderQ0.value
+            );
+
+
+        circuito.atualizarParametros({
+
+            q0: value
+
+        });
+
+
+        valueQ0.textContent =
+            value.toFixed(1);
+    }
+);
+
+
+// ============================================================
+// FONTE V0
+// ============================================================
+
+sliderV0.addEventListener(
+
+    "input",
+
+    () => {
+
+        const value =
+            parseFloat(
+                sliderV0.value
+            );
+
+
+        circuito.atualizarParametros({
+
+            V0: value
+
+        });
+
+
+        valueV0.textContent =
+            value.toFixed(1);
+    }
+);
+
+
+// ============================================================
+// INICIA
+// ============================================================
 
 circuito.iniciar();
