@@ -118,14 +118,6 @@ class RCCircuit {
 
     // =========================================================
     // SISTEMA DIFERENCIAL
-    //
-    // dq/dt = i
-    //
-    // R i + q/C = V0
-    //
-    // portanto:
-    //
-    // dq/dt = (V0 - q/C)/R
     // =========================================================
 
     f(state, t) {
@@ -167,14 +159,11 @@ class RCCircuit {
         const N =
             this.N;
 
-
         const h =
             (b - a) / N;
 
-
         let q =
             this.params.q0;
-
 
         this.time = [];
         this.q = [];
@@ -304,6 +293,7 @@ class RCCircuit {
             document.getElementById(
                 "rc-controls"
             );
+
 
         if (old)
             old.remove();
@@ -597,11 +587,6 @@ class RCCircuit {
 
         // =====================================================
         // LADO DIREITO
-        //
-        // O caminho continua passando pelo capacitor.
-        //
-        // O elétron será ocultado visualmente quando
-        // estiver entre as placas.
         // =====================================================
 
         for (
@@ -771,9 +756,6 @@ class RCCircuit {
         // FIO DIREITO ABAIXO DO CAPACITOR
         // =====================================================
 
-        ctx.lineWidth =
-            3;
-
         ctx.beginPath();
 
         ctx.moveTo(
@@ -849,7 +831,8 @@ class RCCircuit {
         ctx.beginPath();
 
 
-        const points = 8;
+        const points =
+            8;
 
 
         for (
@@ -1134,10 +1117,10 @@ class RCCircuit {
     // =========================================================
     // ELÉTRONS
     //
-    // Mesmo método utilizado no RLC:
+    // O caminho dos elétrons continua fechado.
     //
-    // o caminho continua passando pelo capacitor,
-    // mas o elétron não é desenhado dentro do vão.
+    // Porém, quando o ponto está dentro da região do
+    // capacitor, ele simplesmente não é desenhado.
     // =========================================================
 
     drawElectrons(ctx) {
@@ -1180,21 +1163,29 @@ class RCCircuit {
 
             // =================================================
             // VÃO DO CAPACITOR
+            //
+            // As placas possuem aproximadamente 50 px de
+            // largura. Usamos uma região de 60 px para
+            // garantir que o elétron desapareça completamente.
             // =================================================
 
             const insideCapacitor =
-                point.x >= this.x1 - 4 &&
-                point.x <= this.x1 + 4 &&
+                point.x >= this.x1 - 30 &&
+                point.x <= this.x1 + 30 &&
                 point.y > this.capY1 &&
                 point.y < this.capY2;
 
 
             // =================================================
-            // NÃO DESENHA O ELÉTRON NO VÃO
+            // NÃO DESENHA NO VÃO
             // =================================================
 
-            if (insideCapacitor)
+            if (
+                insideCapacitor
+            ) {
+
                 continue;
+            }
 
 
             // =================================================
@@ -1202,7 +1193,6 @@ class RCCircuit {
             // =================================================
 
             ctx.beginPath();
-
 
             ctx.arc(
                 point.x,
@@ -1212,9 +1202,55 @@ class RCCircuit {
                 2 * Math.PI
             );
 
-
             ctx.fill();
         }
+
+
+        ctx.restore();
+    }
+
+
+    // =========================================================
+    // MASCARAMENTO DO VÃO DO CAPACITOR
+    // =========================================================
+
+    maskCapacitorGap(ctx) {
+
+        const x1 =
+            this.x1;
+
+        const y1 =
+            this.capY1;
+
+        const y2 =
+            this.capY2;
+
+
+        ctx.save();
+
+
+        // =====================================================
+        // MÁSCARA
+        //
+        // A máscara é propositalmente um pouco maior que
+        // a largura das placas.
+        // =====================================================
+
+        ctx.fillStyle =
+            "white";
+
+
+        ctx.fillRect(
+
+            x1 - 30,
+
+            y1 + 2,
+
+            60,
+
+            y2 - y1 - 4
+
+        );
 
 
         ctx.restore();
@@ -1482,9 +1518,7 @@ class RCCircuit {
             maxAbs =
                 Math.max(
                     maxAbs,
-                    Math.abs(
-                        value
-                    )
+                    Math.abs(value)
                 );
         }
 
@@ -1496,17 +1530,17 @@ class RCCircuit {
             maxAbs =
                 Math.max(
                     maxAbs,
-                    Math.abs(
-                        value
-                    )
+                    Math.abs(value)
                 );
         }
 
 
         if (
             maxAbs < 0.001
-        )
+        ) {
+
             maxAbs = 1;
+        }
 
 
         maxAbs *= 1.15;
@@ -1991,6 +2025,18 @@ class RCCircuit {
         // =====================================================
 
         this.drawElectrons(
+            ctx
+        );
+
+
+        // =====================================================
+        // MASCARAMENTO DO VÃO
+        //
+        // Apaga qualquer elétron que ainda tenha sido
+        // desenhado na região entre as placas.
+        // =====================================================
+
+        this.maskCapacitorGap(
             ctx
         );
 
