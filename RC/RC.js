@@ -21,6 +21,7 @@ class RCCircuit {
             ...options
         };
 
+
         // =====================================================
         // DADOS DA SOLUÇÃO
         // =====================================================
@@ -30,17 +31,16 @@ class RCCircuit {
         this.q = [];
         this.current = [];
 
+
         // =====================================================
         // ELÉTRONS
         // =====================================================
 
         this.numElectrons = 50;
 
-        // Elétrons do ramo superior
         this.electronTop = [];
-
-        // Elétrons do ramo inferior
         this.electronBottom = [];
+
 
         // =====================================================
         // ANIMAÇÃO
@@ -49,8 +49,9 @@ class RCCircuit {
         this.frame = 0;
         this.running = false;
 
+
         // =====================================================
-        // GEOMETRIA
+        // GEOMETRIA DO CIRCUITO
         // =====================================================
 
         this.x0 = 70;
@@ -59,6 +60,7 @@ class RCCircuit {
         this.y0 = 120;
         this.y1 = 320;
 
+
         // =====================================================
         // CAPACITOR
         // =====================================================
@@ -66,11 +68,21 @@ class RCCircuit {
         this.capY1 = 205;
         this.capY2 = 245;
 
+
+        // =====================================================
+        // RESISTOR
+        // =====================================================
+
+        this.resistorStart = 170;
+        this.resistorEnd = 320;
+
+
         // =====================================================
         // SOLUÇÃO
         // =====================================================
 
         this.solve();
+
 
         // =====================================================
         // ELÉTRONS
@@ -81,13 +93,7 @@ class RCCircuit {
 
 
     // =========================================================
-    // SISTEMA DIFERENCIAL
-    //
-    // RC:
-    //
-    // dv_c/dt + v_c/(RC) = V0/(RC)
-    //
-    // portanto:
+    // EDO DO CIRCUITO RC
     //
     // dv_c/dt = (V0 - v_c)/(RC)
     // =========================================================
@@ -154,12 +160,11 @@ class RCCircuit {
         const h =
             (b - a) / N;
 
+
         // =====================================================
         // CONDIÇÃO INICIAL
         //
         // q0 = C * vc0
-        //
-        // portanto:
         //
         // vc0 = q0 / C
         // =====================================================
@@ -170,6 +175,7 @@ class RCCircuit {
             this.params.C
 
         ];
+
 
         this.time = [];
         this.vc = [];
@@ -186,15 +192,20 @@ class RCCircuit {
             const t =
                 a + n * h;
 
+
             this.time.push(t);
+
 
             this.vc.push(
                 state[0]
             );
 
+
             this.q.push(
+
                 this.params.C *
                 state[0]
+
             );
 
 
@@ -300,7 +311,7 @@ class RCCircuit {
         // =====================================================
         // CORRENTE
         //
-        // i = (V0 - vc) / R
+        // i = (V0 - vc)/R
         // =====================================================
 
         const R =
@@ -308,6 +319,7 @@ class RCCircuit {
 
         const V0 =
             this.params.V0;
+
 
         this.current =
             this.vc.map(
@@ -334,11 +346,6 @@ class RCCircuit {
 
     // =========================================================
     // RESET DOS ELÉTRONS
-    //
-    // Os elétrons começam distribuídos apenas nos
-    // caminhos condutores.
-    //
-    // Nenhum elétron é colocado no vão do capacitor.
     // =========================================================
 
     resetElectrons() {
@@ -353,9 +360,6 @@ class RCCircuit {
             i++
         ) {
 
-            // Evita colocar exatamente na borda
-            // do caminho.
-
             const s =
                 (i + 0.5) /
                 this.numElectrons;
@@ -369,42 +373,142 @@ class RCCircuit {
 
 
     // =========================================================
-    // CAMINHO DO RAMO SUPERIOR
+    // CAMINHO SUPERIOR
     //
-    // s = 0
-    //     placa superior do capacitor
+    // SENTIDO POSITIVO:
     //
-    // s = 1
-    //     terminal positivo da fonte
+    // s = 0  -> placa superior do capacitor
     //
-    // Caminho:
+    // s = 1  -> fonte positiva
     //
-    // capacitor -> resistor -> fonte
     //
-    // IMPORTANTE:
+    // GEOMETRIA REAL:
     //
-    // O caminho termina na placa superior.
-    // Não existe continuação pelo capacitor.
+    // placa superior
+    //      |
+    //      |
+    //      +--------- resistor ---------+
+    //                                    |
+    //                                    fonte
+    //
+    // NÃO EXISTE CAMINHO ENTRE capY1 E capY2.
     // =========================================================
 
     topElectronPath(s) {
 
-        const x0 = this.x0;
-        const x1 = this.x1;
-        const y0 = this.y0;
+        const x0 =
+            this.x0;
 
-        const resistorStart = 170;
-        const resistorEnd = 320;
+        const x1 =
+            this.x1;
+
+        const y0 =
+            this.y0;
+
+        const capY1 =
+            this.capY1;
+
+        const resistorStart =
+            this.resistorStart;
+
+        const resistorEnd =
+            this.resistorEnd;
 
 
         // =====================================================
-        // CAPACITOR SUPERIOR -> RESISTOR
+        // COMPRIMENTOS REAIS DOS SEGMENTOS
         // =====================================================
 
-        if (s < 0.30) {
+        const verticalCap =
+            Math.abs(
+                capY1 - y0
+            );
+
+
+        const horizontalCap =
+            Math.abs(
+                x1 - resistorEnd
+            );
+
+
+        const resistorLength =
+            Math.abs(
+                resistorEnd -
+                resistorStart
+            );
+
+
+        const sourceLength =
+            Math.abs(
+                resistorStart -
+                x0
+            );
+
+
+        const totalLength =
+            verticalCap +
+            horizontalCap +
+            resistorLength +
+            sourceLength;
+
+
+        const distance =
+            s *
+            totalLength;
+
+
+        // =====================================================
+        // SEGMENTO 1
+        //
+        // PLACA SUPERIOR -> FIO VERTICAL
+        //
+        // (380,205) -> (380,120)
+        // =====================================================
+
+        if (
+            distance <= verticalCap
+        ) {
 
             const u =
-                s / 0.30;
+                distance /
+                verticalCap;
+
+
+            return [
+
+                x1,
+
+                capY1 -
+                (
+                    capY1 -
+                    y0
+                ) * u
+
+            ];
+        }
+
+
+        // =====================================================
+        // SEGMENTO 2
+        //
+        // FIO HORIZONTAL
+        //
+        // (380,120) -> (320,120)
+        // =====================================================
+
+        const d2 =
+            distance -
+            verticalCap;
+
+
+        if (
+            d2 <= horizontalCap
+        ) {
+
+            const u =
+                d2 /
+                horizontalCap;
+
 
             return [
 
@@ -415,19 +519,33 @@ class RCCircuit {
                 ) * u,
 
                 y0
+
             ];
         }
 
 
         // =====================================================
+        // SEGMENTO 3
+        //
         // RESISTOR
+        //
+        // (320,120) -> (170,120)
+        //
+        // O caminho acompanha o zigue-zague do resistor.
         // =====================================================
 
-        else if (s < 0.75) {
+        const d3 =
+            d2 -
+            horizontalCap;
+
+
+        if (
+            d3 <= resistorLength
+        ) {
 
             const u =
-                (s - 0.30) /
-                0.45;
+                d3 /
+                resistorLength;
 
 
             const x =
@@ -438,44 +556,55 @@ class RCCircuit {
                 ) * u;
 
 
-            // Mesmo zigue-zague visual
-            // do resistor.
+            // -------------------------------------------------
+            // ZIGUE-ZAGUE
+            // -------------------------------------------------
 
             const segments = 6;
 
             const phase =
-                u * segments;
+                u *
+                segments;
 
-            const segment =
-                Math.floor(phase);
-
-            const local =
-                phase - segment;
-
-
-            let y = y0;
+            let segment =
+                Math.floor(
+                    phase
+                );
 
 
             if (
-                segment < segments
+                segment >= segments
             ) {
 
-                const yA =
-                    segment % 2 === 0
-                        ? y0
-                        : y0 + 12;
-
-                const yB =
-                    segment % 2 === 0
-                        ? y0 + 12
-                        : y0 - 12;
-
-                y =
-                    yA +
-                    (
-                        yB - yA
-                    ) * local;
+                segment =
+                    segments - 1;
             }
+
+
+            const local =
+                phase -
+                segment;
+
+
+            const yA =
+                segment % 2 === 0
+                    ? y0 - 12
+                    : y0 + 12;
+
+
+            const yB =
+                segment % 2 === 0
+                    ? y0 + 12
+                    : y0 - 12;
+
+
+            const y =
+                yA +
+                (
+                    yB -
+                    yA
+                ) *
+                local;
 
 
             return [
@@ -486,84 +615,205 @@ class RCCircuit {
 
 
         // =====================================================
-        // RESISTOR -> FONTE POSITIVA
+        // SEGMENTO 4
+        //
+        // RESISTOR -> FONTE
+        //
+        // (170,120) -> (70,120)
         // =====================================================
 
-        else {
-
-            const u =
-                (s - 0.75) /
-                0.25;
+        const d4 =
+            d3 -
+            resistorLength;
 
 
-            return [
-
-                resistorStart -
-                (
-                    resistorStart -
-                    x0
-                ) * u,
-
-                y0
-            ];
-        }
-    }
-
-
-    // =========================================================
-    // CAMINHO DO RAMO INFERIOR
-    //
-    // s = 0
-    //     fonte negativa
-    //
-    // s = 1
-    //     placa inferior do capacitor
-    //
-    // O caminho TERMINA na placa inferior.
-    //
-    // Não existe continuação através do capacitor.
-    // =========================================================
-
-    bottomElectronPath(s) {
-
-        const x0 = this.x0;
-        const x1 = this.x1;
-        const y1 = this.y1;
+        const u =
+            Math.min(
+                1,
+                d4 /
+                sourceLength
+            );
 
 
         return [
 
-            x0 +
+            resistorStart -
             (
-                x1 -
+                resistorStart -
                 x0
-            ) * s,
+            ) * u,
 
-            y1
+            y0
+
         ];
     }
 
 
     // =========================================================
-    // CIRCUITO
+    // CAMINHO INFERIOR
+    //
+    // SENTIDO POSITIVO:
+    //
+    // s = 0 -> fonte negativa
+    //
+    // s = 1 -> placa inferior
+    //
+    //
+    // GEOMETRIA REAL:
+    //
+    // fonte -----------------------+
+    //                               |
+    //                               |
+    //                            placa inferior
+    //
+    // O CAMINHO TERMINA EM capY2.
+    //
+    // NÃO EXISTE QUALQUER SEGMENTO
+    // ENTRE capY1 E capY2.
+    // =========================================================
+
+    bottomElectronPath(s) {
+
+        const x0 =
+            this.x0;
+
+        const x1 =
+            this.x1;
+
+        const y1 =
+            this.y1;
+
+        const capY2 =
+            this.capY2;
+
+
+        // =====================================================
+        // COMPRIMENTOS REAIS
+        // =====================================================
+
+        const horizontalLength =
+            Math.abs(
+                x1 - x0
+            );
+
+
+        const verticalLength =
+            Math.abs(
+                y1 - capY2
+            );
+
+
+        const totalLength =
+            horizontalLength +
+            verticalLength;
+
+
+        const distance =
+            s *
+            totalLength;
+
+
+        // =====================================================
+        // SEGMENTO 1
+        //
+        // FIO INFERIOR
+        //
+        // (70,320) -> (380,320)
+        // =====================================================
+
+        if (
+            distance <= horizontalLength
+        ) {
+
+            const u =
+                distance /
+                horizontalLength;
+
+
+            return [
+
+                x0 +
+                (
+                    x1 -
+                    x0
+                ) * u,
+
+                y1
+
+            ];
+        }
+
+
+        // =====================================================
+        // SEGMENTO 2
+        //
+        // FIO VERTICAL
+        //
+        // (380,320) -> (380,245)
+        //
+        // TERMINA EXATAMENTE NA PLACA INFERIOR.
+        // =====================================================
+
+        const d2 =
+            distance -
+            horizontalLength;
+
+
+        const u =
+            Math.min(
+                1,
+                d2 /
+                verticalLength
+            );
+
+
+        return [
+
+            x1,
+
+            y1 -
+            (
+                y1 -
+                capY2
+            ) * u
+
+        ];
+    }
+
+
+    // =========================================================
+    // DESENHO DO CIRCUITO
     // =========================================================
 
     drawCircuit() {
 
-        const ctx = this.ctx;
+        const ctx =
+            this.ctx;
 
-        const x0 = this.x0;
-        const x1 = this.x1;
+        const x0 =
+            this.x0;
 
-        const y0 = this.y0;
-        const y1 = this.y1;
+        const x1 =
+            this.x1;
+
+        const y0 =
+            this.y0;
+
+        const y1 =
+            this.y1;
 
 
         ctx.save();
 
-        ctx.strokeStyle = "black";
-        ctx.fillStyle = "black";
-        ctx.lineWidth = 2;
+
+        ctx.strokeStyle =
+            "black";
+
+        ctx.fillStyle =
+            "black";
+
+        ctx.lineWidth =
+            2;
 
 
         // =====================================================
@@ -668,7 +918,9 @@ class RCCircuit {
 
         ctx.beginPath();
 
+
         const xr = [
+
             170,
             195,
             220,
@@ -676,6 +928,7 @@ class RCCircuit {
             270,
             295,
             320
+
         ];
 
 
@@ -694,25 +947,31 @@ class RCCircuit {
                 );
 
 
-            if (i === 0)
+            if (
+                i === 0
+            ) {
 
                 ctx.moveTo(
                     xr[i],
                     y
                 );
 
-            else
+            } else {
 
                 ctx.lineTo(
                     xr[i],
                     y
                 );
+            }
         }
+
 
         ctx.stroke();
 
 
-        ctx.font = "16px Arial";
+        ctx.font =
+            "16px Arial";
+
 
         ctx.fillText(
             "R",
@@ -725,7 +984,9 @@ class RCCircuit {
         // CAPACITOR
         // =====================================================
 
-        ctx.lineWidth = 4;
+        ctx.lineWidth =
+            4;
+
 
         ctx.beginPath();
 
@@ -763,7 +1024,9 @@ class RCCircuit {
         ctx.stroke();
 
 
-        ctx.font = "16px Arial";
+        ctx.font =
+            "16px Arial";
+
 
         ctx.fillText(
             "C",
@@ -776,13 +1039,18 @@ class RCCircuit {
         // FONTE DC
         // =====================================================
 
-        ctx.lineWidth = 2;
+        ctx.lineWidth =
+            2;
 
-        ctx.strokeStyle = "black";
-        ctx.fillStyle = "white";
+        ctx.strokeStyle =
+            "black";
+
+        ctx.fillStyle =
+            "white";
 
 
         ctx.beginPath();
+
 
         ctx.arc(
             x0,
@@ -792,7 +1060,9 @@ class RCCircuit {
             2 * Math.PI
         );
 
+
         ctx.fill();
+
         ctx.stroke();
 
 
@@ -801,6 +1071,7 @@ class RCCircuit {
         // =====================================================
 
         ctx.beginPath();
+
 
         ctx.moveTo(
             x0 - 10,
@@ -823,6 +1094,7 @@ class RCCircuit {
             221
         );
 
+
         ctx.stroke();
 
 
@@ -831,6 +1103,7 @@ class RCCircuit {
         // =====================================================
 
         ctx.beginPath();
+
 
         ctx.moveTo(
             x0 - 10,
@@ -842,12 +1115,17 @@ class RCCircuit {
             229
         );
 
+
         ctx.stroke();
 
 
-        ctx.font = "16px Arial";
+        ctx.font =
+            "16px Arial";
 
-        ctx.fillStyle = "black";
+
+        ctx.fillStyle =
+            "black";
+
 
         ctx.fillText(
             "V₀",
@@ -860,7 +1138,9 @@ class RCCircuit {
         // TÍTULO
         // =====================================================
 
-        ctx.font = "18px Arial";
+        ctx.font =
+            "18px Arial";
+
 
         ctx.fillText(
             "Circuito RC com fonte contínua",
@@ -879,11 +1159,15 @@ class RCCircuit {
 
     drawElectrons() {
 
-        const ctx = this.ctx;
+        const ctx =
+            this.ctx;
+
 
         ctx.save();
 
-        ctx.fillStyle = "red";
+
+        ctx.fillStyle =
+            "red";
 
 
         // =====================================================
@@ -903,6 +1187,7 @@ class RCCircuit {
 
             ctx.beginPath();
 
+
             ctx.arc(
                 x,
                 y,
@@ -910,6 +1195,7 @@ class RCCircuit {
                 0,
                 2 * Math.PI
             );
+
 
             ctx.fill();
         }
@@ -932,6 +1218,7 @@ class RCCircuit {
 
             ctx.beginPath();
 
+
             ctx.arc(
                 x,
                 y,
@@ -939,6 +1226,7 @@ class RCCircuit {
                 0,
                 2 * Math.PI
             );
+
 
             ctx.fill();
         }
@@ -954,7 +1242,9 @@ class RCCircuit {
 
     drawGraph() {
 
-        const ctx = this.ctx;
+        const ctx =
+            this.ctx;
+
 
         const graphX = 500;
         const graphY = 70;
@@ -970,11 +1260,16 @@ class RCCircuit {
         // TÍTULO
         // =====================================================
 
-        ctx.font = "bold 18px Arial";
+        ctx.font =
+            "bold 18px Arial";
 
-        ctx.fillStyle = "black";
 
-        ctx.textAlign = "left";
+        ctx.fillStyle =
+            "black";
+
+
+        ctx.textAlign =
+            "left";
 
 
         ctx.fillText(
@@ -988,8 +1283,12 @@ class RCCircuit {
         // BORDA
         // =====================================================
 
-        ctx.strokeStyle = "#777";
-        ctx.lineWidth = 1;
+        ctx.strokeStyle =
+            "#777";
+
+
+        ctx.lineWidth =
+            1;
 
 
         ctx.strokeRect(
@@ -1006,12 +1305,17 @@ class RCCircuit {
 
         const n =
             Math.min(
+
                 this.frame + 1,
+
                 this.time.length
+
             );
 
 
-        if (n < 2) {
+        if (
+            n < 2
+        ) {
 
             ctx.restore();
 
@@ -1046,8 +1350,13 @@ class RCCircuit {
 
             maxAbs =
                 Math.max(
+
                     maxAbs,
-                    Math.abs(value)
+
+                    Math.abs(
+                        value
+                    )
+
                 );
         }
 
@@ -1058,14 +1367,23 @@ class RCCircuit {
 
             maxAbs =
                 Math.max(
+
                     maxAbs,
-                    Math.abs(value)
+
+                    Math.abs(
+                        value
+                    )
+
                 );
         }
 
 
-        if (maxAbs < 0.001)
+        if (
+            maxAbs < 0.001
+        ) {
+
             maxAbs = 1;
+        }
 
 
         maxAbs *= 1.15;
@@ -1080,19 +1398,24 @@ class RCCircuit {
             graphH / 2;
 
 
-        ctx.strokeStyle = "#999";
+        ctx.strokeStyle =
+            "#999";
+
 
         ctx.beginPath();
+
 
         ctx.moveTo(
             graphX,
             centerY
         );
 
+
         ctx.lineTo(
             graphX + graphW,
             centerY
         );
+
 
         ctx.stroke();
 
@@ -1103,9 +1426,17 @@ class RCCircuit {
 
         const yTicks = 6;
 
-        ctx.font = "11px Arial";
-        ctx.textAlign = "right";
-        ctx.fillStyle = "black";
+
+        ctx.font =
+            "11px Arial";
+
+
+        ctx.textAlign =
+            "right";
+
+
+        ctx.fillStyle =
+            "black";
 
 
         for (
@@ -1131,50 +1462,67 @@ class RCCircuit {
                 );
 
 
-            ctx.strokeStyle = "#777";
+            ctx.strokeStyle =
+                "#777";
+
 
             ctx.beginPath();
+
 
             ctx.moveTo(
                 graphX - 5,
                 y
             );
 
+
             ctx.lineTo(
                 graphX + 5,
                 y
             );
 
+
             ctx.stroke();
 
 
-            if (k !== 0) {
+            if (
+                k !== 0
+            ) {
 
                 ctx.strokeStyle =
                     "#eeeeee";
 
+
                 ctx.beginPath();
+
 
                 ctx.moveTo(
                     graphX,
                     y
                 );
 
+
                 ctx.lineTo(
                     graphX + graphW,
                     y
                 );
 
+
                 ctx.stroke();
             }
 
 
-            ctx.fillStyle = "black";
+            ctx.fillStyle =
+                "black";
+
 
             ctx.fillText(
+
                 value.toFixed(2),
+
                 graphX - 10,
+
                 y + 4
+
             );
         }
 
@@ -1185,7 +1533,9 @@ class RCCircuit {
 
         const xTicks = 5;
 
-        ctx.textAlign = "center";
+
+        ctx.textAlign =
+            "center";
 
 
         for (
@@ -1207,50 +1557,67 @@ class RCCircuit {
                 xTicks;
 
 
-            ctx.strokeStyle = "#777";
+            ctx.strokeStyle =
+                "#777";
+
 
             ctx.beginPath();
+
 
             ctx.moveTo(
                 x,
                 graphY + graphH - 5
             );
 
+
             ctx.lineTo(
                 x,
                 graphY + graphH + 5
             );
 
+
             ctx.stroke();
 
 
-            if (k !== 0) {
+            if (
+                k !== 0
+            ) {
 
                 ctx.strokeStyle =
                     "#eeeeee";
 
+
                 ctx.beginPath();
+
 
                 ctx.moveTo(
                     x,
                     graphY
                 );
 
+
                 ctx.lineTo(
                     x,
                     graphY + graphH
                 );
 
+
                 ctx.stroke();
             }
 
 
-            ctx.fillStyle = "black";
+            ctx.fillStyle =
+                "black";
+
 
             ctx.fillText(
+
                 time.toFixed(1),
+
                 x,
+
                 graphY + graphH + 18
+
             );
         }
 
@@ -1259,14 +1626,25 @@ class RCCircuit {
         // LABEL X
         // =====================================================
 
-        ctx.font = "14px Arial";
+        ctx.font =
+            "14px Arial";
 
-        ctx.textAlign = "center";
+
+        ctx.textAlign =
+            "center";
+
 
         ctx.fillText(
+
             "t [s]",
-            graphX + graphW / 2,
-            graphY + graphH + 55
+
+            graphX +
+            graphW / 2,
+
+            graphY +
+            graphH +
+            55
+
         );
 
 
@@ -1276,22 +1654,35 @@ class RCCircuit {
 
         ctx.save();
 
+
         ctx.translate(
+
             graphX - 60,
-            graphY + graphH / 2
+
+            graphY +
+            graphH / 2
+
         );
+
 
         ctx.rotate(
             -Math.PI / 2
         );
 
-        ctx.textAlign = "center";
+
+        ctx.textAlign =
+            "center";
+
 
         ctx.fillText(
+
             "q(t) [C] / i(t) [A]",
+
             0,
             0
+
         );
+
 
         ctx.restore();
 
@@ -1308,6 +1699,7 @@ class RCCircuit {
                         t / 10
                     ) *
                     graphW;
+
             };
 
 
@@ -1322,6 +1714,7 @@ class RCCircuit {
                     (
                         graphH / 2
                     );
+
             };
 
 
@@ -1329,9 +1722,13 @@ class RCCircuit {
         // q(t)
         // =====================================================
 
-        ctx.lineWidth = 2;
+        ctx.lineWidth =
+            2;
 
-        ctx.strokeStyle = "#1976d2";
+
+        ctx.strokeStyle =
+            "#1976d2";
+
 
         ctx.beginPath();
 
@@ -1354,19 +1751,22 @@ class RCCircuit {
                 );
 
 
-            if (k === 0)
+            if (
+                k === 0
+            ) {
 
                 ctx.moveTo(
                     x,
                     y
                 );
 
-            else
+            } else {
 
                 ctx.lineTo(
                     x,
                     y
                 );
+            }
         }
 
 
@@ -1377,7 +1777,9 @@ class RCCircuit {
         // i(t)
         // =====================================================
 
-        ctx.strokeStyle = "#f57c00";
+        ctx.strokeStyle =
+            "#f57c00";
+
 
         ctx.beginPath();
 
@@ -1400,19 +1802,22 @@ class RCCircuit {
                 );
 
 
-            if (k === 0)
+            if (
+                k === 0
+            ) {
 
                 ctx.moveTo(
                     x,
                     y
                 );
 
-            else
+            } else {
 
                 ctx.lineTo(
                     x,
                     y
                 );
+            }
         }
 
 
@@ -1423,26 +1828,45 @@ class RCCircuit {
         // LEGENDA
         // =====================================================
 
-        ctx.font = "13px Arial";
+        ctx.font =
+            "13px Arial";
 
-        ctx.textAlign = "left";
+
+        ctx.textAlign =
+            "left";
 
 
-        ctx.fillStyle = "#1976d2";
+        ctx.fillStyle =
+            "#1976d2";
+
 
         ctx.fillText(
+
             "q(t) [C]",
-            graphX + graphW - 80,
+
+            graphX +
+            graphW -
+            80,
+
             graphY + 25
+
         );
 
 
-        ctx.fillStyle = "#f57c00";
+        ctx.fillStyle =
+            "#f57c00";
+
 
         ctx.fillText(
+
             "i(t) [A]",
-            graphX + graphW - 80,
+
+            graphX +
+            graphW -
+            80,
+
             graphY + 45
+
         );
 
 
@@ -1456,61 +1880,88 @@ class RCCircuit {
 
     drawInfo() {
 
-        const ctx = this.ctx;
+        const ctx =
+            this.ctx;
+
 
         const frame =
             Math.min(
+
                 this.frame,
+
                 this.q.length - 1
+
             );
 
 
         ctx.save();
 
-        ctx.fillStyle = "black";
 
-        ctx.font = "14px Arial";
+        ctx.fillStyle =
+            "black";
+
+
+        ctx.font =
+            "14px Arial";
 
 
         ctx.fillText(
+
             `R = ${this.params.R.toFixed(2)} Ω`,
+
             40,
             390
+
         );
 
 
         ctx.fillText(
+
             `C = ${this.params.C.toFixed(2)} F`,
+
             180,
             390
+
         );
 
 
         ctx.fillText(
+
             `V₀ = ${this.params.V0.toFixed(2)} V`,
+
             320,
             390
+
         );
 
 
         ctx.fillText(
+
             `v_c = ${this.vc[frame].toFixed(3)} V`,
+
             470,
             390
+
         );
 
 
         ctx.fillText(
+
             `q = ${this.q[frame].toFixed(3)} C`,
+
             620,
             390
+
         );
 
 
         ctx.fillText(
+
             `i = ${this.current[frame].toFixed(3)} A`,
+
             760,
             390
+
         );
 
 
@@ -1525,10 +1976,12 @@ class RCCircuit {
     draw() {
 
         this.ctx.clearRect(
+
             0,
             0,
             this.canvas.width,
             this.canvas.height
+
         );
 
 
@@ -1548,25 +2001,30 @@ class RCCircuit {
 
     iniciar() {
 
-        if (this.running)
+        if (
+            this.running
+        ) {
+
             return;
+        }
 
 
-        this.running = true;
+        this.running =
+            true;
 
 
         const loop = () => {
 
-            if (!this.running)
+            if (
+                !this.running
+            ) {
+
                 return;
+            }
 
 
             // =================================================
-            // REINICIA A SIMULAÇÃO
-            //
-            // Apenas reinicia o tempo.
-            // Não existe salto físico de elétrons
-            // através do capacitor.
+            // REINÍCIO DA SIMULAÇÃO
             // =================================================
 
             if (
@@ -1592,8 +2050,6 @@ class RCCircuit {
 
             // =================================================
             // VELOCIDADE
-            //
-            // A velocidade depende do módulo da corrente.
             // =================================================
 
             const speed =
@@ -1606,15 +2062,16 @@ class RCCircuit {
             //
             // i > 0:
             //
-            // elétrons:
+            // ramo superior:
+            // capacitor -> fonte
             //
-            // superior: capacitor -> fonte
-            // inferior: fonte -> capacitor
+            // ramo inferior:
+            // fonte -> capacitor
             //
             //
             // i < 0:
             //
-            // tudo se inverte.
+            // sentidos invertidos.
             // =================================================
 
             const direction =
@@ -1624,14 +2081,12 @@ class RCCircuit {
             // =================================================
             // RAMO SUPERIOR
             //
+            // 0 <= s <= 1
+            //
+            // s = 0 -> PLACA SUPERIOR
+            // s = 1 -> FONTE
+            //
             // NÃO HÁ WRAP-AROUND.
-            //
-            // O elétron fica preso entre:
-            //
-            // s = 0  -> placa superior
-            // s = 1  -> fonte positiva
-            //
-            // Isso impede qualquer passagem pelo capacitor.
             // =================================================
 
             for (
@@ -1641,13 +2096,10 @@ class RCCircuit {
             ) {
 
                 this.electronTop[j] +=
+
                     speed *
                     direction;
 
-
-                // -------------------------------------------------
-                // BARREIRA DA PLACA SUPERIOR
-                // -------------------------------------------------
 
                 if (
                     this.electronTop[j] < 0
@@ -1656,10 +2108,6 @@ class RCCircuit {
                     this.electronTop[j] = 0;
                 }
 
-
-                // -------------------------------------------------
-                // LIMITE DA FONTE POSITIVA
-                // -------------------------------------------------
 
                 if (
                     this.electronTop[j] > 1
@@ -1670,18 +2118,16 @@ class RCCircuit {
             }
 
 
-            // =====================================================
+            // =================================================
             // RAMO INFERIOR
             //
+            // 0 <= s <= 1
+            //
+            // s = 0 -> FONTE
+            // s = 1 -> PLACA INFERIOR
+            //
             // NÃO HÁ WRAP-AROUND.
-            //
-            // O elétron fica preso entre:
-            //
-            // s = 0  -> fonte negativa
-            // s = 1  -> placa inferior
-            //
-            // Novamente, o capacitor é uma barreira.
-            // =====================================================
+            // =================================================
 
             for (
                 let j = 0;
@@ -1690,13 +2136,10 @@ class RCCircuit {
             ) {
 
                 this.electronBottom[j] +=
+
                     speed *
                     direction;
 
-
-                // -------------------------------------------------
-                // LIMITE DA FONTE NEGATIVA
-                // -------------------------------------------------
 
                 if (
                     this.electronBottom[j] < 0
@@ -1705,10 +2148,6 @@ class RCCircuit {
                     this.electronBottom[j] = 0;
                 }
 
-
-                // -------------------------------------------------
-                // BARREIRA DA PLACA INFERIOR
-                // -------------------------------------------------
 
                 if (
                     this.electronBottom[j] > 1
@@ -1719,16 +2158,16 @@ class RCCircuit {
             }
 
 
-            // =====================================================
+            // =================================================
             // DESENHA
-            // =====================================================
+            // =================================================
 
             this.draw();
 
 
-            // =====================================================
+            // =================================================
             // AVANÇA O TEMPO
-            // =====================================================
+            // =================================================
 
             this.frame++;
 
@@ -1749,7 +2188,8 @@ class RCCircuit {
 
     parar() {
 
-        this.running = false;
+        this.running =
+            false;
     }
 
 
@@ -1792,13 +2232,16 @@ const canvas =
 
 const circuito =
     new RCCircuit(
+
         canvas,
+
         {
             R: 2.0,
             C: 1.0,
             q0: 0.0,
             V0: 1.0
         }
+
     );
 
 
@@ -1859,7 +2302,9 @@ const valueV0 =
 // ============================================================
 
 sliderR.addEventListener(
+
     "input",
+
     () => {
 
         const value =
@@ -1878,6 +2323,7 @@ sliderR.addEventListener(
         valueR.textContent =
             value.toFixed(1);
     }
+
 );
 
 
@@ -1886,7 +2332,9 @@ sliderR.addEventListener(
 // ============================================================
 
 sliderC.addEventListener(
+
     "input",
+
     () => {
 
         const value =
@@ -1905,6 +2353,7 @@ sliderC.addEventListener(
         valueC.textContent =
             value.toFixed(1);
     }
+
 );
 
 
@@ -1913,7 +2362,9 @@ sliderC.addEventListener(
 // ============================================================
 
 sliderQ0.addEventListener(
+
     "input",
+
     () => {
 
         const value =
@@ -1932,6 +2383,7 @@ sliderQ0.addEventListener(
         valueQ0.textContent =
             value.toFixed(1);
     }
+
 );
 
 
@@ -1940,7 +2392,9 @@ sliderQ0.addEventListener(
 // ============================================================
 
 sliderV0.addEventListener(
+
     "input",
+
     () => {
 
         const value =
@@ -1959,6 +2413,7 @@ sliderV0.addEventListener(
         valueV0.textContent =
             value.toFixed(1);
     }
+
 );
 
 
