@@ -95,7 +95,7 @@ class RCCircuit {
     // =========================================================
     // EDO DO CIRCUITO RC
     //
-    // dv_c/dt = (V0 - vc)/(RC)
+    // dv_c/dt = (V0 - v_c)/(RC)
     // =========================================================
 
     f(state, t) {
@@ -209,8 +209,12 @@ class RCCircuit {
             );
 
 
-            if (n === N)
+            if (
+                n === N
+            ) {
+
                 break;
+            }
 
 
             // =================================================
@@ -244,9 +248,11 @@ class RCCircuit {
                         ),
 
                         t + h / 2
+
                     ),
 
                     h
+
                 );
 
 
@@ -265,9 +271,11 @@ class RCCircuit {
                         ),
 
                         t + h / 2
+
                     ),
 
                     h
+
                 );
 
 
@@ -282,9 +290,11 @@ class RCCircuit {
                         ),
 
                         t + h
+
                     ),
 
                     h
+
                 );
 
 
@@ -303,7 +313,9 @@ class RCCircuit {
                         ),
 
                         1 / 6
+
                     )
+
                 );
         }
 
@@ -374,6 +386,10 @@ class RCCircuit {
 
     // =========================================================
     // CAMINHO SUPERIOR
+    //
+    // TERMINA FISICAMENTE NA PLACA SUPERIOR.
+    //
+    // NÃO EXISTE SEGMENTO ATRAVESSANDO O VÃO.
     // =========================================================
 
     topElectronPath(s) {
@@ -442,9 +458,7 @@ class RCCircuit {
         // =====================================================
         // SEGMENTO 1
         //
-        // FIO DIREITO ACIMA DO CAPACITOR
-        //
-        // TERMINA EXATAMENTE NA PLACA SUPERIOR
+        // PLACA SUPERIOR -> FIO
         // =====================================================
 
         if (
@@ -534,6 +548,7 @@ class RCCircuit {
 
             const segments = 6;
 
+
             const phase =
                 u *
                 segments;
@@ -576,8 +591,7 @@ class RCCircuit {
                 (
                     yB -
                     yA
-                ) *
-                local;
+                ) * local;
 
 
             return [
@@ -622,6 +636,10 @@ class RCCircuit {
 
     // =========================================================
     // CAMINHO INFERIOR
+    //
+    // TERMINA FISICAMENTE NA PLACA INFERIOR.
+    //
+    // NÃO EXISTE SEGMENTO ATRAVESSANDO O VÃO.
     // =========================================================
 
     bottomElectronPath(s) {
@@ -699,7 +717,7 @@ class RCCircuit {
         //
         // FIO VERTICAL
         //
-        // TERMINA EXATAMENTE NA PLACA INFERIOR
+        // TERMINA NA PLACA INFERIOR
         // =====================================================
 
         const d2 =
@@ -771,7 +789,9 @@ class RCCircuit {
         ctx.beginPath();
 
 
+        // -----------------------------------------------------
         // FIO SUPERIOR
+        // -----------------------------------------------------
 
         ctx.moveTo(
             x0,
@@ -784,7 +804,11 @@ class RCCircuit {
         );
 
 
+        // -----------------------------------------------------
         // FIO DIREITO ACIMA DO CAPACITOR
+        //
+        // TERMINA EXATAMENTE NA PLACA SUPERIOR
+        // -----------------------------------------------------
 
         ctx.moveTo(
             x1,
@@ -797,7 +821,11 @@ class RCCircuit {
         );
 
 
+        // -----------------------------------------------------
         // FIO DIREITO ABAIXO DO CAPACITOR
+        //
+        // COMEÇA EXATAMENTE NA PLACA INFERIOR
+        // -----------------------------------------------------
 
         ctx.moveTo(
             x1,
@@ -810,7 +838,9 @@ class RCCircuit {
         );
 
 
+        // -----------------------------------------------------
         // FIO INFERIOR
+        // -----------------------------------------------------
 
         ctx.moveTo(
             x1,
@@ -823,7 +853,11 @@ class RCCircuit {
         );
 
 
+        // -----------------------------------------------------
         // FIO ESQUERDO
+        //
+        // INTERRUPÇÃO PARA A FONTE
+        // -----------------------------------------------------
 
         ctx.moveTo(
             x0,
@@ -859,13 +893,13 @@ class RCCircuit {
 
         const xr = [
 
-            170,
+            this.resistorStart,
             195,
             220,
             245,
             270,
             295,
-            320
+            this.resistorEnd
 
         ];
 
@@ -929,6 +963,8 @@ class RCCircuit {
         ctx.beginPath();
 
 
+        // PLACA SUPERIOR
+
         ctx.moveTo(
             x1 - 25,
             this.capY1
@@ -939,6 +975,8 @@ class RCCircuit {
             this.capY1
         );
 
+
+        // PLACA INFERIOR
 
         ctx.moveTo(
             x1 - 25,
@@ -1103,31 +1141,25 @@ class RCCircuit {
 
 
         // =====================================================
-        // REGIÃO DE MASCARAMENTO DO CAPACITOR
+        // MASCARAMENTO DO VÃO DO CAPACITOR
         //
-        // O elétron pode chegar até a placa, mas nunca
-        // será desenhado dentro do espaço entre as placas.
+        // EXATAMENTE A LÓGICA DO RLC
         // =====================================================
 
-        const insideCapacitor =
-            (x, y) => {
+        const insideCapacitor = (x, y) => {
 
-                return (
+            return (
 
-                    x >=
-                        this.x1 - 4 &&
+                x >= this.x1 - 4 &&
 
-                    x <=
-                        this.x1 + 4 &&
+                x <= this.x1 + 4 &&
 
-                    y >
-                        this.capY1 &&
+                y > this.capY1 &&
 
-                    y <
-                        this.capY2
+                y < this.capY2
 
-                );
-            };
+            );
+        };
 
 
         // =====================================================
@@ -1135,29 +1167,14 @@ class RCCircuit {
         // =====================================================
 
         for (
-            let j = 0;
-            j <
-            this.electronTop.length;
-            j++
+            const s of this.electronTop
         ) {
 
-            const s =
-                this.electronTop[j];
-
-
-            const point =
+            const [
+                x,
+                y
+            ] =
                 this.topElectronPath(s);
-
-
-            if (!point)
-                continue;
-
-
-            const x =
-                point[0];
-
-            const y =
-                point[1];
 
 
             // -------------------------------------------------
@@ -1176,20 +1193,18 @@ class RCCircuit {
 
 
             // -------------------------------------------------
-            // ELÉTRON
+            // DESENHA ELÉTRON
             // -------------------------------------------------
 
             ctx.beginPath();
 
 
             ctx.arc(
-
                 x,
                 y,
                 3,
                 0,
                 2 * Math.PI
-
             );
 
 
@@ -1202,29 +1217,14 @@ class RCCircuit {
         // =====================================================
 
         for (
-            let j = 0;
-            j <
-            this.electronBottom.length;
-            j++
+            const s of this.electronBottom
         ) {
 
-            const s =
-                this.electronBottom[j];
-
-
-            const point =
+            const [
+                x,
+                y
+            ] =
                 this.bottomElectronPath(s);
-
-
-            if (!point)
-                continue;
-
-
-            const x =
-                point[0];
-
-            const y =
-                point[1];
 
 
             // -------------------------------------------------
@@ -1243,20 +1243,18 @@ class RCCircuit {
 
 
             // -------------------------------------------------
-            // ELÉTRON
+            // DESENHA ELÉTRON
             // -------------------------------------------------
 
             ctx.beginPath();
 
 
             ctx.arc(
-
                 x,
                 y,
                 3,
                 0,
                 2 * Math.PI
-
             );
 
 
