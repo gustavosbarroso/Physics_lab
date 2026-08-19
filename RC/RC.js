@@ -13,7 +13,10 @@ class RCCircuit {
 
             R: 2.0,
             C: 1.0,
+
+            // q0 continua sendo a carga inicial
             q0: 0.0,
+
             V0: 1.0,
 
             ...options
@@ -24,6 +27,7 @@ class RCCircuit {
         // =====================================================
 
         this.time = [];
+        this.vc = [];
         this.q = [];
         this.current = [];
 
@@ -32,7 +36,12 @@ class RCCircuit {
         // =====================================================
 
         this.numElectrons = 50;
-        this.electronPos = [];
+
+        // Elétrons do ramo superior
+        this.electronTop = [];
+
+        // Elétrons do ramo inferior
+        this.electronBottom = [];
 
         // =====================================================
         // ANIMAÇÃO
@@ -56,29 +65,29 @@ class RCCircuit {
 
 
     // =========================================================
-    // SISTEMA RC COM FONTE CONTÍNUA
+    // SISTEMA RC
+    //
+    // EDO:
+    //
+    // RC dv_c/dt + v_c = V0
+    //
+    // portanto:
+    //
+    // dv_c/dt = (V0 - v_c)/(RC)
     // =========================================================
 
     f(state, t) {
 
-        const q = state[0];
+        const vc = state[0];
 
         const R = this.params.R;
         const C = this.params.C;
         const V0 = this.params.V0;
 
-        /*
-         * V0 - R i - q/C = 0
-         *
-         * i = dq/dt
-         *
-         * dq/dt = (V0 - q/C) / R
-         */
+        const dvc_dt =
+            (V0 - vc) / (R * C);
 
-        const dqdt =
-            (V0 - q / C) / R;
-
-        return [dqdt];
+        return [dvc_dt];
     }
 
 
@@ -126,11 +135,22 @@ class RCCircuit {
         const h =
             (b - a) / N;
 
+        // =====================================================
+        // CONDIÇÃO INICIAL
+        //
+        // q0 = C * vc0
+        //
+        // logo:
+        //
+        // vc0 = q0 / C
+        // =====================================================
+
         let state = [
-            this.params.q0
+            this.params.q0 / this.params.C
         ];
 
         this.time = [];
+        this.vc = [];
         this.q = [];
         this.current = [];
 
@@ -146,14 +166,24 @@ class RCCircuit {
 
             this.time.push(t);
 
-            this.q.push(
+            // tensão no capacitor
+            this.vc.push(
                 state[0]
+            );
+
+            // carga no capacitor
+            this.q.push(
+                this.params.C * state[0]
             );
 
 
             if (n === N)
                 break;
 
+
+            // =================================================
+            // RK4
+            // =================================================
 
             const k1 =
                 this.mul(
@@ -172,6 +202,7 @@ class RCCircuit {
 
                         this.add(
                             state,
+
                             this.mul(
                                 k1,
                                 0.5
@@ -193,6 +224,7 @@ class RCCircuit {
 
                         this.add(
                             state,
+
                             this.mul(
                                 k2,
                                 0.5
@@ -248,16 +280,23 @@ class RCCircuit {
 
         // =====================================================
         // CORRENTE
+        //
+        // Pela própria EDO:
+        //
+        // i = C dv_c/dt
+        //
+        // e portanto:
+        //
+        // i = (V0 - vc)/R
         // =====================================================
 
         const R = this.params.R;
-        const C = this.params.C;
         const V0 = this.params.V0;
 
         this.current =
-            this.q.map(
-                q =>
-                    (V0 - q / C) / R
+            this.vc.map(
+                vc =>
+                    (V0 - vc) / R
             );
     }
 
@@ -276,11 +315,24 @@ class RCCircuit {
 
     // =========================================================
     // ELÉTRONS
+    //
+    // NÃO EXISTE MAIS UM LOOP FECHADO.
+    //
+    // Os elétrons são divididos em dois ramos:
+    //
+    // 1. ramo superior:
+    //    capacitor -> resistor -> terminal positivo
+    //
+    // 2. ramo inferior:
+    //    terminal negativo -> placa inferior do capacitor
+    //
+    // Eles nunca atravessam o capacitor.
     // =========================================================
 
     resetElectrons() {
 
-        this.electronPos = [];
+        this.electronTop = [];
+        this.electronBottom = [];
 
 
         for (
@@ -289,7 +341,12 @@ class RCCircuit {
             i++
         ) {
 
-            this.electronPos.push(
+            // Distribuição uniforme
+            this.electronTop.push(
+                i / this.numElectrons
+            );
+
+            this.electronBottom.push(
                 i / this.numElectrons
             );
         }
@@ -297,72 +354,115 @@ class RCCircuit {
 
 
     // =========================================================
-    // CAMINHO DOS ELÉTRONS
+    // CAMINHO DOS ELÉTRONS — RAMO SUPERIOR
+    //
+    // Sentido físico dos elétrons:
+    //
+    // direita -> esquerda
+    //
+    // O parâmetro s:
+    //
+    // 0 -> próximo do resistor
+    // 1 -> próximo da fonte positiva
     // =========================================================
 
-    loopPath(s) {
+    topElectronPath(s) {
 
         const x0 = 70;
         const x1 = 380;
-
         const y0 = 120;
-        const y1 = 320;
 
+        // Região superior do circuito:
+        //
+        // capacitor ---- resistor ---- fonte
+        //
+        // elétrons caminham da direita para esquerda.
 
-        if (s < 0.25) {
+        const resistorStart = 170;
+        const resistorEnd = 320;
 
-            return [
+        // -----------------------------------------------------
+        // capacitor -> resistor
+        // -----------------------------------------------------
 
-                x0 +
-                (x1 - x0) *
-                (s / 0.25),
+        if (s < 0.30) {
 
-                y0
-
-            ];
-        }
-
-
-        else if (s < 0.5) {
-
-            return [
-
-                x1,
-
-                y0 +
-                (y1 - y0) *
-                ((s - 0.25) / 0.25)
-
-            ];
-        }
-
-
-        else if (s < 0.75) {
+            const u = s / 0.30;
 
             return [
 
                 x1 -
-                (x1 - x0) *
-                ((s - 0.5) / 0.25),
+                (x1 - resistorEnd) * u,
 
-                y1
-
+                y0
             ];
         }
 
 
-        else {
+        // -----------------------------------------------------
+        // resistor
+        // -----------------------------------------------------
+
+        else if (s < 0.75) {
+
+            const u =
+                (s - 0.30) / 0.45;
 
             return [
 
-                x0,
+                resistorEnd -
+                (resistorEnd - resistorStart) * u,
 
-                y1 -
-                (y1 - y0) *
-                ((s - 0.75) / 0.25)
-
+                y0
             ];
         }
+
+
+        // -----------------------------------------------------
+        // resistor -> fonte positiva
+        // -----------------------------------------------------
+
+        else {
+
+            const u =
+                (s - 0.75) / 0.25;
+
+            return [
+
+                resistorStart -
+                (resistorStart - x0) * u,
+
+                y0
+            ];
+        }
+    }
+
+
+    // =========================================================
+    // CAMINHO DOS ELÉTRONS — RAMO INFERIOR
+    //
+    // Sentido físico:
+    //
+    // fonte negativa -> placa inferior do capacitor
+    //
+    // O elétron termina na placa.
+    // =========================================================
+
+    bottomElectronPath(s) {
+
+        const x0 = 70;
+        const x1 = 380;
+        const y1 = 320;
+
+        // Os elétrons caminham da esquerda para direita.
+
+        return [
+
+            x0 +
+            (x1 - x0) * s,
+
+            y1
+        ];
     }
 
 
@@ -399,7 +499,9 @@ class RCCircuit {
         ctx.beginPath();
 
 
+        // -----------------------------------------------------
         // Fio superior
+        // -----------------------------------------------------
 
         ctx.moveTo(
             x0,
@@ -412,7 +514,9 @@ class RCCircuit {
         );
 
 
+        // -----------------------------------------------------
         // Fio direito - parte superior
+        // -----------------------------------------------------
 
         ctx.moveTo(
             x1,
@@ -425,7 +529,9 @@ class RCCircuit {
         );
 
 
+        // -----------------------------------------------------
         // Fio direito - parte inferior
+        // -----------------------------------------------------
 
         ctx.moveTo(
             x1,
@@ -438,7 +544,9 @@ class RCCircuit {
         );
 
 
+        // -----------------------------------------------------
         // Fio inferior
+        // -----------------------------------------------------
 
         ctx.moveTo(
             x1,
@@ -451,7 +559,9 @@ class RCCircuit {
         );
 
 
+        // -----------------------------------------------------
         // Fio esquerdo - parte inferior
+        // -----------------------------------------------------
 
         ctx.moveTo(
             x0,
@@ -464,7 +574,9 @@ class RCCircuit {
         );
 
 
+        // -----------------------------------------------------
         // Fio esquerdo - parte superior
+        // -----------------------------------------------------
 
         ctx.moveTo(
             x0,
@@ -549,6 +661,8 @@ class RCCircuit {
         ctx.beginPath();
 
 
+        // placa superior
+
         ctx.moveTo(
             x1 - 25,
             205
@@ -559,6 +673,8 @@ class RCCircuit {
             205
         );
 
+
+        // placa inferior
 
         ctx.moveTo(
             x1 - 25,
@@ -611,7 +727,9 @@ class RCCircuit {
         ctx.stroke();
 
 
+        // -----------------------------------------------------
         // Terminal positivo
+        // -----------------------------------------------------
 
         ctx.beginPath();
 
@@ -639,7 +757,9 @@ class RCCircuit {
         ctx.stroke();
 
 
+        // -----------------------------------------------------
         // Terminal negativo
+        // -----------------------------------------------------
 
         ctx.beginPath();
 
@@ -677,45 +797,49 @@ class RCCircuit {
             "red";
 
 
+        // =====================================================
+        // ELÉTRONS DO RAMO SUPERIOR
+        // =====================================================
+
         for (
-            const s of this.electronPos
+            const s of this.electronTop
         ) {
 
             const [
                 x,
                 y
             ] =
-                this.loopPath(s);
+                this.topElectronPath(s);
 
 
-            // =================================================
-            // ESPAÇO ENTRE AS PLACAS
-            // =================================================
-            //
-            // O elétron continua seguindo sua trajetória
-            // normalmente, mas não é desenhado entre:
-            //
-            //       y = 205
-            //       y = 245
-            //
-            // no lado direito do capacitor.
-            //
-            // =================================================
+            ctx.beginPath();
 
-            const entrePlacas =
-                x >= x1 - 3 &&
-                x <= x1 + 3 &&
-                y > 205 &&
-                y < 245;
+            ctx.arc(
+                x,
+                y,
+                3,
+                0,
+                2 * Math.PI
+            );
+
+            ctx.fill();
+        }
 
 
-            if (entrePlacas)
-                continue;
+        // =====================================================
+        // ELÉTRONS DO RAMO INFERIOR
+        // =====================================================
 
+        for (
+            const s of this.electronBottom
+        ) {
 
-            // =================================================
-            // DESENHA ELÉTRON
-            // =================================================
+            const [
+                x,
+                y
+            ] =
+                this.bottomElectronPath(s);
+
 
             ctx.beginPath();
 
@@ -833,6 +957,7 @@ class RCCircuit {
                 0,
                 n
             );
+
 
         const iData =
             this.current.slice(
@@ -1128,6 +1253,7 @@ class RCCircuit {
             0
         );
 
+
         ctx.restore();
 
 
@@ -1299,7 +1425,6 @@ class RCCircuit {
 
         const ctx = this.ctx;
 
-
         const frame =
             Math.min(
                 this.frame,
@@ -1338,21 +1463,21 @@ class RCCircuit {
 
 
         ctx.fillText(
-            `q = ${this.q[frame].toFixed(3)} C`,
+            `v_c = ${this.vc[frame].toFixed(3)} V`,
             470,
             390
         );
 
 
         ctx.fillText(
-            `i = ${this.current[frame].toFixed(3)} A`,
+            `q = ${this.q[frame].toFixed(3)} C`,
             620,
             390
         );
 
 
         ctx.fillText(
-            `t = ${this.time[frame].toFixed(2)} s`,
+            `i = ${this.current[frame].toFixed(3)} A`,
             760,
             390
         );
@@ -1419,7 +1544,7 @@ class RCCircuit {
 
 
             // =================================================
-            // VELOCIDADE DOS ELÉTRONS
+            // CORRENTE
             // =================================================
 
             const i =
@@ -1427,33 +1552,83 @@ class RCCircuit {
 
 
             /*
-             * O sinal da corrente determina
-             * o sentido do movimento.
+             * A corrente convencional possui sentido:
+             *
+             * fonte positiva -> R -> C -> fonte negativa
+             *
+             * Os elétrons se movem no sentido oposto.
+             *
+             * Por isso:
+             *
+             * ramo superior:
+             * direita -> esquerda
+             *
+             * ramo inferior:
+             * esquerda -> direita
+             *
+             * Não existe passagem pelo capacitor.
              */
 
-            const speed =
-                0.02 * i;
 
+            const speed =
+                0.02 * Math.abs(i);
+
+
+            // =================================================
+            // ELÉTRONS DO RAMO SUPERIOR
+            // =================================================
+
+            /*
+             * O caminho topElectronPath já está parametrizado
+             * no sentido do movimento dos elétrons:
+             *
+             * s = 0 -> capacitor
+             * s = 1 -> fonte positiva
+             *
+             * Quando chega ao fim, volta ao início.
+             */
 
             for (
                 let j = 0;
-                j < this.electronPos.length;
+                j < this.electronTop.length;
                 j++
             ) {
 
-                this.electronPos[j] =
+                this.electronTop[j] =
                     (
-                        this.electronPos[j] +
+                        this.electronTop[j] +
                         speed
                     ) % 1;
+            }
 
 
-                if (
-                    this.electronPos[j] < 0
-                ) {
+            // =================================================
+            // ELÉTRONS DO RAMO INFERIOR
+            // =================================================
 
-                    this.electronPos[j] += 1;
-                }
+            /*
+             * Aqui os elétrons caminham:
+             *
+             * fonte negativa -> capacitor
+             *
+             * Portanto eles NÃO devem atravessar a placa.
+             *
+             * Quando chegam ao capacitor, permanecem
+             * acumulados na extremidade.
+             */
+
+            for (
+                let j = 0;
+                j < this.electronBottom.length;
+                j++
+            ) {
+
+                this.electronBottom[j] =
+                    Math.min(
+                        1,
+                        this.electronBottom[j] +
+                        speed
+                    );
             }
 
 
