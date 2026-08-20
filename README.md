@@ -78,14 +78,14 @@ Pêndulo com ponto de suspensão oscilando horizontalmente.
 **[▶ Abrir simulação](https://gustavosbarroso.github.io/Physics_lab/InvertedPendulum/)**
 
 ---
-### VIII. [Sistema binário](https://https://gustavosbarroso.github.io/Physics_lab/TwoBody/)
+### VIII. [Sistema binário](https://gustavosbarroso.github.io/Physics_lab/TwoBody/)
 
 <img width="1364" height="551" alt="image" src="https://github.com/user-attachments/assets/04f401c4-f9be-4727-b47f-4c9a178f4572" />
 
 
 Sistema orbital de duas estrelas em órbita.
 
-**[▶ Abrir simulação](https://https://gustavosbarroso.github.io/Physics_lab/TwoBody/)**
+**[▶ Abrir simulação](https://gustavosbarroso.github.io/Physics_lab/TwoBody/)**
 ## 🌐 LABORATÓRIO VIRTUAL DE FÍSICA
 
 Todas as simulações interativas estão disponíveis no site do projeto:
