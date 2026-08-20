@@ -6,22 +6,23 @@ class TwoBodySystem {
         this.ctx = canvas.getContext("2d");
 
         // =====================================================
-        // PARÂMETROS
+        // PARÂMETROS CONTROLÁVEIS
         // =====================================================
 
         this.params = {
 
-            // Separação inicial entre os corpos
-            r: 2.0,              // UA
+            // Massas
+            m1: 1.0,       // M☉
+            m2: 1.0,       // M☉
 
-            // Período usado para determinar v_rel
-            T: 2.0,              // anos
+            // Excentricidade
+            e: 0.5,
 
-            m1: 1.0,             // M☉
-            m2: 1.0,             // M☉
+            // Semieixo maior FIXO
+            a: 2.0,        // UA
 
-            // Tempo total da simulação
-            t_max: 5.0           // anos
+            // Número de períodos simulados
+            periods: 2.0
         };
 
         Object.assign(
@@ -34,12 +35,10 @@ class TwoBodySystem {
         // =====================================================
 
         // G em UA³ / (M☉ ano²)
-        this.G =
-            4 * Math.PI * Math.PI;
+        this.G = 4 * Math.PI * Math.PI;
 
-        // km/s -> UA/ano
-        this.UA_POR_ANO =
-            0.2108;
+        // UA/ano -> km/s
+        this.UA_POR_ANO = 4.74047;
 
         // =====================================================
         // ESTADO
@@ -57,17 +56,11 @@ class TwoBodySystem {
         // GEOMETRIA
         // =====================================================
 
-        this.width =
-            canvas.width;
+        this.width = canvas.width;
+        this.height = canvas.height;
 
-        this.height =
-            canvas.height;
-
-        this.cx =
-            this.width / 2;
-
-        this.cy =
-            this.height / 2;
+        this.cx = this.width / 2;
+        this.cy = this.height / 2;
 
         this.scale = 70;
 
@@ -109,6 +102,16 @@ class TwoBodySystem {
             params
         );
 
+        // Garante uma excentricidade física
+        this.params.e =
+            Math.max(
+                0,
+                Math.min(
+                    0.999,
+                    this.params.e
+                )
+            );
+
         this.solve();
 
         this.frame = 0;
@@ -121,44 +124,14 @@ class TwoBodySystem {
 
 
     // =========================================================
-    // VELOCIDADE RELATIVA
-    // =========================================================
-    //
-    // v_rel = 2πr / T
-    //
-    // r em UA
-    // T em anos
-    // resultado em UA/ano
-    //
-    // Depois convertemos para km/s.
+    // MASSA TOTAL
     // =========================================================
 
-    getRelativeVelocity() {
-
-        const r =
-            this.params.r;
-
-        const T =
-            this.params.T;
-
-        if (T <= 0)
-            return 0;
+    getTotalMass() {
 
         return (
-            2 * Math.PI * r / T
-        );
-    }
-
-
-    // =========================================================
-    // VELOCIDADE RELATIVA EM km/s
-    // =========================================================
-
-    getRelativeVelocityKmS() {
-
-        return (
-            this.getRelativeVelocity() /
-            this.UA_POR_ANO
+            this.params.m1 +
+            this.params.m2
         );
     }
 
@@ -166,25 +139,108 @@ class TwoBodySystem {
     // =========================================================
     // PERÍODO KEPLERIANO
     // =========================================================
-    //
-    // Para uma órbita circular:
-    //
-    // T_K = sqrt(r³ / M)
-    //
-    // pois G = 4π².
-    // =========================================================
 
     getKeplerPeriod() {
 
-        const r =
-            this.params.r;
+        const a =
+            this.params.a;
 
         const M =
-            this.params.m1 +
-            this.params.m2;
+            this.getTotalMass();
 
         return Math.sqrt(
-            r * r * r / M
+            a * a * a / M
+        );
+    }
+
+
+    // =========================================================
+    // PERIASTRO
+    // =========================================================
+
+    getPeriapsis() {
+
+        const a =
+            this.params.a;
+
+        const e =
+            this.params.e;
+
+        return a * (1 - e);
+    }
+
+
+    // =========================================================
+    // APOASTRO
+    // =========================================================
+
+    getApoapsis() {
+
+        const a =
+            this.params.a;
+
+        const e =
+            this.params.e;
+
+        return a * (1 + e);
+    }
+
+
+    // =========================================================
+    // VELOCIDADE NO PERIASTRO
+    // =========================================================
+    //
+    // Conservação de energia:
+    //
+    // v²/2 - GM/r = -GM/(2a)
+    //
+    // portanto:
+    //
+    // v² = GM(2/r - 1/a)
+    //
+    // No periastro:
+    //
+    // r = a(1-e)
+    //
+    // então:
+    //
+    // v_p = sqrt[GM(1+e)/(a(1-e))]
+    //
+    // =========================================================
+
+    getPeriapsisVelocity() {
+
+        const M =
+            this.getTotalMass();
+
+        const a =
+            this.params.a;
+
+        const e =
+            this.params.e;
+
+        const rp =
+            this.getPeriapsis();
+
+        return Math.sqrt(
+            this.G * M *
+            (
+                2 / rp -
+                1 / a
+            )
+        );
+    }
+
+
+    // =========================================================
+    // VELOCIDADE EM km/s
+    // =========================================================
+
+    getPeriapsisVelocityKmS() {
+
+        return (
+            this.getPeriapsisVelocity() *
+            this.UA_POR_ANO
         );
     }
 
@@ -192,11 +248,20 @@ class TwoBodySystem {
     // =========================================================
     // CONDIÇÃO INICIAL
     // =========================================================
+    //
+    // Começamos no periastro.
+    //
+    // A separação entre os corpos é:
+    //
+    // rp = a(1-e)
+    //
+    // A velocidade relativa é tangencial.
+    //
+    // =========================================================
 
     initialCondition() {
 
         const {
-            r,
             m1,
             m2
         } = this.params;
@@ -204,38 +269,43 @@ class TwoBodySystem {
         const M =
             m1 + m2;
 
+        const e =
+            this.params.e;
+
+        const rp =
+            this.getPeriapsis();
+
+        const vp =
+            this.getPeriapsisVelocity();
+
         // -----------------------------------------------------
         // POSIÇÕES NO REFERENCIAL DO CM
         // -----------------------------------------------------
 
         const x1 =
-            -(m2 / M) * r;
+            -(m2 / M) * rp;
 
         const x2 =
-            +(m1 / M) * r;
+            +(m1 / M) * rp;
 
         // -----------------------------------------------------
-        // VELOCIDADE RELATIVA
-        // -----------------------------------------------------
-
-        const v =
-            this.getRelativeVelocity();
-
-        // -----------------------------------------------------
-        // VELOCIDADES INDIVIDUAIS
+        // VELOCIDADES
+        //
+        // A velocidade relativa está na direção +y para m1
+        // e -y para m2.
         // -----------------------------------------------------
 
         let vx1 = 0;
         let vx2 = 0;
 
         let vy1 =
-            v * (m2 / M);
+            +(m2 / M) * vp;
 
         let vy2 =
-            -v * (m1 / M);
+            -(m1 / M) * vp;
 
         // -----------------------------------------------------
-        // VELOCIDADE DO CENTRO DE MASSA
+        // CENTRO DE MASSA
         // -----------------------------------------------------
 
         const vxCM =
@@ -301,7 +371,7 @@ class TwoBodySystem {
             dy * dy;
 
         const r =
-            Math.sqrt(r2) + 1e-10;
+            Math.sqrt(r2) + 1e-12;
 
         const r3 =
             r * r * r;
@@ -425,10 +495,13 @@ class TwoBodySystem {
 
     solve() {
 
-        const N = 600;
+        const N = 1200;
+
+        const T =
+            this.getKeplerPeriod();
 
         const tMax =
-            this.params.t_max;
+            this.params.periods * T;
 
         const dt =
             tMax / (N - 1);
@@ -454,7 +527,9 @@ class TwoBodySystem {
                 [...state]
             );
 
-            if (i < N - 1) {
+            if (
+                i < N - 1
+            ) {
 
                 state =
                     this.rk4Step(
@@ -480,9 +555,10 @@ class TwoBodySystem {
     getOrbitInfo() {
 
         const {
-            r,
             m1,
-            m2
+            m2,
+            a,
+            e
         } = this.params;
 
         const M =
@@ -491,108 +567,44 @@ class TwoBodySystem {
         const mu =
             this.G * M;
 
-        // -----------------------------------------------------
-        // VELOCIDADE RELATIVA CALCULADA
-        // -----------------------------------------------------
+        const rp =
+            a * (1 - e);
 
-        const v =
-            this.getRelativeVelocity();
+        const ra =
+            a * (1 + e);
 
-        // -----------------------------------------------------
-        // PERÍODO KEPLERIANO
-        // -----------------------------------------------------
+        const vp =
+            this.getPeriapsisVelocity();
 
-        const TKepler =
-            this.getKeplerPeriod();
+        const epsilon =
+            -mu /
+            (2 * a);
 
-        // -----------------------------------------------------
-        // VELOCIDADE DE ESCAPE
-        // -----------------------------------------------------
+        const h =
+            rp * vp;
 
         const vEsc =
             Math.sqrt(
-                2 * mu / r
+                2 * mu / rp
             );
-
-        // -----------------------------------------------------
-        // ENERGIA ESPECÍFICA
-        // -----------------------------------------------------
-
-        const epsilon =
-            0.5 * v * v -
-            mu / r;
-
-        // -----------------------------------------------------
-        // MOMENTO ANGULAR ESPECÍFICO
-        // -----------------------------------------------------
-
-        const h =
-            r * v;
-
-        // -----------------------------------------------------
-        // EXCENTRICIDADE
-        // -----------------------------------------------------
-
-        let e2 =
-            1 +
-            (
-                2 *
-                epsilon *
-                h *
-                h
-            ) /
-            (
-                mu *
-                mu
-            );
-
-        // Correção numérica
-
-        if (
-            Math.abs(e2) < 1e-12
-        ) {
-
-            e2 = 0;
-        }
-
-        if (
-            Math.abs(e2 - 1) < 1e-12
-        ) {
-
-            e2 = 1;
-        }
-
-        const e =
-            Math.sqrt(
-                Math.max(0, e2)
-            );
-
-        // -----------------------------------------------------
-        // CLASSIFICAÇÃO
-        // -----------------------------------------------------
 
         let tipo;
 
-        const tolerance =
-            1e-5;
-
-        if (e < tolerance) {
+        if (
+            e < 1e-5
+        ) {
 
             tipo = "Circular";
 
-        } else if (e < 1 - tolerance) {
+        } else if (
+            e < 1
+        ) {
 
             tipo = "Elíptica";
 
-        } else if (
-            Math.abs(e - 1) < tolerance
-        ) {
-
-            tipo = "Parabólica";
-
         } else {
 
-            tipo = "Hiperbólica";
+            tipo = "Não elíptica";
         }
 
         return {
@@ -601,16 +613,28 @@ class TwoBodySystem {
 
             e: e,
 
-            vRel:
-                v /
+            a: a,
+
+            rp: rp,
+
+            ra: ra,
+
+            vPeriapsis:
+                vp,
+
+            vPeriapsisKmS:
+                vp *
                 this.UA_POR_ANO,
 
             vEsc:
-                vEsc /
+                vEsc,
+
+            vEscKmS:
+                vEsc *
                 this.UA_POR_ANO,
 
             TKepler:
-                TKepler,
+                this.getKeplerPeriod(),
 
             epsilon:
                 epsilon,
@@ -622,7 +646,7 @@ class TwoBodySystem {
 
 
     // =========================================================
-    // LIMITES
+    // LIMITE DE DESENHO
     // =========================================================
 
     getLimit() {
@@ -630,57 +654,9 @@ class TwoBodySystem {
         const info =
             this.getOrbitInfo();
 
-        const M =
-            this.params.m1 +
-            this.params.m2;
-
-        // -----------------------------------------------------
-        // ÓRBITA ELÍPTICA
-        // -----------------------------------------------------
-
-        if (
-            info.e < 1
-        ) {
-
-            const a =
-                -(
-                    this.G * M
-                ) /
-                (
-                    2 *
-                    info.epsilon
-                );
-
-            if (
-                Number.isFinite(a) &&
-                a > 0
-            ) {
-
-                const apoastro =
-                    a *
-                    (1 + info.e);
-
-                if (
-                    Number.isFinite(
-                        apoastro
-                    )
-                ) {
-
-                    return Math.max(
-                        3,
-                        1.20 * apoastro
-                    );
-                }
-            }
-        }
-
-        // -----------------------------------------------------
-        // ÓRBITA HIPERBÓLICA / PARABÓLICA
-        // -----------------------------------------------------
-
         return Math.max(
             3,
-            2 * this.params.r
+            1.25 * info.ra
         );
     }
 
@@ -953,8 +929,8 @@ class TwoBodySystem {
         ctx.roundRect(
             15,
             15,
-            260,
-            225,
+            270,
+            255,
             8
         );
 
@@ -971,23 +947,24 @@ class TwoBodySystem {
 
             `t = ${t.toFixed(2)} anos`,
 
-            `r = ${this.params.r.toFixed(2)} UA`,
+            `M₁ = ${this.params.m1.toFixed(2)} M☉`,
 
-            `T = ${this.params.T.toFixed(2)} anos`,
-
-            `Tₖ = ${info.TKepler.toFixed(2)} anos`,
-
-            `v_rel = ${info.vRel.toFixed(1)} km/s`,
-
-            `v_esc = ${info.vEsc.toFixed(1)} km/s`,
+            `M₂ = ${this.params.m2.toFixed(2)} M☉`,
 
             `e = ${info.e.toFixed(3)}`,
 
-            `m1 = ${this.params.m1.toFixed(2)} M☉`,
+            `a = ${info.a.toFixed(2)} UA`,
 
-            `m2 = ${this.params.m2.toFixed(2)} M☉`,
+            `rₚ = ${info.rp.toFixed(2)} UA`,
+
+            `rₐ = ${info.ra.toFixed(2)} UA`,
+
+            `vₚ = ${info.vPeriapsisKmS.toFixed(2)} km/s`,
+
+            `T = ${info.TKepler.toFixed(2)} anos`,
 
             `Órbita: ${info.tipo}`
+
         ];
 
         lines.forEach(
@@ -996,7 +973,7 @@ class TwoBodySystem {
                 ctx.fillText(
                     line,
                     28,
-                    40 + i * 20
+                    40 + i * 22
                 );
             }
         );
@@ -1080,7 +1057,7 @@ class TwoBodySystem {
             x1,
             y1,
             this.radius1,
-            "m1"
+            "m₁"
         );
 
         // -----------------------------------------------------
@@ -1094,7 +1071,7 @@ class TwoBodySystem {
             x2,
             y2,
             this.radius2,
-            "m2"
+            "m₂"
         );
 
         // -----------------------------------------------------
@@ -1135,14 +1112,14 @@ class TwoBodySystem {
         });
 
         if (
-            this.trail1.length > 500
+            this.trail1.length > 700
         ) {
 
             this.trail1.shift();
         }
 
         if (
-            this.trail2.length > 500
+            this.trail2.length > 700
         ) {
 
             this.trail2.shift();
