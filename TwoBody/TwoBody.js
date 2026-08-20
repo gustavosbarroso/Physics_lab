@@ -11,27 +11,35 @@ class TwoBodySystem {
 
         this.params = {
 
-            r: 2.0,          // UA
-            v_rel: 20.0,     // km/s
+            // Separação inicial entre os corpos
+            r: 2.0,              // UA
 
-            m1: 1.0,         // massas solares
-            m2: 1.0,
+            // Período usado para determinar v_rel
+            T: 2.0,              // anos
 
-            t_max: 5.0       // anos
+            m1: 1.0,             // M☉
+            m2: 1.0,             // M☉
+
+            // Tempo total da simulação
+            t_max: 5.0           // anos
         };
 
-        Object.assign(this.params, options);
+        Object.assign(
+            this.params,
+            options
+        );
 
         // =====================================================
         // CONSTANTES
         // =====================================================
 
-        this.G = 4 * Math.PI * Math.PI;
+        // G em UA³ / (M☉ ano²)
+        this.G =
+            4 * Math.PI * Math.PI;
 
-        // Conversão aproximada:
-        // 1 UA/ano = 4.74047 km/s
-        // portanto km/s -> UA/ano
-        this.UA_POR_ANO = 0.2108;
+        // km/s -> UA/ano
+        this.UA_POR_ANO =
+            0.2108;
 
         // =====================================================
         // ESTADO
@@ -49,20 +57,27 @@ class TwoBodySystem {
         // GEOMETRIA
         // =====================================================
 
-        this.width = canvas.width;
-        this.height = canvas.height;
+        this.width =
+            canvas.width;
 
-        this.cx = this.width / 2;
-        this.cy = this.height / 2;
+        this.height =
+            canvas.height;
+
+        this.cx =
+            this.width / 2;
+
+        this.cy =
+            this.height / 2;
 
         this.scale = 70;
 
         // =====================================================
-        // CORES / TAMANHOS
+        // CORPOS
         // =====================================================
 
         this.radius1 = 8;
         this.radius2 = 8;
+
         this.cmSize = 10;
 
         // =====================================================
@@ -73,12 +88,13 @@ class TwoBodySystem {
         this.trail2 = [];
 
         // =====================================================
-        // CONFIGURAÇÃO
+        // INICIALIZAÇÃO
         // =====================================================
 
-        this.setParameters(this.params);
+        this.solve();
 
-        this.animate = this.animate.bind(this);
+        this.animate =
+            this.animate.bind(this);
     }
 
 
@@ -88,7 +104,10 @@ class TwoBodySystem {
 
     setParameters(params) {
 
-        Object.assign(this.params, params);
+        Object.assign(
+            this.params,
+            params
+        );
 
         this.solve();
 
@@ -102,6 +121,75 @@ class TwoBodySystem {
 
 
     // =========================================================
+    // VELOCIDADE RELATIVA
+    // =========================================================
+    //
+    // v_rel = 2πr / T
+    //
+    // r em UA
+    // T em anos
+    // resultado em UA/ano
+    //
+    // Depois convertemos para km/s.
+    // =========================================================
+
+    getRelativeVelocity() {
+
+        const r =
+            this.params.r;
+
+        const T =
+            this.params.T;
+
+        if (T <= 0)
+            return 0;
+
+        return (
+            2 * Math.PI * r / T
+        );
+    }
+
+
+    // =========================================================
+    // VELOCIDADE RELATIVA EM km/s
+    // =========================================================
+
+    getRelativeVelocityKmS() {
+
+        return (
+            this.getRelativeVelocity() /
+            this.UA_POR_ANO
+        );
+    }
+
+
+    // =========================================================
+    // PERÍODO KEPLERIANO
+    // =========================================================
+    //
+    // Para uma órbita circular:
+    //
+    // T_K = sqrt(r³ / M)
+    //
+    // pois G = 4π².
+    // =========================================================
+
+    getKeplerPeriod() {
+
+        const r =
+            this.params.r;
+
+        const M =
+            this.params.m1 +
+            this.params.m2;
+
+        return Math.sqrt(
+            r * r * r / M
+        );
+    }
+
+
+    // =========================================================
     // CONDIÇÃO INICIAL
     // =========================================================
 
@@ -109,35 +197,56 @@ class TwoBodySystem {
 
         const {
             r,
-            v_rel,
             m1,
             m2
         } = this.params;
 
-        const M = m1 + m2;
+        const M =
+            m1 + m2;
 
-        // Posições em relação ao centro de massa
+        // -----------------------------------------------------
+        // POSIÇÕES NO REFERENCIAL DO CM
+        // -----------------------------------------------------
 
-        const x1 = -(m2 / M) * r;
-        const x2 = +(m1 / M) * r;
+        const x1 =
+            -(m2 / M) * r;
 
-        // Conversão km/s -> UA/ano
+        const x2 =
+            +(m1 / M) * r;
 
-        const v = v_rel * this.UA_POR_ANO;
+        // -----------------------------------------------------
+        // VELOCIDADE RELATIVA
+        // -----------------------------------------------------
+
+        const v =
+            this.getRelativeVelocity();
+
+        // -----------------------------------------------------
+        // VELOCIDADES INDIVIDUAIS
+        // -----------------------------------------------------
 
         let vx1 = 0;
         let vx2 = 0;
 
-        let vy1 = v * (m2 / M);
-        let vy2 = -v * (m1 / M);
+        let vy1 =
+            v * (m2 / M);
 
-        // Centro de massa parado
+        let vy2 =
+            -v * (m1 / M);
+
+        // -----------------------------------------------------
+        // VELOCIDADE DO CENTRO DE MASSA
+        // -----------------------------------------------------
 
         const vxCM =
             (m1 * vx1 + m2 * vx2) / M;
 
         const vyCM =
             (m1 * vy1 + m2 * vy2) / M;
+
+        // -----------------------------------------------------
+        // CM EM REPOUSO
+        // -----------------------------------------------------
 
         vx1 -= vxCM;
         vy1 -= vyCM;
@@ -146,11 +255,16 @@ class TwoBodySystem {
         vy2 -= vyCM;
 
         return [
-            x1, 0,
-            vx1, vy1,
 
-            x2, 0,
-            vx2, vy2
+            x1,
+            0,
+            vx1,
+            vy1,
+
+            x2,
+            0,
+            vx2,
+            vy2
         ];
     }
 
@@ -167,39 +281,62 @@ class TwoBodySystem {
         } = this.params;
 
         const [
+
             x1, y1,
             vx1, vy1,
 
             x2, y2,
             vx2, vy2
+
         ] = state;
 
-        const dx = x2 - x1;
-        const dy = y2 - y1;
+        const dx =
+            x2 - x1;
 
-        const r2 = dx * dx + dy * dy;
+        const dy =
+            y2 - y1;
 
-        // Pequena proteção numérica
+        const r2 =
+            dx * dx +
+            dy * dy;
 
-        const r = Math.sqrt(r2) + 1e-8;
+        const r =
+            Math.sqrt(r2) + 1e-10;
 
-        const r3 = r * r * r;
+        const r3 =
+            r * r * r;
 
-        // Aceleração de m1
+        // -----------------------------------------------------
+        // ACELERAÇÃO DE m1
+        // -----------------------------------------------------
 
         const ax1 =
-            this.G * m2 * dx / r3;
+            this.G *
+            m2 *
+            dx /
+            r3;
 
         const ay1 =
-            this.G * m2 * dy / r3;
+            this.G *
+            m2 *
+            dy /
+            r3;
 
-        // Aceleração de m2
+        // -----------------------------------------------------
+        // ACELERAÇÃO DE m2
+        // -----------------------------------------------------
 
         const ax2 =
-            -this.G * m1 * dx / r3;
+            -this.G *
+            m1 *
+            dx /
+            r3;
 
         const ay2 =
-            -this.G * m1 * dy / r3;
+            -this.G *
+            m1 *
+            dy /
+            r3;
 
         return [
 
@@ -222,33 +359,50 @@ class TwoBodySystem {
 
     rk4Step(state, t, dt) {
 
-        const add = (a, b, factor) => {
+        const add =
+            (a, b, factor) => {
 
-            return a.map(
-                (value, i) =>
-                    value + factor * b[i]
-            );
-        };
+                return a.map(
+                    (value, i) =>
+                        value +
+                        factor * b[i]
+                );
+            };
 
         const k1 =
-            this.derivatives(t, state);
+            this.derivatives(
+                t,
+                state
+            );
 
         const k2 =
             this.derivatives(
                 t + dt / 2,
-                add(state, k1, dt / 2)
+                add(
+                    state,
+                    k1,
+                    dt / 2
+                )
             );
 
         const k3 =
             this.derivatives(
                 t + dt / 2,
-                add(state, k2, dt / 2)
+                add(
+                    state,
+                    k2,
+                    dt / 2
+                )
             );
 
         const k4 =
             this.derivatives(
                 t + dt,
-                add(state, k3, dt)
+                add(
+                    state,
+                    k3,
+                    dt
+                )
             );
 
         return state.map(
@@ -271,24 +425,34 @@ class TwoBodySystem {
 
     solve() {
 
-        const tMax = this.params.t_max;
+        const N = 600;
 
-        const N = 400;
+        const tMax =
+            this.params.t_max;
 
-        const dt = tMax / (N - 1);
+        const dt =
+            tMax / (N - 1);
 
-        let state = this.initialCondition();
+        let state =
+            this.initialCondition();
 
         this.t = [];
         this.sol = [];
 
-        for (let i = 0; i < N; i++) {
+        for (
+            let i = 0;
+            i < N;
+            i++
+        ) {
 
-            const t = i * dt;
+            const t =
+                i * dt;
 
             this.t.push(t);
 
-            this.sol.push([...state]);
+            this.sol.push(
+                [...state]
+            );
 
             if (i < N - 1) {
 
@@ -302,6 +466,7 @@ class TwoBodySystem {
         }
 
         return {
+
             t: this.t,
             sol: this.sol
         };
@@ -309,39 +474,121 @@ class TwoBodySystem {
 
 
     // =========================================================
-    // CLASSIFICAÇÃO DA ÓRBITA
+    // INFORMAÇÕES ORBITAIS
     // =========================================================
 
-    getOrbitType() {
+    getOrbitInfo() {
 
         const {
             r,
-            v_rel,
             m1,
             m2
         } = this.params;
 
-        const M = m1 + m2;
+        const M =
+            m1 + m2;
+
+        const mu =
+            this.G * M;
+
+        // -----------------------------------------------------
+        // VELOCIDADE RELATIVA CALCULADA
+        // -----------------------------------------------------
 
         const v =
-            v_rel * this.UA_POR_ANO;
+            this.getRelativeVelocity();
+
+        // -----------------------------------------------------
+        // PERÍODO KEPLERIANO
+        // -----------------------------------------------------
+
+        const TKepler =
+            this.getKeplerPeriod();
+
+        // -----------------------------------------------------
+        // VELOCIDADE DE ESCAPE
+        // -----------------------------------------------------
 
         const vEsc =
             Math.sqrt(
-                2 * this.G * M / r
+                2 * mu / r
             );
 
-        const f = v / vEsc;
+        // -----------------------------------------------------
+        // ENERGIA ESPECÍFICA
+        // -----------------------------------------------------
+
+        const epsilon =
+            0.5 * v * v -
+            mu / r;
+
+        // -----------------------------------------------------
+        // MOMENTO ANGULAR ESPECÍFICO
+        // -----------------------------------------------------
+
+        const h =
+            r * v;
+
+        // -----------------------------------------------------
+        // EXCENTRICIDADE
+        // -----------------------------------------------------
+
+        let e2 =
+            1 +
+            (
+                2 *
+                epsilon *
+                h *
+                h
+            ) /
+            (
+                mu *
+                mu
+            );
+
+        // Correção numérica
+
+        if (
+            Math.abs(e2) < 1e-12
+        ) {
+
+            e2 = 0;
+        }
+
+        if (
+            Math.abs(e2 - 1) < 1e-12
+        ) {
+
+            e2 = 1;
+        }
+
+        const e =
+            Math.sqrt(
+                Math.max(0, e2)
+            );
+
+        // -----------------------------------------------------
+        // CLASSIFICAÇÃO
+        // -----------------------------------------------------
 
         let tipo;
 
-        if (Math.abs(f - 1) < 0.02) {
+        const tolerance =
+            1e-5;
 
-            tipo = "Parabólica";
+        if (e < tolerance) {
 
-        } else if (f < 1) {
+            tipo = "Circular";
+
+        } else if (e < 1 - tolerance) {
 
             tipo = "Elíptica";
+
+        } else if (
+            Math.abs(e - 1) < tolerance
+        ) {
+
+            tipo = "Parabólica";
 
         } else {
 
@@ -349,18 +596,87 @@ class TwoBodySystem {
         }
 
         return {
-            tipo,
-            vEsc: vEsc / this.UA_POR_ANO,
-            f
+
+            tipo: tipo,
+
+            e: e,
+
+            vRel:
+                v /
+                this.UA_POR_ANO,
+
+            vEsc:
+                vEsc /
+                this.UA_POR_ANO,
+
+            TKepler:
+                TKepler,
+
+            epsilon:
+                epsilon,
+
+            h:
+                h
         };
     }
 
 
     // =========================================================
-    // LIMITES DOS GRÁFICOS
+    // LIMITES
     // =========================================================
 
     getLimit() {
+
+        const info =
+            this.getOrbitInfo();
+
+        const M =
+            this.params.m1 +
+            this.params.m2;
+
+        // -----------------------------------------------------
+        // ÓRBITA ELÍPTICA
+        // -----------------------------------------------------
+
+        if (
+            info.e < 1
+        ) {
+
+            const a =
+                -(
+                    this.G * M
+                ) /
+                (
+                    2 *
+                    info.epsilon
+                );
+
+            if (
+                Number.isFinite(a) &&
+                a > 0
+            ) {
+
+                const apoastro =
+                    a *
+                    (1 + info.e);
+
+                if (
+                    Number.isFinite(
+                        apoastro
+                    )
+                ) {
+
+                    return Math.max(
+                        3,
+                        1.20 * apoastro
+                    );
+                }
+            }
+        }
+
+        // -----------------------------------------------------
+        // ÓRBITA HIPERBÓLICA / PARABÓLICA
+        // -----------------------------------------------------
 
         return Math.max(
             3,
@@ -370,63 +686,83 @@ class TwoBodySystem {
 
 
     // =========================================================
-    // CONVERSÃO UA -> CANVAS
+    // UA -> CANVAS
     // =========================================================
 
     toCanvas(x, y) {
 
         return {
 
-            x: this.cx + x * this.scale,
+            x:
+                this.cx +
+                x * this.scale,
 
-            y: this.cy - y * this.scale
+            y:
+                this.cy -
+                y * this.scale
         };
     }
 
 
     // =========================================================
-    // DESENHA GRADE
+    // GRADE
     // =========================================================
 
     drawGrid() {
 
-        const ctx = this.ctx;
+        const ctx =
+            this.ctx;
 
         ctx.save();
 
-        ctx.strokeStyle = "rgba(255,255,255,0.12)";
+        ctx.strokeStyle =
+            "rgba(255,255,255,0.12)";
+
         ctx.lineWidth = 1;
 
-        const step = this.scale;
-
-        // linhas verticais
+        const step =
+            this.scale;
 
         for (
-            let x = this.cx % step;
+            let x =
+                this.cx % step;
             x < this.width;
             x += step
         ) {
 
             ctx.beginPath();
 
-            ctx.moveTo(x, 0);
-            ctx.lineTo(x, this.height);
+            ctx.moveTo(
+                x,
+                0
+            );
+
+            ctx.lineTo(
+                x,
+                this.height
+            );
 
             ctx.stroke();
         }
 
-        // linhas horizontais
-
         for (
-            let y = this.cy % step;
+            let y =
+                this.cy % step;
             y < this.height;
             y += step
         ) {
 
             ctx.beginPath();
 
-            ctx.moveTo(0, y);
-            ctx.lineTo(this.width, y);
+            ctx.moveTo(
+                0,
+                y
+            );
+
+            ctx.lineTo(
+                this.width,
+                y
+            );
 
             ctx.stroke();
         }
@@ -436,16 +772,19 @@ class TwoBodySystem {
 
 
     // =========================================================
-    // DESENHA CENTRO DE MASSA
+    // CENTRO DE MASSA
     // =========================================================
 
     drawCM() {
 
-        const ctx = this.ctx;
+        const ctx =
+            this.ctx;
 
         ctx.save();
 
-        ctx.strokeStyle = "#ffffff";
+        ctx.strokeStyle =
+            "#ffffff";
+
         ctx.lineWidth = 2;
 
         ctx.beginPath();
@@ -477,14 +816,24 @@ class TwoBodySystem {
 
 
     // =========================================================
-    // DESENHA CORPO
+    // CORPOS
     // =========================================================
 
-    drawBody(x, y, radius, label) {
+    drawBody(
+        x,
+        y,
+        radius,
+        label
+    ) {
 
-        const ctx = this.ctx;
+        const ctx =
+            this.ctx;
 
-        const p = this.toCanvas(x, y);
+        const p =
+            this.toCanvas(
+                x,
+                y
+            );
 
         ctx.save();
 
@@ -500,7 +849,11 @@ class TwoBodySystem {
 
         ctx.fill();
 
-        ctx.font = "bold 13px Arial";
+        ctx.fillStyle =
+            "white";
+
+        ctx.font =
+            "bold 13px Arial";
 
         ctx.fillText(
             label,
@@ -513,32 +866,30 @@ class TwoBodySystem {
 
 
     // =========================================================
-    // DESENHA TRAJETÓRIA
+    // TRAJETÓRIA
     // =========================================================
 
-    drawTrail(trail, dashed = false) {
+    drawTrail(trail) {
 
-        if (trail.length < 2)
+        if (
+            trail.length < 2
+        )
             return;
 
-        const ctx = this.ctx;
+        const ctx =
+            this.ctx;
 
         ctx.save();
 
         ctx.lineWidth = 1.5;
 
-        if (dashed) {
-
-            ctx.setLineDash([5, 5]);
-
-        } else {
-
-            ctx.setLineDash([]);
-        }
-
         ctx.beginPath();
 
-        for (let i = 0; i < trail.length; i++) {
+        for (
+            let i = 0;
+            i < trail.length;
+            i++
+        ) {
 
             const p =
                 this.toCanvas(
@@ -548,11 +899,17 @@ class TwoBodySystem {
 
             if (i === 0) {
 
-                ctx.moveTo(p.x, p.y);
+                ctx.moveTo(
+                    p.x,
+                    p.y
+                );
 
             } else {
 
-                ctx.lineTo(p.x, p.y);
+                ctx.lineTo(
+                    p.x,
+                    p.y
+                );
             }
         }
 
@@ -568,20 +925,23 @@ class TwoBodySystem {
 
     drawHUD() {
 
-        const ctx = this.ctx;
+        const ctx =
+            this.ctx;
 
         const frame =
-            this.frame % this.sol.length;
+            this.frame %
+            this.sol.length;
 
         const t =
             this.t[frame];
 
         const info =
-            this.getOrbitType();
+            this.getOrbitInfo();
 
         ctx.save();
 
-        ctx.fillStyle = "rgba(0,0,0,0.65)";
+        ctx.fillStyle =
+            "rgba(0,0,0,0.68)";
 
         ctx.strokeStyle =
             "rgba(255,255,255,0.3)";
@@ -593,17 +953,19 @@ class TwoBodySystem {
         ctx.roundRect(
             15,
             15,
-            215,
-            150,
+            260,
+            225,
             8
         );
 
         ctx.fill();
         ctx.stroke();
 
-        ctx.fillStyle = "white";
+        ctx.fillStyle =
+            "white";
 
-        ctx.font = "13px Arial";
+        ctx.font =
+            "13px Arial";
 
         const lines = [
 
@@ -611,36 +973,46 @@ class TwoBodySystem {
 
             `r = ${this.params.r.toFixed(2)} UA`,
 
-            `v_rel = ${this.params.v_rel.toFixed(1)} km/s`,
+            `T = ${this.params.T.toFixed(2)} anos`,
+
+            `Tₖ = ${info.TKepler.toFixed(2)} anos`,
+
+            `v_rel = ${info.vRel.toFixed(1)} km/s`,
 
             `v_esc = ${info.vEsc.toFixed(1)} km/s`,
 
-            `f = ${info.f.toFixed(2)}`,
+            `e = ${info.e.toFixed(3)}`,
+
+            `m1 = ${this.params.m1.toFixed(2)} M☉`,
+
+            `m2 = ${this.params.m2.toFixed(2)} M☉`,
 
             `Órbita: ${info.tipo}`
-
         ];
 
-        lines.forEach((line, i) => {
+        lines.forEach(
+            (line, i) => {
 
-            ctx.fillText(
-                line,
-                28,
-                40 + i * 19
-            );
-        });
+                ctx.fillText(
+                    line,
+                    28,
+                    40 + i * 20
+                );
+            }
+        );
 
         ctx.restore();
     }
 
 
     // =========================================================
-    // DESENHO COMPLETO
+    // DESENHO
     // =========================================================
 
     draw() {
 
-        const ctx = this.ctx;
+        const ctx =
+            this.ctx;
 
         ctx.clearRect(
             0,
@@ -649,32 +1021,45 @@ class TwoBodySystem {
             this.height
         );
 
+        const limit =
+            this.getLimit();
+
         this.scale =
             Math.min(
                 this.width,
                 this.height
             ) /
-            (2.2 * this.getLimit());
+            (
+                2.2 *
+                limit
+            );
 
         this.drawGrid();
 
         this.drawCM();
 
         const frame =
-            this.frame % this.sol.length;
+            this.frame %
+            this.sol.length;
 
         const state =
             this.sol[frame];
 
-        const x1 = state[0];
-        const y1 = state[1];
+        const x1 =
+            state[0];
 
-        const x2 = state[4];
-        const y2 = state[5];
+        const y1 =
+            state[1];
 
-        // ---------------------------------------------
-        // Trajetórias
-        // ---------------------------------------------
+        const x2 =
+            state[4];
+
+        const y2 =
+            state[5];
+
+        // -----------------------------------------------------
+        // TRAJETÓRIAS
+        // -----------------------------------------------------
 
         this.drawTrail(
             this.trail1
@@ -684,11 +1069,12 @@ class TwoBodySystem {
             this.trail2
         );
 
-        // ---------------------------------------------
-        // Corpos
-        // ---------------------------------------------
+        // -----------------------------------------------------
+        // m1
+        // -----------------------------------------------------
 
-        ctx.fillStyle = "#ff4444";
+        ctx.fillStyle =
+            "#ff4444";
 
         this.drawBody(
             x1,
@@ -697,7 +1083,12 @@ class TwoBodySystem {
             "m1"
         );
 
-        ctx.fillStyle = "#4488ff";
+        // -----------------------------------------------------
+        // m2
+        // -----------------------------------------------------
+
+        ctx.fillStyle =
+            "#4488ff";
 
         this.drawBody(
             x2,
@@ -706,9 +1097,9 @@ class TwoBodySystem {
             "m2"
         );
 
-        // ---------------------------------------------
+        // -----------------------------------------------------
         // HUD
-        // ---------------------------------------------
+        // -----------------------------------------------------
 
         this.drawHUD();
     }
@@ -723,35 +1114,48 @@ class TwoBodySystem {
         if (!this.running)
             return;
 
-        if (this.sol.length === 0)
+        if (
+            this.sol.length === 0
+        )
             return;
 
         const state =
             this.sol[this.frame];
 
         this.trail1.push({
+
             x: state[0],
             y: state[1]
         });
 
         this.trail2.push({
+
             x: state[4],
             y: state[5]
         });
 
-        // Evita crescimento infinito
+        if (
+            this.trail1.length > 500
+        ) {
 
-        if (this.trail1.length > 400)
             this.trail1.shift();
+        }
 
-        if (this.trail2.length > 400)
+        if (
+            this.trail2.length > 500
+        ) {
+
             this.trail2.shift();
+        }
 
         this.draw();
 
         this.frame++;
 
-        if (this.frame >= this.sol.length) {
+        if (
+            this.frame >=
+            this.sol.length
+        ) {
 
             this.frame = 0;
 
@@ -767,7 +1171,7 @@ class TwoBodySystem {
 
 
     // =========================================================
-    // CONTROLE
+    // START
     // =========================================================
 
     start() {
@@ -781,11 +1185,17 @@ class TwoBodySystem {
     }
 
 
+    // =========================================================
+    // PAUSE
+    // =========================================================
+
     pause() {
 
         this.running = false;
 
-        if (this.animationId) {
+        if (
+            this.animationId !== null
+        ) {
 
             cancelAnimationFrame(
                 this.animationId
@@ -795,6 +1205,10 @@ class TwoBodySystem {
         }
     }
 
+
+    // =========================================================
+    // RESET
+    // =========================================================
 
     reset() {
 
@@ -806,6 +1220,8 @@ class TwoBodySystem {
         this.trail2 = [];
 
         this.solve();
+
+        this.draw();
 
         this.running = true;
 
