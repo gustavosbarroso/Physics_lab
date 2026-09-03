@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Capacitor Cilíndrico
+    </title>
+
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+
+        body {
+
+            margin: 0;
+
+            padding: 0;
+
+            background: white;
+
+            font-family:
+                Arial,
+                sans-serif;
+        }
+
+
+        canvas {
+
+            display: block;
+
+            margin: 20px auto;
+
+            border:
+                1px solid #ccc;
+
+            background:
+                white;
+        }
+
+
+        h2 {
+
+            margin-top: 10px;
+
+            margin-bottom: 15px;
+        }
+
+
+        .capacitor-cilindrico-controls {
+
+            width: 900px;
+
+            margin: 20px auto;
+
+            font-family:
+                Arial,
+                sans-serif;
+        }
+
+
+        .control {
+
+            margin-bottom: 12px;
+        }
+
+
+        .control label {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 10px;
+        }
+
+
+        .control input[type="range"] {
+
+            width: 300px;
+        }
+
+
+        .control span {
+
+            min-width: 55px;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <!-- =====================================================
+         CANVAS
+         ===================================================== -->
+
+    <canvas
+        id="canvas"
+        width="900"
+        height="600">
+    </canvas>
+
+
+    <!-- =====================================================
+         CLASSE
+         ===================================================== -->
+
+    <script src="CapacitorCilindrico.js"></script>
+
+
+    <!-- =====================================================
+         INICIALIZAÇÃO
+         ===================================================== -->
+
+    <script>
+
+        const canvas =
+            document.getElementById(
+                "canvas"
+            );
+
+
+        const capacitor =
+            new CapacitorCilindrico(
+
+                canvas,
+
+                {
+
+                    // =========================================
+                    // DENSIDADE LINEAR
+                    // =========================================
+
+                    lambda: 1.0,
+
+
+                    // =========================================
+                    // RAIO INTERNO
+                    // =========================================
+
+                    a: 1.0,
+
+
+                    // =========================================
+                    // RAIO EXTERNO
+                    // =========================================
+
+                    b: 2.0,
+
+
+                    // =========================================
+                    // COMPRIMENTO
+                    // =========================================
+
+                    L: 1.0
+
+                }
+
+            );
+
+    </script>
+
+
+</body>
+
+</html>
