@@ -731,9 +731,11 @@ class CapacitorCilindrico {
 
 
         const signal =
-            this.params.lambda >= 0
+            this.params.lambda > 0
                 ? "+"
-                : "−";
+                : this.params.lambda < 0
+                    ? "−"
+                    : "0";
 
 
         ctx.fillText(
@@ -807,7 +809,7 @@ class CapacitorCilindrico {
 
 
         // ====================================================
-        // NÚMERO DE LINHAS
+        // NÚMERO DE LINHAS RADIAIS
         // ====================================================
 
         const numberOfLines =
@@ -815,17 +817,22 @@ class CapacitorCilindrico {
 
 
         // ====================================================
-        // DIREÇÃO
+        // DIREÇÃO DO CAMPO
         // ====================================================
 
         /*
+         *
          * λ > 0:
          *
-         *       campo para fora
+         * Campo aponta radialmente
+         * para fora.
+         *
          *
          * λ < 0:
          *
-         *       campo para dentro
+         * Campo aponta radialmente
+         * para dentro.
+         *
          */
 
         const outward =
@@ -859,6 +866,10 @@ class CapacitorCilindrico {
                 Math.sin(angle);
 
 
+            // =================================================
+            // PONTO INICIAL
+            // =================================================
+
             const x1 =
                 cx +
                 this.innerRadius *
@@ -870,6 +881,10 @@ class CapacitorCilindrico {
                 this.innerRadius *
                 sin;
 
+
+            // =================================================
+            // PONTO FINAL
+            // =================================================
 
             const x2 =
                 cx +
@@ -900,12 +915,39 @@ class CapacitorCilindrico {
             );
 
             ctx.strokeStyle =
-                "rgba(60, 60, 60, 0.45)";
+                "rgba(60, 60, 60, 0.40)";
 
             ctx.lineWidth =
                 1.5;
 
             ctx.stroke();
+
+
+            // =================================================
+            // SETAS FIXAS
+            // =================================================
+
+            const numberOfArrows =
+                3;
+
+
+            for (
+                let j = 0;
+                j < numberOfArrows;
+                j++
+            ) {
+
+                const t =
+                    0.22 +
+                    j * 0.28;
+
+
+                this.drawFieldArrow(
+                    angle,
+                    t,
+                    outward
+                );
+            }
 
 
             // =================================================
@@ -921,11 +963,12 @@ class CapacitorCilindrico {
 
 
     // ========================================================
-    // SETA ANIMADA
+    // SETA DE CAMPO
     // ========================================================
 
-    drawAnimatedArrow(
+    drawFieldArrow(
         angle,
+        t,
         outward
     ) {
 
@@ -934,30 +977,12 @@ class CapacitorCilindrico {
 
 
         // ====================================================
-        // POSIÇÃO ANIMADA
+        // POSIÇÃO RADIAL
         // ====================================================
 
         const range =
             this.outerRadius -
             this.innerRadius;
-
-
-        let t =
-            (
-                this.animationTime * 0.00005
-                +
-                (
-                    angle /
-                    (2 * Math.PI)
-                )
-            ) % 1;
-
-
-        if (!outward) {
-
-            t =
-                1 - t;
-        }
 
 
         const radius =
@@ -987,18 +1012,22 @@ class CapacitorCilindrico {
                 : -1;
 
 
-        const tangentX =
+        const dx =
             Math.cos(angle) *
             direction;
 
 
-        const tangentY =
+        const dy =
             Math.sin(angle) *
             direction;
 
 
+        // ====================================================
+        // TAMANHO
+        // ====================================================
+
         const arrowLength =
-            13;
+            14;
 
 
         const headLength =
@@ -1009,27 +1038,216 @@ class CapacitorCilindrico {
         // PONTA DA SETA
         // ====================================================
 
+        const tipX =
+            x +
+            dx *
+            arrowLength;
+
+
+        const tipY =
+            y +
+            dy *
+            arrowLength;
+
+
+        // ====================================================
+        // ÂNGULO
+        // ====================================================
+
+        const theta =
+            Math.atan2(
+                dy,
+                dx
+            );
+
+
+        // ====================================================
+        // DESENHAR
+        // ====================================================
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            tipX,
+            tipY
+        );
+
+        ctx.lineTo(
+            tipX -
+            headLength *
+            Math.cos(
+                theta -
+                Math.PI / 6
+            ),
+            tipY -
+            headLength *
+            Math.sin(
+                theta -
+                Math.PI / 6
+            )
+        );
+
+        ctx.lineTo(
+            tipX -
+            headLength *
+            Math.cos(
+                theta +
+                Math.PI / 6
+            ),
+            tipY -
+            headLength *
+            Math.sin(
+                theta +
+                Math.PI / 6
+            )
+        );
+
+        ctx.closePath();
+
+
+        ctx.fillStyle =
+            "#1976d2";
+
+        ctx.fill();
+    }
+
+
+    // ========================================================
+    // SETA ANIMADA
+    // ========================================================
+
+    drawAnimatedArrow(
+        angle,
+        outward
+    ) {
+
+        const ctx =
+            this.ctx;
+
+
+        // ====================================================
+        // POSIÇÃO ANIMADA
+        // ====================================================
+
+        const range =
+            this.outerRadius -
+            this.innerRadius;
+
+
+        let t =
+            (
+                this.animationTime *
+                0.00005
+                +
+                angle /
+                (2 * Math.PI)
+            ) % 1;
+
+
+        if (!outward) {
+
+            t =
+                1 - t;
+        }
+
+
+        // ====================================================
+        // MARGEM
+        // ====================================================
+
+        const margin =
+            0.08;
+
+
+        t =
+            margin +
+            t *
+            (1 - 2 * margin);
+
+
+        const radius =
+            this.innerRadius +
+            t *
+            range;
+
+
+        // ====================================================
+        // POSIÇÃO
+        // ====================================================
+
+        const x =
+            this.centerX +
+            radius *
+            Math.cos(angle);
+
+
+        const y =
+            this.centerY +
+            radius *
+            Math.sin(angle);
+
+
+        // ====================================================
+        // DIREÇÃO
+        // ====================================================
+
+        const direction =
+            outward
+                ? 1
+                : -1;
+
+
+        const dx =
+            Math.cos(angle) *
+            direction;
+
+
+        const dy =
+            Math.sin(angle) *
+            direction;
+
+
+        // ====================================================
+        // TAMANHO
+        // ====================================================
+
+        const arrowLength =
+            16;
+
+
+        const headLength =
+            8;
+
+
+        // ====================================================
+        // PONTA
+        // ====================================================
+
         const x2 =
             x +
-            tangentX *
+            dx *
             arrowLength;
 
 
         const y2 =
             y +
-            tangentY *
+            dy *
             arrowLength;
 
 
+        // ====================================================
+        // ÂNGULO
+        // ====================================================
+
         const theta =
             Math.atan2(
-                y2 - y,
-                x2 - x
+                dy,
+                dx
             );
 
 
         // ====================================================
-        // SETA
+        // DESENHAR
         // ====================================================
 
         ctx.beginPath();
@@ -1043,12 +1261,14 @@ class CapacitorCilindrico {
             x2 -
             headLength *
             Math.cos(
-                theta - Math.PI / 6
+                theta -
+                Math.PI / 6
             ),
             y2 -
             headLength *
             Math.sin(
-                theta - Math.PI / 6
+                theta -
+                Math.PI / 6
             )
         );
 
@@ -1056,12 +1276,14 @@ class CapacitorCilindrico {
             x2 -
             headLength *
             Math.cos(
-                theta + Math.PI / 6
+                theta +
+                Math.PI / 6
             ),
             y2 -
             headLength *
             Math.sin(
-                theta + Math.PI / 6
+                theta +
+                Math.PI / 6
             )
         );
 
@@ -1098,11 +1320,11 @@ class CapacitorCilindrico {
 
 
         const graphWidth =
-            300;
+            320;
 
 
         const graphHeight =
-            180;
+            210;
 
 
         // ====================================================
@@ -1110,7 +1332,7 @@ class CapacitorCilindrico {
         // ====================================================
 
         ctx.fillStyle =
-            "rgba(255,255,255,0.92)";
+            "rgba(255,255,255,0.94)";
 
 
         ctx.beginPath();
@@ -1148,6 +1370,7 @@ class CapacitorCilindrico {
         ctx.textAlign =
             "left";
 
+
         ctx.fillText(
             "Campo elétrico E(r)",
             graphX + 10,
@@ -1160,91 +1383,248 @@ class CapacitorCilindrico {
         // ====================================================
 
         const left =
-            graphX + 45;
+            graphX + 55;
 
 
         const right =
-            graphX + graphWidth - 15;
+            graphX +
+            graphWidth -
+            18;
 
 
         const top =
-            graphY + 40;
+            graphY + 42;
 
 
         const bottom =
-            graphY + graphHeight - 30;
+            graphY +
+            graphHeight -
+            45;
 
 
         // ====================================================
-        // EIXOS
+        // VALORES DE E
         // ====================================================
 
-        ctx.beginPath();
+        /*
+         *
+         * Usamos os valores reais de E.
+         *
+         * Não existe normalização.
+         *
+         */
 
-        ctx.moveTo(
-            left,
-            top
-        );
-
-        ctx.lineTo(
-            left,
-            bottom
-        );
-
-        ctx.lineTo(
-            right,
-            bottom
-        );
-
-        ctx.strokeStyle =
-            "#444";
-
-        ctx.lineWidth =
-            1;
-
-        ctx.stroke();
+        const epsilon =
+            1e-9;
 
 
-        // ====================================================
-        // ESCALA
-        // ====================================================
+        const rMin =
+            this.params.a +
+            epsilon;
 
-        const E_a =
-            Math.abs(
-                this.electricField(
-                    this.params.a +
-                    1e-9
-                )
+
+        const rMax =
+            this.params.b -
+            epsilon;
+
+
+        const E_min =
+            this.electricField(
+                rMax
             );
 
 
-        const E_b =
-            Math.abs(
-                this.electricField(
-                    this.params.b -
-                    1e-9
-                )
+        const E_max =
+            this.electricField(
+                rMin
             );
 
 
-        const maxE =
-            E_a;
+        const absEmax =
+            Math.abs(
+                E_max
+            );
 
 
         // ====================================================
-        // CURVA
+        // CASO λ = 0
         // ====================================================
 
-        ctx.beginPath();
+        if (
+            absEmax === 0
+        ) {
+
+            ctx.beginPath();
+
+            ctx.moveTo(
+                left,
+                bottom
+            );
+
+            ctx.lineTo(
+                right,
+                bottom
+            );
+
+            ctx.strokeStyle =
+                "#1976d2";
+
+            ctx.lineWidth =
+                2.5;
+
+            ctx.stroke();
+
+        } else {
+
+            // =================================================
+            // EIXOS
+            // =================================================
+
+            ctx.beginPath();
+
+            ctx.moveTo(
+                left,
+                top
+            );
+
+            ctx.lineTo(
+                left,
+                bottom
+            );
+
+            ctx.lineTo(
+                right,
+                bottom
+            );
+
+            ctx.strokeStyle =
+                "#444";
+
+            ctx.lineWidth =
+                1;
+
+            ctx.stroke();
 
 
-        const samples =
-            150;
+            // =================================================
+            // CURVA REAL E(r)
+            // =================================================
+
+            ctx.beginPath();
+
+
+            const samples =
+                200;
+
+
+            for (
+                let i = 0;
+                i <= samples;
+                i++
+            ) {
+
+                const r =
+                    rMin +
+                    (
+                        rMax -
+                        rMin
+                    ) *
+                    i /
+                    samples;
+
+
+                const E =
+                    this.electricField(
+                        r
+                    );
+
+
+                /*
+                 * Como o campo pode ser negativo,
+                 * usamos o valor real assinado.
+                 *
+                 * A escala vertical é definida
+                 * pelo maior módulo de E.
+                 */
+
+                const x =
+                    left +
+                    (
+                        r -
+                        rMin
+                    ) /
+                    (
+                        rMax -
+                        rMin
+                    ) *
+                    (
+                        right -
+                        left
+                    );
+
+
+                const y =
+                    bottom -
+                    (
+                        E /
+                        absEmax
+                    ) *
+                    (
+                        bottom -
+                        top
+                    );
+
+
+                if (
+                    i === 0
+                ) {
+
+                    ctx.moveTo(
+                        x,
+                        y
+                    );
+
+                } else {
+
+                    ctx.lineTo(
+                        x,
+                        y
+                    );
+                }
+            }
+
+
+            ctx.strokeStyle =
+                "#1976d2";
+
+            ctx.lineWidth =
+                2.5;
+
+            ctx.stroke();
+        }
+
+
+        // ====================================================
+        // MARCAÇÕES DO EIXO r
+        // ====================================================
+
+        ctx.font =
+            "11px Arial";
+
+        ctx.fillStyle =
+            "#333";
+
+        ctx.textAlign =
+            "center";
+
+
+        const rTicks =
+            5;
 
 
         for (
             let i = 0;
-            i <= samples;
+            i <= rTicks;
             i++
         ) {
 
@@ -1255,13 +1635,7 @@ class CapacitorCilindrico {
                     this.params.a
                 ) *
                 i /
-                samples;
-
-
-            const E =
-                Math.abs(
-                    this.electricField(r)
-                );
+                rTicks;
 
 
             const x =
@@ -1280,94 +1654,35 @@ class CapacitorCilindrico {
                 );
 
 
-            const y =
-                bottom -
-                (
-                    E /
-                    maxE
-                ) *
-                (
-                    bottom -
-                    top
-                );
+            // Pequena marca
+            ctx.beginPath();
+
+            ctx.moveTo(
+                x,
+                bottom
+            );
+
+            ctx.lineTo(
+                x,
+                bottom + 5
+            );
+
+            ctx.strokeStyle =
+                "#444";
+
+            ctx.stroke();
 
 
-            if (i === 0) {
-
-                ctx.moveTo(
-                    x,
-                    y
-                );
-
-            } else {
-
-                ctx.lineTo(
-                    x,
-                    y
-                );
-            }
+            ctx.fillText(
+                r.toFixed(2),
+                x,
+                bottom + 17
+            );
         }
 
 
-        ctx.strokeStyle =
-            "#1976d2";
-
-        ctx.lineWidth =
-            2.5;
-
-        ctx.stroke();
-
-
         // ====================================================
-        // MARCA a
-        // ====================================================
-
-        ctx.setLineDash(
-            [5, 4]
-        );
-
-        ctx.beginPath();
-
-        ctx.moveTo(
-            left,
-            top
-        );
-
-        ctx.lineTo(
-            left,
-            bottom
-        );
-
-        ctx.strokeStyle =
-            "#777";
-
-        ctx.stroke();
-
-
-        // ====================================================
-        // MARCA b
-        // ====================================================
-
-        ctx.beginPath();
-
-        ctx.moveTo(
-            right,
-            top
-        );
-
-        ctx.lineTo(
-            right,
-            bottom
-        );
-
-        ctx.stroke();
-
-
-        ctx.setLineDash([]);
-
-
-        // ====================================================
-        // RÓTULOS
+        // RÓTULO DO EIXO r
         // ====================================================
 
         ctx.font =
@@ -1377,39 +1692,216 @@ class CapacitorCilindrico {
             "#333";
 
 
+        ctx.fillText(
+            "r (m)",
+            (
+                left +
+                right
+            ) / 2,
+            bottom + 35
+        );
+
+
+        // ====================================================
+        // MARCAÇÕES DO EIXO E
+        // ====================================================
+
+        ctx.textAlign =
+            "right";
+
+        ctx.font =
+            "11px Arial";
+
+
+        const E_ticks =
+            5;
+
+
+        for (
+            let i = 0;
+            i <= E_ticks;
+            i++
+        ) {
+
+            const fraction =
+                i /
+                E_ticks;
+
+
+            /*
+             * Valores reais de E.
+             *
+             * Para λ positivo:
+             *
+             * 0 até E_max.
+             *
+             * Para λ negativo:
+             *
+             * 0 até E_min.
+             */
+
+            const E =
+                E_max *
+                fraction;
+
+
+            const y =
+                bottom -
+                fraction *
+                (
+                    bottom -
+                    top
+                );
+
+
+            // Pequena marca
+            ctx.beginPath();
+
+            ctx.moveTo(
+                left - 5,
+                y
+            );
+
+            ctx.lineTo(
+                left,
+                y
+            );
+
+            ctx.strokeStyle =
+                "#444";
+
+            ctx.stroke();
+
+
+            ctx.fillText(
+                this.formatScientific(
+                    E
+                ),
+                left - 8,
+                y + 4
+            );
+        }
+
+
+        // ====================================================
+        // RÓTULO DO EIXO E
+        // ====================================================
+
+        ctx.save();
+
+
+        ctx.translate(
+            left - 43,
+            (
+                top +
+                bottom
+            ) / 2
+        );
+
+
+        ctx.rotate(
+            -Math.PI / 2
+        );
+
+
         ctx.textAlign =
             "center";
 
 
+        ctx.font =
+            "12px Arial";
+
+
         ctx.fillText(
-            "a",
-            left,
-            bottom + 17
+            "E (V/m)",
+            0,
+            0
         );
 
 
-        ctx.fillText(
-            "b",
-            right,
-            bottom + 17
-        );
+        ctx.restore();
 
 
-        ctx.fillText(
-            "r",
-            right,
-            bottom + 29
-        );
+        // ====================================================
+        // LINHAS GUIA HORIZONTAIS
+        // ====================================================
+
+        ctx.strokeStyle =
+            "rgba(0,0,0,0.10)";
+
+        ctx.lineWidth =
+            1;
 
 
-        ctx.textAlign =
-            "left";
+        for (
+            let i = 1;
+            i < E_ticks;
+            i++
+        ) {
+
+            const y =
+                bottom -
+                (
+                    i /
+                    E_ticks
+                ) *
+                (
+                    bottom -
+                    top
+                );
 
 
-        ctx.fillText(
-            "E",
-            left - 25,
-            top + 5
+            ctx.beginPath();
+
+            ctx.moveTo(
+                left,
+                y
+            );
+
+            ctx.lineTo(
+                right,
+                y
+            );
+
+            ctx.stroke();
+        }
+    }
+
+
+    // ========================================================
+    // FORMATAÇÃO CIENTÍFICA
+    // ========================================================
+
+    formatScientific(value) {
+
+        if (
+            Math.abs(value) < 1e-15
+        ) {
+
+            return "0";
+        }
+
+
+        const exponent =
+            Math.floor(
+                Math.log10(
+                    Math.abs(value)
+                )
+            );
+
+
+        const mantissa =
+            value /
+            Math.pow(
+                10,
+                exponent
+            );
+
+
+        return (
+            mantissa.toFixed(1) +
+            "×10^" +
+            exponent
         );
     }
 
