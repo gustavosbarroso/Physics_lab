@@ -1,6 +1,6 @@
 # Physics_lab
 
-Adaptação de algumas simulações originalmente desenvolvidas em Python, construídas para funcionar como **laboratórios virtuais interativos de Física** para professores e estudantes.
+Simulações construídas para funcionar como **laboratórios virtuais interativos de Física** para professores e estudantes.
 
 🌐 **[Laboratório Virtual de Física](https://gustavosbarroso.github.io/Physics_lab/)**
 
