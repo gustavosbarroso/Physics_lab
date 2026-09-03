@@ -107,7 +107,7 @@ Simulação de um capacitor de placas paralelas
 Simulação de um capacitor cilíndrico e o seu campo elétrico
 
 
-**[▶ Abrir simulação](https://gustavosbarroso.github.io/Physics_lab/Capacitor/)**
+**[▶ Abrir simulação](https://gustavosbarroso.github.io/Physics_lab/CapacitorCilindrico/)**
 ## 🌐 LABORATÓRIO VIRTUAL DE FÍSICA
 
 Todas as simulações interativas estão disponíveis no site do projeto:
