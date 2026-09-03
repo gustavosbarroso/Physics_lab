@@ -93,12 +93,19 @@ Sistema orbital de duas estrelas em órbita.
 Simulação de feixe de luz aplicado sob interface entre dois materiais e sujeito a lei de Snell.
 
 **[▶ Abrir simulação](https://gustavosbarroso.github.io/Physics_lab/Snell/)**
-### X. [Capacitor de placas parelalas](https://gustavosbarroso.github.io/Physics_lab/Capacitor/)
+### X. [Capacitor de placas paralelas](https://gustavosbarroso.github.io/Physics_lab/Capacitor/)
 
 <img width="890" height="521" alt="image" src="https://github.com/user-attachments/assets/39a3d1be-89b9-4e68-9851-cdf2f165b3bc" />
 
 
 Simulação de um capacitor de placas paralelas
+
+### XI. [Capacitor Cilíndrico](https://gustavosbarroso.github.io/Physics_lab/CapacitorCilindrico/)
+
+<img width="987" height="543" alt="image" src="https://github.com/user-attachments/assets/57bb9836-9f73-4fe4-9eef-9f12da7e1a4b" />
+
+Simulação de um capacitor cilíndrico e o seu campo elétrico
+
 
 **[▶ Abrir simulação](https://gustavosbarroso.github.io/Physics_lab/Capacitor/)**
 ## 🌐 LABORATÓRIO VIRTUAL DE FÍSICA
