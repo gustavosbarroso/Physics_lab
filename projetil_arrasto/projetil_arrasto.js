@@ -1091,7 +1091,7 @@ class ProjectileDrag {
             };
 
         // =====================================================
-        // EIXOS
+        // EIXO X
         // =====================================================
 
         ctx.strokeStyle =
@@ -1307,6 +1307,25 @@ class ProjectileDrag {
             return;
 
         // =====================================================
+        // CLIPPING
+        // Tudo que for desenhado depois daqui ficará
+        // restrito à área interna do gráfico.
+        // =====================================================
+
+        ctx.save();
+
+        ctx.beginPath();
+
+        ctx.rect(
+            graphX,
+            graphY,
+            graphW,
+            graphH
+        );
+
+        ctx.clip();
+
+        // =====================================================
         // TRAJETÓRIA COM ARRASTO
         // =====================================================
 
@@ -1314,6 +1333,8 @@ class ProjectileDrag {
 
         ctx.strokeStyle =
             "#d32f2f";
+
+        ctx.setLineDash([]);
 
         ctx.beginPath();
 
@@ -1411,26 +1432,32 @@ class ProjectileDrag {
         ctx.setLineDash([]);
 
         // =====================================================
+        // FIM DO CLIPPING
+        // =====================================================
+
+        ctx.restore();
+
+        // =====================================================
         // PARTÍCULA
         // =====================================================
+
+        const particleIndex =
+            Math.min(
+                Math.floor(this.frame),
+                this.xDrag.length - 1
+            );
 
         const px =
             convertX(
                 this.xDrag[
-                    Math.min(
-                        Math.floor(this.frame),
-                        this.xDrag.length - 1
-                    )
+                    particleIndex
                 ]
             );
 
         const py =
             convertY(
                 this.yDrag[
-                    Math.min(
-                        Math.floor(this.frame),
-                        this.yDrag.length - 1
-                    )
+                    particleIndex
                 ]
             );
 
@@ -1454,6 +1481,22 @@ class ProjectileDrag {
 
         ctx.fill();
         ctx.stroke();
+
+        // =====================================================
+        // BORDA NOVAMENTE POR CIMA
+        // =====================================================
+
+        ctx.strokeStyle =
+            "#777";
+
+        ctx.lineWidth = 1;
+
+        ctx.strokeRect(
+            graphX,
+            graphY,
+            graphW,
+            graphH
+        );
 
         // =====================================================
         // LEGENDA
@@ -1781,6 +1824,23 @@ class ProjectileDrag {
         ctx.restore();
 
         // =====================================================
+        // CLIPPING
+        // =====================================================
+
+        ctx.save();
+
+        ctx.beginPath();
+
+        ctx.rect(
+            graphX,
+            graphY,
+            graphW,
+            graphH
+        );
+
+        ctx.clip();
+
+        // =====================================================
         // y(t) COM ARRASTO
         // =====================================================
 
@@ -1788,6 +1848,8 @@ class ProjectileDrag {
 
         ctx.strokeStyle =
             "#d32f2f";
+
+        ctx.setLineDash([]);
 
         ctx.beginPath();
 
@@ -1883,6 +1945,28 @@ class ProjectileDrag {
         ctx.stroke();
 
         ctx.setLineDash([]);
+
+        // =====================================================
+        // FIM DO CLIPPING
+        // =====================================================
+
+        ctx.restore();
+
+        // =====================================================
+        // BORDA NOVAMENTE POR CIMA
+        // =====================================================
+
+        ctx.strokeStyle =
+            "#777";
+
+        ctx.lineWidth = 1;
+
+        ctx.strokeRect(
+            graphX,
+            graphY,
+            graphW,
+            graphH
+        );
 
         // =====================================================
         // LEGENDA
