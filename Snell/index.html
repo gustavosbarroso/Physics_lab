@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Lei de Snell</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+
+            margin: 0;
+
+            padding: 0;
+
+            background: white;
+
+            font-family:
+                Arial,
+                sans-serif;
+
+        }
+
+        canvas {
+
+            display: block;
+
+            margin: 20px auto;
+
+            border:
+                1px solid #ccc;
+
+            background:
+                white;
+
+        }
+
+        h2 {
+
+            margin-top: 10px;
+
+            margin-bottom: 15px;
+
+        }
+
+        #snell-controls {
+
+            width: 900px;
+
+            margin: 20px auto;
+
+            font-family:
+                Arial,
+                sans-serif;
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <!-- =====================================================
+         CANVAS
+         ===================================================== -->
+
+    <canvas
+        id="canvas"
+        width="900"
+        height="600">
+    </canvas>
+
+
+    <!-- =====================================================
+         CLASSE DA LEI DE SNELL
+         ===================================================== -->
+
+    <script src="Snell.js"></script>
+
+
+    <!-- =====================================================
+         INICIALIZAÇÃO
+         ===================================================== -->
+
+    <script>
+
+        const canvas =
+            document.getElementById(
+                "canvas"
+            );
+
+
+        const snell =
+            new Snell(
+
+                canvas,
+
+                {
+
+                    // =================================================
+                    // MEIO 1
+                    // =================================================
+
+                    n1: 1.0,
+
+
+                    // =================================================
+                    // MEIO 2
+                    // =================================================
+
+                    n2: 1.5,
+
+
+                    // =================================================
+                    // ÂNGULO DE INCIDÊNCIA
+                    // =================================================
+
+                    theta1: 30.0
+
+                }
+
+            );
+
+    </script>
+
+
+</body>
+
+</html>
