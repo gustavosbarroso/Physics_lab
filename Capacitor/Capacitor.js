@@ -12,6 +12,10 @@
 //
 //             C = ε₀ A / d
 //
+// Quando o campo resultante entre as placas é nulo:
+//
+//             E = 0  →  C = 0
+//
 // Diferença de potencial:
 //
 //             ΔV = E d
@@ -36,6 +40,7 @@ class Capacitor {
         // Canvas
         this.canvas = canvas;
         this.ctx = canvas.getContext("2d");
+
 
         // ====================================================
         // PARÂMETROS
@@ -516,24 +521,24 @@ class Capacitor {
         // ====================================================
         // CAMPO RESULTANTE
         // ====================================================
-        //
-        // Convenção:
-        //
-        // +y = para cima
-        //
-        // Placa 1 está acima.
-        // Placa 2 está abaixo.
-        //
-        // Entre as placas:
-        //
-        // contribuição da placa 1 = -E1
-        // contribuição da placa 2 = +E2
-        //
-        // Portanto:
-        //
-        // E = E2 - E1
-        //
-        // ====================================================
+
+        /*
+         * Convenção:
+         *
+         * +y = para cima
+         *
+         * Placa 1 está acima.
+         * Placa 2 está abaixo.
+         *
+         * Entre as placas:
+         *
+         * contribuição da placa 1 = -E1
+         * contribuição da placa 2 = +E2
+         *
+         * Portanto:
+         *
+         * E = E2 - E1
+         */
 
         this.E =
             this.E2 -
@@ -544,10 +549,29 @@ class Capacitor {
         // CAPACITÂNCIA
         // ====================================================
 
-        this.C =
-            this.epsilon0 *
-            area /
-            distance;
+        /*
+         * Se o campo resultante entre as placas for nulo,
+         * consideramos que não existe capacitor efetivo
+         * entre as placas:
+         *
+         * E = 0  →  C = 0
+         *
+         * Caso contrário:
+         *
+         * C = ε₀ A / d
+         */
+
+        if (Math.abs(this.E) < 1e-15) {
+
+            this.C = 0;
+
+        } else {
+
+            this.C =
+                this.epsilon0 *
+                area /
+                distance;
+        }
 
 
         // ====================================================
