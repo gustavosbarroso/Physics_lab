@@ -570,37 +570,197 @@ class Snell {
     }
 
 
-    // ========================================================
-    // DESENHA OS ÂNGULOS
-    // ========================================================
-    drawAngles() {
+// ========================================================
+// DESENHA OS ÂNGULOS
+// ========================================================
+drawAngles() {
 
-        const ctx = this.ctx;
+    const ctx = this.ctx;
 
-        const x0 = this.normalX;
-        const y0 = this.interfaceY;
+    const x0 = this.normalX;
+    const y0 = this.interfaceY;
 
-        const radius = 50;
+    const radius = 50;
 
 
-        // ====================================================
-        // ÂNGULO DE INCIDÊNCIA θ₁
-        // ====================================================
+    // ====================================================
+    // ÂNGULO DE INCIDÊNCIA θ₁
+    // ====================================================
 
-        const theta1Rad =
+    const theta1Rad =
+        this.params.theta1 * Math.PI / 180;
+
+
+    /*
+     * No Canvas:
+     *
+     * 0°   -> direita
+     * 90°  -> baixo
+     * 180° -> esquerda
+     * -90° -> cima
+     *
+     * O raio incidente está à esquerda da normal.
+     *
+     * Normal superior:
+     *      -90°
+     *
+     * Raio incidente:
+     *      -90° - θ₁
+     */
+
+    const normalSuperior = -Math.PI / 2;
+
+    const raioIncidente =
+        normalSuperior - theta1Rad;
+
+
+    ctx.beginPath();
+
+    /*
+     * Começamos no raio e terminamos na normal.
+     *
+     * Como os dois ângulos estão no setor superior
+     * esquerdo, esse arco fica corretamente entre
+     * o raio incidente e a normal.
+     */
+    ctx.arc(
+        x0,
+        y0,
+        radius,
+        raioIncidente,
+        normalSuperior,
+        false
+    );
+
+    ctx.strokeStyle = "#1976d2";
+    ctx.lineWidth = 2;
+
+    ctx.stroke();
+
+
+    // ----------------------------------------------------
+    // Texto θ₁
+    // ----------------------------------------------------
+
+    ctx.fillStyle = "#1976d2";
+    ctx.font = "16px Arial";
+
+    ctx.fillText(
+        `θ₁ = ${this.params.theta1.toFixed(1)}°`,
+        x0 - 95,
+        y0 - 55
+    );
+
+
+    // ====================================================
+    // ÂNGULO DE REFRAÇÃO θ₂
+    // ====================================================
+
+    if (!this.reflexaoTotal) {
+
+        const theta2Rad =
+            this.theta2 * Math.PI / 180;
+
+
+        /*
+         * O raio refratado está no QUADRANTE
+         * inferior direito.
+         *
+         * Normal inferior:
+         *
+         *       π/2 = 90°
+         *
+         * Raio refratado:
+         *
+         *       π/2 - θ₂
+         *
+         * Exemplo:
+         *
+         * θ₂ = 20.9°
+         *
+         * raio = 90° - 20.9°
+         *      = 69.1°
+         *
+         * Portanto o arco deve ficar entre:
+         *
+         *       69.1°  → raio
+         *        90°   → normal
+         *
+         * no lado INFERIOR DIREITO.
+         */
+
+        const normalInferior = Math.PI / 2;
+
+        const raioRefratado =
+            normalInferior - theta2Rad;
+
+
+        ctx.beginPath();
+
+        /*
+         * Aqui usamos explicitamente o sentido
+         * anti-horário do Canvas para evitar que o
+         * arco seja desenhado no setor oposto.
+         *
+         * De 90° para 69.1° é exatamente o pequeno
+         * arco entre a normal e o raio refratado.
+         */
+        ctx.arc(
+            x0,
+            y0,
+            radius,
+            normalInferior,
+            raioRefratado,
+            true
+        );
+
+        ctx.strokeStyle = "#d62728";
+        ctx.lineWidth = 2;
+
+        ctx.stroke();
+
+
+        // ------------------------------------------------
+        // Texto θ₂
+        // ------------------------------------------------
+
+        ctx.fillStyle = "#d62728";
+        ctx.font = "16px Arial";
+
+        ctx.fillText(
+            `θ₂ = ${this.theta2.toFixed(1)}°`,
+            x0 + 65,
+            y0 + 55
+        );
+    }
+
+
+    // ====================================================
+    // REFLEXÃO TOTAL INTERNA
+    // ====================================================
+
+    else {
+
+        const thetaRad =
             this.params.theta1 * Math.PI / 180;
 
 
-        // No Canvas:
-        //
-        // π/2 representa a direção para baixo.
-        //
-        // O raio incidente está à esquerda da normal.
+        /*
+         * Na reflexão total:
+         *
+         * normal superior = -90°
+         *
+         * raio refletido = -90° + θ₁
+         *
+         * O raio refletido fica no quadrante
+         * superior direito.
+         */
 
-        const anguloNormalSuperior = -Math.PI / 2;
+        const normalSuperior =
+            -Math.PI / 2;
 
-        const anguloRaioIncidente =
-            -Math.PI / 2 - theta1Rad;
+        const raioRefletido =
+            normalSuperior + thetaRad;
 
 
         ctx.beginPath();
@@ -609,146 +769,31 @@ class Snell {
             x0,
             y0,
             radius,
-            anguloRaioIncidente,
-            anguloNormalSuperior,
+            normalSuperior,
+            raioRefletido,
             false
         );
 
-        ctx.strokeStyle = "#1976d2";
+        ctx.strokeStyle = "orange";
         ctx.lineWidth = 2;
 
         ctx.stroke();
 
 
-        // Texto θ₁
+        // ------------------------------------------------
+        // Texto
+        // ------------------------------------------------
 
-        ctx.fillStyle = "#1976d2";
+        ctx.fillStyle = "orange";
         ctx.font = "16px Arial";
 
         ctx.fillText(
             `θ₁ = ${this.params.theta1.toFixed(1)}°`,
-            x0 - 95,
+            x0 + 55,
             y0 - 55
         );
-
-
-        // ====================================================
-        // ÂNGULO DE REFRAÇÃO θ₂
-        // ====================================================
-
-        if (!this.reflexaoTotal) {
-
-            const theta2Rad =
-                this.theta2 * Math.PI / 180;
-
-
-            // ------------------------------------------------
-            // CORREÇÃO IMPORTANTE
-            // ------------------------------------------------
-            //
-            // O raio refratado está à DIREITA da normal.
-            //
-            // No Canvas:
-            //
-            // π/2  -> direção para baixo
-            //
-            // O raio refratado está inclinado para a direita,
-            // portanto seu ângulo é:
-            //
-            // π/2 - θ₂
-            //
-            // O arco deve ser desenhado entre:
-            //
-            //     raio refratado
-            //          e
-            //        normal
-            //
-            // ------------------------------------------------
-
-            const anguloNormal =
-                Math.PI / 2;
-
-            const anguloRaioRefratado =
-                Math.PI / 2 - theta2Rad;
-
-
-            ctx.beginPath();
-
-            ctx.arc(
-                x0,
-                y0,
-                radius,
-                anguloRaioRefratado,
-                anguloNormal,
-                false
-            );
-
-            ctx.strokeStyle = "#d62728";
-            ctx.lineWidth = 2;
-
-            ctx.stroke();
-
-
-            // ------------------------------------------------
-            // Texto θ₂
-            // ------------------------------------------------
-
-            ctx.fillStyle = "#d62728";
-            ctx.font = "16px Arial";
-
-            ctx.fillText(
-                `θ₂ = ${this.theta2.toFixed(1)}°`,
-                x0 + 65,
-                y0 + 55
-            );
-        }
-
-
-        // ====================================================
-        // REFLEXÃO TOTAL
-        // ====================================================
-
-        else {
-
-            const thetaRad =
-                this.params.theta1 * Math.PI / 180;
-
-
-            const anguloNormal =
-                -Math.PI / 2;
-
-            const anguloRaio =
-                -Math.PI / 2 + thetaRad;
-
-
-            ctx.beginPath();
-
-            ctx.arc(
-                x0,
-                y0,
-                radius,
-                anguloNormal,
-                anguloRaio,
-                false
-            );
-
-            ctx.strokeStyle = "orange";
-            ctx.lineWidth = 2;
-
-            ctx.stroke();
-
-
-            ctx.fillStyle = "orange";
-            ctx.font = "16px Arial";
-
-            ctx.fillText(
-                `θ₁ = ${this.params.theta1.toFixed(1)}°`,
-                x0 + 55,
-                y0 - 55
-            );
-        }
     }
-
+}
 
     // ========================================================
     // HUD / INFORMAÇÕES
