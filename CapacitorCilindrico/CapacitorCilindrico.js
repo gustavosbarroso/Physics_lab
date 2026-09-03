@@ -502,31 +502,61 @@ class CapacitorCilindrico {
         // ====================================================
         // CAPACITÂNCIA
         // ====================================================
+        //
+        // Se λ = 0, o campo elétrico entre os cilindros
+        // também é nulo.
+        //
+        // Nesta simulação, isso implica:
+        //
+        // E = 0
+        // C = 0
+        // V = 0
+        // U = 0
+        //
+        // ====================================================
 
-        this.C =
-            (
-                2 *
-                Math.PI *
-                this.epsilon0 *
-                L
-            ) /
-            Math.log(b / a);
+        if (
+            Math.abs(lambda) < 1e-20
+        ) {
+
+            this.C = 0;
+
+        } else {
+
+            this.C =
+                (
+                    2 *
+                    Math.PI *
+                    this.epsilon0 *
+                    L
+                ) /
+                Math.log(b / a);
+        }
 
 
         // ====================================================
         // DIFERENÇA DE POTENCIAL
         // ====================================================
 
-        this.V =
-            (
-                lambda /
+        if (
+            Math.abs(lambda) < 1e-20
+        ) {
+
+            this.V = 0;
+
+        } else {
+
+            this.V =
                 (
-                    2 *
-                    Math.PI *
-                    this.epsilon0
-                )
-            ) *
-            Math.log(b / a);
+                    lambda /
+                    (
+                        2 *
+                        Math.PI *
+                        this.epsilon0
+                    )
+                ) *
+                Math.log(b / a);
+        }
 
 
         // ====================================================
@@ -547,9 +577,22 @@ class CapacitorCilindrico {
 
     electricField(r) {
 
+        // Fora da região entre os cilindros,
+        // o campo é considerado nulo.
+
         if (
             r <= this.params.a ||
             r >= this.params.b
+        ) {
+
+            return 0;
+        }
+
+
+        // Se λ = 0, o campo é exatamente zero.
+
+        if (
+            Math.abs(this.lambdaSI) < 1e-20
         ) {
 
             return 0;
@@ -630,6 +673,7 @@ class CapacitorCilindrico {
             2 * Math.PI
         );
 
+
         ctx.strokeStyle =
             "#222";
 
@@ -652,6 +696,7 @@ class CapacitorCilindrico {
             0,
             2 * Math.PI
         );
+
 
         ctx.strokeStyle =
             "#222";
@@ -700,6 +745,7 @@ class CapacitorCilindrico {
             0,
             2 * Math.PI
         );
+
 
         ctx.arc(
             cx,
@@ -751,7 +797,6 @@ class CapacitorCilindrico {
 
         ctx.font =
             "14px Arial";
-
 
         ctx.textAlign =
             "left";
@@ -914,6 +959,7 @@ class CapacitorCilindrico {
                 y2
             );
 
+
             ctx.strokeStyle =
                 "rgba(60, 60, 60, 0.40)";
 
@@ -1072,6 +1118,7 @@ class CapacitorCilindrico {
             tipY
         );
 
+
         ctx.lineTo(
             tipX -
             headLength *
@@ -1079,6 +1126,7 @@ class CapacitorCilindrico {
                 theta -
                 Math.PI / 6
             ),
+
             tipY -
             headLength *
             Math.sin(
@@ -1087,6 +1135,7 @@ class CapacitorCilindrico {
             )
         );
 
+
         ctx.lineTo(
             tipX -
             headLength *
@@ -1094,6 +1143,7 @@ class CapacitorCilindrico {
                 theta +
                 Math.PI / 6
             ),
+
             tipY -
             headLength *
             Math.sin(
@@ -1101,6 +1151,7 @@ class CapacitorCilindrico {
                 Math.PI / 6
             )
         );
+
 
         ctx.closePath();
 
@@ -1257,6 +1308,7 @@ class CapacitorCilindrico {
             y2
         );
 
+
         ctx.lineTo(
             x2 -
             headLength *
@@ -1264,6 +1316,7 @@ class CapacitorCilindrico {
                 theta -
                 Math.PI / 6
             ),
+
             y2 -
             headLength *
             Math.sin(
@@ -1272,6 +1325,7 @@ class CapacitorCilindrico {
             )
         );
 
+
         ctx.lineTo(
             x2 -
             headLength *
@@ -1279,6 +1333,7 @@ class CapacitorCilindrico {
                 theta +
                 Math.PI / 6
             ),
+
             y2 -
             headLength *
             Math.sin(
@@ -1286,6 +1341,7 @@ class CapacitorCilindrico {
                 Math.PI / 6
             )
         );
+
 
         ctx.closePath();
 
@@ -1371,8 +1427,10 @@ class CapacitorCilindrico {
             "left";
 
 
+        // UNIDADE FOI MOVIDA PARA O TÍTULO
+
         ctx.fillText(
-            "Campo elétrico E(r)",
+            "Campo elétrico E(r) (V/m)",
             graphX + 10,
             graphY + 22
         );
@@ -1406,14 +1464,6 @@ class CapacitorCilindrico {
         // VALORES DE E
         // ====================================================
 
-        /*
-         *
-         * Usamos os valores reais de E.
-         *
-         * Não existe normalização.
-         *
-         */
-
         const epsilon =
             1e-9;
 
@@ -1440,9 +1490,28 @@ class CapacitorCilindrico {
             );
 
 
-        const absEmax =
-            Math.abs(
-                E_max
+        // ====================================================
+        // ESCALA VERTICAL
+        // ====================================================
+        //
+        // A escala agora é SIMÉTRICA:
+        //
+        //       +E_scale
+        //          |
+        //          |
+        //          0
+        //          |
+        //          |
+        //       -E_scale
+        //
+        // Isso é importante para λ < 0.
+        //
+        // ====================================================
+
+        const E_scale =
+            Math.max(
+                Math.abs(E_max),
+                Math.abs(E_min)
             );
 
 
@@ -1451,8 +1520,10 @@ class CapacitorCilindrico {
         // ====================================================
 
         if (
-            absEmax === 0
+            E_scale === 0
         ) {
+
+            // Eixo horizontal representa E = 0.
 
             ctx.beginPath();
 
@@ -1465,6 +1536,7 @@ class CapacitorCilindrico {
                 right,
                 bottom
             );
+
 
             ctx.strokeStyle =
                 "#1976d2";
@@ -1497,6 +1569,7 @@ class CapacitorCilindrico {
                 bottom
             );
 
+
             ctx.strokeStyle =
                 "#444";
 
@@ -1508,6 +1581,32 @@ class CapacitorCilindrico {
 
             // =================================================
             // CURVA REAL E(r)
+            // =================================================
+
+            // Guarda o estado para que a curva jamais saia
+            // da região interna do gráfico.
+
+            ctx.save();
+
+
+            // =================================================
+            // CLIPPING DA ÁREA DO GRÁFICO
+            // =================================================
+
+            ctx.beginPath();
+
+            ctx.rect(
+                left,
+                top,
+                right - left,
+                bottom - top
+            );
+
+            ctx.clip();
+
+
+            // =================================================
+            // CURVA
             // =================================================
 
             ctx.beginPath();
@@ -1539,13 +1638,9 @@ class CapacitorCilindrico {
                     );
 
 
-                /*
-                 * Como o campo pode ser negativo,
-                 * usamos o valor real assinado.
-                 *
-                 * A escala vertical é definida
-                 * pelo maior módulo de E.
-                 */
+                // =================================================
+                // COORDENADA X
+                // =================================================
 
                 const x =
                     left +
@@ -1563,16 +1658,32 @@ class CapacitorCilindrico {
                     );
 
 
+                // =================================================
+                // COORDENADA Y
+                // =================================================
+                //
+                // E = +E_scale -> topo
+                //
+                // E = 0        -> centro
+                //
+                // E = -E_scale -> baixo
+                //
+                // =================================================
+
                 const y =
-                    bottom -
+                    (
+                        top +
+                        bottom
+                    ) / 2
+                    -
                     (
                         E /
-                        absEmax
+                        E_scale
                     ) *
                     (
                         bottom -
                         top
-                    );
+                    ) / 2;
 
 
                 if (
@@ -1601,6 +1712,13 @@ class CapacitorCilindrico {
                 2.5;
 
             ctx.stroke();
+
+
+            // =================================================
+            // RESTAURA ÁREA ORIGINAL
+            // =================================================
+
+            ctx.restore();
         }
 
 
@@ -1655,6 +1773,7 @@ class CapacitorCilindrico {
 
 
             // Pequena marca
+
             ctx.beginPath();
 
             ctx.moveTo(
@@ -1666,6 +1785,7 @@ class CapacitorCilindrico {
                 x,
                 bottom + 5
             );
+
 
             ctx.strokeStyle =
                 "#444";
@@ -1717,151 +1837,118 @@ class CapacitorCilindrico {
             5;
 
 
-        for (
-            let i = 0;
-            i <= E_ticks;
-            i++
+        if (
+            E_scale > 0
         ) {
 
-            const fraction =
-                i /
-                E_ticks;
+            for (
+                let i = 0;
+                i <= E_ticks;
+                i++
+            ) {
+
+                const fraction =
+                    i /
+                    E_ticks;
 
 
-            /*
-             * Valores reais de E.
-             *
-             * Para λ positivo:
-             *
-             * 0 até E_max.
-             *
-             * Para λ negativo:
-             *
-             * 0 até E_min.
-             */
+                // =================================================
+                // ESCALA SIMÉTRICA
+                // =================================================
+                //
+                // i = 0       -> +E_scale
+                // i = 2.5     -> 0
+                // i = 5       -> -E_scale
+                //
+                // =================================================
 
-            const E =
-                E_max *
-                fraction;
+                const E =
+                    E_scale *
+                    (
+                        1 -
+                        2 * fraction
+                    );
 
 
-            const y =
-                bottom -
-                fraction *
-                (
-                    bottom -
-                    top
+                const y =
+                    top +
+                    fraction *
+                    (
+                        bottom -
+                        top
+                    );
+
+
+                // Pequena marca
+
+                ctx.beginPath();
+
+                ctx.moveTo(
+                    left - 5,
+                    y
+                );
+
+                ctx.lineTo(
+                    left,
+                    y
                 );
 
 
-            // Pequena marca
-            ctx.beginPath();
+                ctx.strokeStyle =
+                    "#444";
 
-            ctx.moveTo(
-                left - 5,
-                y
-            );
-
-            ctx.lineTo(
-                left,
-                y
-            );
-
-            ctx.strokeStyle =
-                "#444";
-
-            ctx.stroke();
+                ctx.stroke();
 
 
-            ctx.fillText(
-                this.formatScientific(
-                    E
-                ),
-                left - 8,
-                y + 4
-            );
+                ctx.fillText(
+                    this.formatScientific(
+                        E
+                    ),
+                    left - 8,
+                    y + 4
+                );
+            }
         }
 
 
         // ====================================================
-        // RÓTULO DO EIXO E
+        // LINHA HORIZONTAL E = 0
+        // ====================================================
+        //
+        // Para λ diferente de zero, o zero fica no meio da
+        // área vertical do gráfico.
+        //
         // ====================================================
 
-        ctx.save();
-
-
-        ctx.translate(
-            left - 43,
-            (
-                top +
-                bottom
-            ) / 2
-        );
-
-
-        ctx.rotate(
-            -Math.PI / 2
-        );
-
-
-        ctx.textAlign =
-            "center";
-
-
-        ctx.font =
-            "12px Arial";
-
-
-        ctx.fillText(
-            "E (V/m)",
-            0,
-            0
-        );
-
-
-        ctx.restore();
-
-
-        // ====================================================
-        // LINHAS GUIA HORIZONTAIS
-        // ====================================================
-
-        ctx.strokeStyle =
-            "rgba(0,0,0,0.10)";
-
-        ctx.lineWidth =
-            1;
-
-
-        for (
-            let i = 1;
-            i < E_ticks;
-            i++
+        if (
+            E_scale > 0
         ) {
 
-            const y =
-                bottom -
+            const zeroY =
                 (
-                    i /
-                    E_ticks
-                ) *
-                (
-                    bottom -
-                    top
-                );
+                    top +
+                    bottom
+                ) / 2;
 
 
             ctx.beginPath();
 
             ctx.moveTo(
                 left,
-                y
+                zeroY
             );
 
             ctx.lineTo(
                 right,
-                y
+                zeroY
             );
+
+
+            ctx.strokeStyle =
+                "rgba(0,0,0,0.15)";
+
+            ctx.lineWidth =
+                1;
 
             ctx.stroke();
         }
@@ -1947,14 +2034,17 @@ class CapacitorCilindrico {
             cy
         );
 
+
         ctx.lineTo(
             cx +
             this.innerRadius *
             cos,
+
             cy +
             this.innerRadius *
             sin
         );
+
 
         ctx.strokeStyle =
             "#555";
@@ -1976,14 +2066,17 @@ class CapacitorCilindrico {
             cy
         );
 
+
         ctx.lineTo(
             cx +
             this.outerRadius *
             cos,
+
             cy +
             this.outerRadius *
             sin
         );
+
 
         ctx.strokeStyle =
             "#555";
@@ -1998,8 +2091,10 @@ class CapacitorCilindrico {
         ctx.font =
             "14px Arial";
 
+
         ctx.fillStyle =
             "#333";
+
 
         ctx.textAlign =
             "center";
@@ -2010,6 +2105,7 @@ class CapacitorCilindrico {
             cx +
             this.innerRadius *
             cos / 2,
+
             cy +
             this.innerRadius *
             sin / 2 - 8
@@ -2025,6 +2121,7 @@ class CapacitorCilindrico {
             cx +
             this.outerRadius *
             cos / 2,
+
             cy +
             this.outerRadius *
             sin / 2 - 8
