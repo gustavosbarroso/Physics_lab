@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="pt-BR">
 
@@ -36,6 +37,10 @@
         }
 
 
+        /* =====================================================
+           CANVAS
+           ===================================================== */
+
         canvas {
 
             display: block;
@@ -47,32 +52,46 @@
 
             background:
                 white;
+
+            max-width: 100%;
         }
 
 
-        h2 {
-
-            margin-top: 10px;
-
-            margin-bottom: 15px;
-        }
-
+        /* =====================================================
+           CONTROLES
+           ===================================================== */
 
         .capacitor-cilindrico-controls {
 
             width: 900px;
 
-            margin: 20px auto;
+            max-width: calc(100% - 40px);
 
-            font-family:
-                Arial,
-                sans-serif;
+            margin: 20px auto 30px;
+
+            padding: 0;
         }
 
 
+        .capacitor-cilindrico-controls h2 {
+
+            margin-top: 10px;
+
+            margin-bottom: 20px;
+
+            font-size: 22px;
+
+            color: #222;
+        }
+
+
+        /* =====================================================
+           CADA CONTROLE
+           ===================================================== */
+
         .control {
 
-            margin-bottom: 12px;
+            margin-bottom: 14px;
         }
 
 
@@ -83,18 +102,74 @@
             align-items: center;
 
             gap: 10px;
+
+            font-size: 15px;
+
+            color: #333;
         }
 
+
+        /* =====================================================
+           SLIDERS
+           ===================================================== */
 
         .control input[type="range"] {
 
             width: 300px;
+
+            cursor: pointer;
         }
 
 
+        /* =====================================================
+           VALOR DO SLIDER
+           ===================================================== */
+
         .control span {
 
+            display: inline-block;
+
             min-width: 55px;
+
+            font-weight: bold;
+
+            color: #222;
+        }
+
+
+        /* =====================================================
+           RESPONSIVIDADE
+           ===================================================== */
+
+        @media (max-width: 700px) {
+
+            canvas {
+
+                width: 100%;
+
+                height: auto;
+
+                margin: 10px auto;
+            }
+
+
+            .capacitor-cilindrico-controls {
+
+                max-width:
+                    calc(100% - 20px);
+            }
+
+
+            .control label {
+
+                flex-wrap: wrap;
+            }
+
+
+            .control input[type="range"] {
+
+                width: 100%;
+            }
         }
 
     </style>
@@ -106,18 +181,18 @@
 
 
     <!-- =====================================================
-         CANVAS
+         CANVAS DA SIMULAÇÃO
          ===================================================== -->
 
     <canvas
         id="canvas"
-        width="900"
-        height="600">
+        width="1000"
+        height="650">
     </canvas>
 
 
     <!-- =====================================================
-         CLASSE
+         CLASSE DA SIMULAÇÃO
          ===================================================== -->
 
     <script src="CapacitorCilindrico.js"></script>
@@ -143,7 +218,7 @@
                 {
 
                     // =========================================
-                    // DENSIDADE LINEAR
+                    // DENSIDADE LINEAR DE CARGA
                     // =========================================
 
                     lambda: 1.0,
@@ -179,3 +254,4 @@
 </body>
 
 </html>
+```
