@@ -1,21 +1,62 @@
-<canvas
-    id="projectileCanvas"
-    width="1200"
-    height="550">
-</canvas>
+<!DOCTYPE html>
+<html lang="pt-BR">
 
-<script src="projetil_arrasto.js"></script>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<script>
+    <title>Movimento de Projétil com Arrasto</title>
 
-const canvas =
-    document.getElementById(
-        "projectileCanvas"
-    );
+    <style>
+        body {
+            margin: 0;
+            padding: 30px 0;
+            background: #f5f5f5;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
 
-const projectile =
-    new ProjectileDrag(
-        canvas
-    );
+        .simulation-container {
+            width: 1200px;
+            max-width: 95%;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            box-sizing: border-box;
+            border-radius: 8px;
+        }
 
-</script>
+        canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            margin: 0 auto;
+            border: 1px solid #ddd;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="simulation-container">
+
+        <canvas
+            id="projectileCanvas"
+            width="1200"
+            height="550">
+        </canvas>
+
+    </div>
+
+    <script src="projetil_arrasto.js"></script>
+
+    <script>
+        const canvas = document.getElementById("projectileCanvas");
+
+        const projectile = new ProjectileDrag(canvas);
+    </script>
+
+</body>
+
+</html>
