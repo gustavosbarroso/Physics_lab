@@ -53,7 +53,7 @@ class InclinedPlaneSolids {
         this.planeBottomX = 580;
         this.planeBottomY = 470;
 
-        // Comprimento visual do plano
+        // Comprimento visual da superfície inclinada
         this.planePixelLength = 400;
 
         // =====================================================
@@ -441,10 +441,12 @@ class InclinedPlaneSolids {
     // =========================================================
     // DESENHO DO PLANO
     //
-    // Mostra somente:
-    // - superfície inclinada
+    // Mostra os dois catetos:
     // - base horizontal
     // - altura vertical
+    //
+    // E a hipotenusa:
+    // - superfície inclinada
     //
     // Não mostra:
     // - θ
@@ -461,7 +463,45 @@ class InclinedPlaneSolids {
         ctx.save();
 
         // -----------------------------------------------------
-        // SUPERFÍCIE DO PLANO
+        // TRIÂNGULO DO PLANO
+        // -----------------------------------------------------
+
+        ctx.beginPath();
+
+        // Topo da superfície inclinada
+        ctx.moveTo(
+            plane.x1,
+            plane.y1
+        );
+
+        // Base da superfície
+        ctx.lineTo(
+            plane.x2,
+            plane.y2
+        );
+
+        // Cateto horizontal
+        ctx.lineTo(
+            plane.x1,
+            plane.y2
+        );
+
+        // Fecha o triângulo
+        ctx.closePath();
+
+
+        // -----------------------------------------------------
+        // PREENCHIMENTO SUAVE DO TRIÂNGULO
+        // -----------------------------------------------------
+
+        ctx.fillStyle =
+            "rgba(220,220,220,0.25)";
+
+        ctx.fill();
+
+
+        // -----------------------------------------------------
+        // HIPOTENUSA — SUPERFÍCIE INCLINADA
         // -----------------------------------------------------
 
         ctx.strokeStyle =
@@ -486,7 +526,7 @@ class InclinedPlaneSolids {
 
 
         // -----------------------------------------------------
-        // BASE HORIZONTAL
+        // CATETO HORIZONTAL — BASE
         // -----------------------------------------------------
 
         ctx.strokeStyle =
@@ -511,7 +551,7 @@ class InclinedPlaneSolids {
 
 
         // -----------------------------------------------------
-        // ALTURA VERTICAL
+        // CATETO VERTICAL — ALTURA
         // -----------------------------------------------------
 
         ctx.beginPath();
@@ -527,6 +567,7 @@ class InclinedPlaneSolids {
         );
 
         ctx.stroke();
+
 
         ctx.restore();
     }
@@ -1721,112 +1762,4 @@ class InclinedPlaneSolids {
             "bold 20px Arial";
 
         ctx.textAlign =
-            "center";
-
-        ctx.fillText(
-            "Descida de sólidos em um plano inclinado",
-            330,
-            30
-        );
-
-
-        // =====================================================
-        // ELEMENTOS
-        // =====================================================
-
-        this.drawPlane(ctx);
-
-        this.drawSolids(ctx);
-
-        this.drawGraph(ctx);
-
-        this.drawHUD(ctx);
-    }
-
-
-    // =========================================================
-    // INICIAR
-    // =========================================================
-
-    iniciar() {
-
-        if (this.running) {
-            return;
-        }
-
-        this.running = true;
-
-        const loop = () => {
-
-            if (!this.running) {
-                return;
-            }
-
-            this.draw();
-
-            this.frame +=
-                this.animationSpeed;
-
-            if (
-                this.frame >=
-                this.totalFrames
-            ) {
-
-                this.frame = 0;
-            }
-
-            requestAnimationFrame(
-                loop
-            );
-        };
-
-        loop();
-    }
-
-
-    // =========================================================
-    // PARAR
-    // =========================================================
-
-    parar() {
-
-        this.running = false;
-    }
-
-
-    // =========================================================
-    // ATUALIZAR PARÂMETROS
-    // =========================================================
-
-    atualizarParametros(
-        newParams
-    ) {
-
-        this.params = {
-            ...this.params,
-            ...newParams
-        };
-
-        Object.keys(newParams)
-            .forEach(key => {
-
-                if (
-                    this.sliders[key]
-                ) {
-
-                    this.sliders[key].value =
-                        newParams[key];
-
-                    const event =
-                        new Event("input");
-
-                    this.sliders[key]
-                        .dispatchEvent(event);
-                }
-            });
-
-        this.solve();
-
-        this.draw();
-    }
-}
+            "center
