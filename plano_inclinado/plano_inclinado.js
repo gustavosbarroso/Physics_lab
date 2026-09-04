@@ -46,7 +46,8 @@ class InclinedPlaneSolids {
         // PLANO
         // =====================================================
 
-        // Comprimento físico do plano em metros
+        // Comprimento físico do plano
+        // O tempo da simulação será calculado a partir deste L.
         this.planeLength = 10;
 
         this.planeBottomX = 580;
@@ -61,7 +62,7 @@ class InclinedPlaneSolids {
 
         this.dt = 0.02;
 
-        // tMax será calculado automaticamente
+        // Será calculado automaticamente em solve()
         // a partir de L, g e theta.
         this.tMax = 1;
 
@@ -121,27 +122,66 @@ class InclinedPlaneSolids {
 
 
     // =========================================================
-    // TEMPO MÁXIMO DA SIMULAÇÃO
+    // TEMPO DE CHEGADA AO FINAL DO PLANO
     //
-    // Para cada sólido:
+    // x(t) = 1/2 a t²
     //
-    // x = 1/2 a t²
-    //
-    // No final do plano:
+    // Quando o sólido chega ao final:
     //
     // x = L
     //
     // Portanto:
     //
+    // L = 1/2 a t²
+    //
     // t = sqrt(2L/a)
     //
-    // O tMax é definido pelo sólido mais lento.
+    // =========================================================
+
+    calculateArrivalTime(k) {
+
+        const a =
+            this.acceleration(k);
+
+        if (a <= 0) {
+            return Infinity;
+        }
+
+        return Math.sqrt(
+            2 *
+            this.planeLength /
+            a
+        );
+    }
+
+
+    // =========================================================
+    // TEMPO MÁXIMO DA SIMULAÇÃO
     //
-    // Assim, tMax depende automaticamente de:
+    // O tempo é determinado pelo sólido mais lento.
     //
-    // L
-    // g
-    // θ
+    // Portanto:
+    //
+    // tMax =
+    // max(
+    //     sqrt(2L/a_bloco),
+    //     sqrt(2L/a_esfera),
+    //     sqrt(2L/a_cilindro),
+    //     sqrt(2L/a_anel)
+    // )
+    //
+    // Como o anel é o mais lento:
+    //
+    // tMax = sqrt(2L/a_anel)
+    //
+    // e como:
+    //
+    // a_anel = g sin(theta) / 2
+    //
+    // temos:
+    //
+    // tMax = sqrt(4L / (g sin(theta)))
+    //
     // =========================================================
 
     calculateSimulationTime() {
@@ -150,26 +190,16 @@ class InclinedPlaneSolids {
 
         this.solids.forEach(solid => {
 
-            const a =
-                this.acceleration(
+            const arrivalTime =
+                this.calculateArrivalTime(
                     solid.k
                 );
 
-            if (a > 0) {
-
-                const time =
-                    Math.sqrt(
-                        2 *
-                        this.planeLength /
-                        a
-                    );
-
-                maxTime =
-                    Math.max(
-                        maxTime,
-                        time
-                    );
-            }
+            maxTime =
+                Math.max(
+                    maxTime,
+                    arrivalTime
+                );
         });
 
         this.tMax =
@@ -187,15 +217,20 @@ class InclinedPlaneSolids {
     solve() {
 
         // -----------------------------------------------------
-        // Calcula automaticamente o tempo necessário para
-        // o sólido mais lento percorrer L.
+        // O tempo máximo é calculado a partir de L.
         // -----------------------------------------------------
 
         this.calculateSimulationTime();
 
 
+        // -----------------------------------------------------
+        // Número de passos.
+        //
+        // O +1 garante que exista o instante inicial.
+        // -----------------------------------------------------
+
         const steps =
-            Math.floor(
+            Math.ceil(
                 this.tMax /
                 this.dt
             ) + 1;
@@ -203,6 +238,10 @@ class InclinedPlaneSolids {
         this.totalFrames =
             steps;
 
+
+        // -----------------------------------------------------
+        // Calcula o movimento de cada sólido.
+        // -----------------------------------------------------
 
         this.solids.forEach(solid => {
 
@@ -220,6 +259,12 @@ class InclinedPlaneSolids {
                 );
 
 
+            const arrivalTime =
+                this.calculateArrivalTime(
+                    solid.k
+                );
+
+
             for (
                 let i = 0;
                 i < steps;
@@ -227,42 +272,64 @@ class InclinedPlaneSolids {
             ) {
 
                 const t =
-                    i *
-                    this.dt;
+                    Math.min(
+                        i * this.dt,
+                        this.tMax
+                    );
 
 
-                let x =
-                    0.5 *
-                    a *
-                    t *
-                    t;
-
-
-                let v =
-                    a *
-                    t;
+                let x;
+                let v;
 
 
                 // -------------------------------------------------
-                // Limita a posição ao comprimento L
+                // Antes de chegar ao final
                 // -------------------------------------------------
 
                 if (
-                    x >=
-                    this.planeLength
+                    t <
+                    arrivalTime
                 ) {
+
+                    x =
+                        0.5 *
+                        a *
+                        t *
+                        t;
+
+                    v =
+                        a *
+                        t;
+                }
+
+
+                // -------------------------------------------------
+                // Depois de chegar ao final
+                // -------------------------------------------------
+
+                else {
 
                     x =
                         this.planeLength;
 
                     v =
-                        a *
                         Math.sqrt(
                             2 *
-                            this.planeLength /
-                            a
+                            a *
+                            this.planeLength
                         );
                 }
+
+
+                // -------------------------------------------------
+                // Segurança numérica
+                // -------------------------------------------------
+
+                x =
+                    Math.min(
+                        x,
+                        this.planeLength
+                    );
 
 
                 data.t.push(t);
@@ -273,7 +340,16 @@ class InclinedPlaneSolids {
         });
 
 
+        // =====================================================
+        // ESCALA
+        // =====================================================
+
         this.calculateScale();
+
+
+        // =====================================================
+        // REINICIA A ANIMAÇÃO
+        // =====================================================
 
         this.frame = 0;
     }
@@ -285,11 +361,8 @@ class InclinedPlaneSolids {
 
     calculateScale() {
 
-        // -----------------------------------------------------
-        // O eixo Y acompanha diretamente o comprimento físico
-        // do plano.
-        // -----------------------------------------------------
-
+        // O eixo vertical representa diretamente o comprimento
+        // físico do plano.
         this.xMax =
             Math.max(
                 this.planeLength,
@@ -1398,8 +1471,8 @@ class InclinedPlaneSolids {
     // =========================================================
     // GRÁFICO
     //
-    // O intervalo do eixo X agora é determinado por tMax,
-    // que por sua vez é determinado por L.
+    // O eixo X vai de 0 até o tempo necessário para o sólido
+    // mais lento percorrer o comprimento L.
     // =========================================================
 
     drawGraph(ctx) {
@@ -1504,7 +1577,7 @@ class InclinedPlaneSolids {
 
 
             ctx.fillText(
-                value.toFixed(1),
+                value.toFixed(2),
                 px,
                 y + h + 20
             );
@@ -1854,7 +1927,7 @@ class InclinedPlaneSolids {
         const y = 55;
 
         const width = 300;
-        const height = 165;
+        const height = 190;
 
 
         ctx.save();
@@ -1939,9 +2012,16 @@ class InclinedPlaneSolids {
 
 
         ctx.fillText(
-            `t = ${t.toFixed(2)} s`,
+            `t máximo = ${this.tMax.toFixed(2)} s`,
             x + 12,
             y + 96
+        );
+
+
+        ctx.fillText(
+            `t = ${t.toFixed(2)} s`,
+            x + 12,
+            y + 114
         );
 
 
@@ -1956,7 +2036,7 @@ class InclinedPlaneSolids {
         ctx.fillText(
             `Bloco: a = ${aBloco.toFixed(2)} m/s²`,
             x + 12,
-            y + 119
+            y + 137
         );
 
 
@@ -1967,7 +2047,7 @@ class InclinedPlaneSolids {
         ctx.fillText(
             `Esfera: a = ${aEsfera.toFixed(2)} m/s²`,
             x + 12,
-            y + 137
+            y + 155
         );
 
 
@@ -1978,7 +2058,7 @@ class InclinedPlaneSolids {
         ctx.fillText(
             `Cilindro: a = ${aCilindro.toFixed(2)} m/s²`,
             x + 12,
-            y + 155
+            y + 173
         );
 
 
@@ -1989,7 +2069,7 @@ class InclinedPlaneSolids {
         ctx.fillText(
             `Anel: a = ${aAnel.toFixed(2)} m/s²`,
             x + 12,
-            y + 173
+            y + 191
         );
 
 
@@ -2097,6 +2177,11 @@ class InclinedPlaneSolids {
             this.frame +=
                 this.animationSpeed;
 
+
+            // -------------------------------------------------
+            // Quando chega ao final da simulação,
+            // reinicia.
+            // -------------------------------------------------
 
             if (
                 this.frame >=
