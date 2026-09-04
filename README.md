@@ -108,8 +108,15 @@ Simulação de um capacitor cilíndrico e o seu campo elétrico
 
 ### XII. [Lançamento oblíquo](https://gustavosbarroso.github.io/Physics_lab/projetil_arrasto/)
 <img width="1289" height="602" alt="image" src="https://github.com/user-attachments/assets/3671838b-6885-4dff-8ce0-17fd27eb69a6" />
+
 Simulação de lançamento oblíquo com e sem a resistência do ar.
+
 **[▶ Abrir simulação](https://gustavosbarroso.github.io/Physics_lab/projetil_arrasto/)**
+
+### XIII. [Plano inclinado](https://gustavosbarroso.github.io/Physics_lab/plano_inclinado/)
+<img width="1169" height="515" alt="image" src="https://github.com/user-attachments/assets/cfe486d6-5b48-4d8f-9f6b-26762aabf78e" />
+Simulação interativa de plano inclinado com diferentes sólidos.
+**[▶ Abrir simulação](https://gustavosbarroso.github.io/Physics_lab/plano_inclinado/)**
 
 ---
 
