@@ -83,6 +83,15 @@ class InclinedPlaneSolids {
         this.animationSpeed = 1;
 
         // =====================================================
+        // GRÁFICO
+        // =====================================================
+
+        this.graphX = 650;
+        this.graphY = 80;
+        this.graphW = 480;
+        this.graphH = 360;
+
+        // =====================================================
         // INTERFACE
         // =====================================================
 
@@ -281,6 +290,21 @@ class InclinedPlaneSolids {
 
         });
 
+        // -----------------------------------------------------
+        // ESCALA DO GRÁFICO
+        //
+        // O eixo vertical representa o comprimento físico
+        // do plano: 0 até 10 m.
+        // -----------------------------------------------------
+
+        this.xMax =
+            this.planeLength;
+
+        // O eixo horizontal representa todo o tempo necessário
+        // para o sólido mais lento percorrer o plano.
+        this.graphTimeMax =
+            this.tMax;
+
         this.frame = 0;
     }
 
@@ -459,7 +483,7 @@ class InclinedPlaneSolids {
     //                 ● topo
     //                 |\
     //                 | \
-    //          altura |  \
+    //          altura |  \ hipotenusa
     //                 |   \
     //                 |    \
     //                 ●-----●
@@ -1275,6 +1299,396 @@ class InclinedPlaneSolids {
 
 
     // =========================================================
+    // GRÁFICO
+    //
+    // Eixo X:
+    // 0 -> tempo final do plano
+    //
+    // Eixo Y:
+    // 0 -> 10 m
+    //
+    // =========================================================
+
+    drawGraph(ctx) {
+
+        const x =
+            this.graphX;
+
+        const y =
+            this.graphY;
+
+        const w =
+            this.graphW;
+
+        const h =
+            this.graphH;
+
+
+        // =====================================================
+        // TÍTULO
+        // =====================================================
+
+        ctx.fillStyle =
+            "black";
+
+        ctx.font =
+            "bold 18px Arial";
+
+        ctx.textAlign =
+            "center";
+
+        ctx.fillText(
+            "Posição × Tempo",
+            x + w / 2,
+            y - 25
+        );
+
+
+        const xTicks = 5;
+        const yTicks = 5;
+
+
+        // =====================================================
+        // EIXO X — TEMPO
+        // =====================================================
+
+        ctx.font =
+            "11px Arial";
+
+        for (
+            let i = 0;
+            i <= xTicks;
+            i++
+        ) {
+
+            const value =
+                this.graphTimeMax *
+                i /
+                xTicks;
+
+            const px =
+                x +
+                (
+                    value /
+                    this.graphTimeMax
+                ) *
+                w;
+
+
+            ctx.strokeStyle =
+                "#eeeeee";
+
+            ctx.lineWidth =
+                1;
+
+            ctx.beginPath();
+
+            ctx.moveTo(
+                px,
+                y
+            );
+
+            ctx.lineTo(
+                px,
+                y + h
+            );
+
+            ctx.stroke();
+
+
+            ctx.fillStyle =
+                "black";
+
+            ctx.textAlign =
+                "center";
+
+            ctx.fillText(
+                value.toFixed(2),
+                px,
+                y + h + 20
+            );
+        }
+
+
+        // =====================================================
+        // EIXO Y — POSIÇÃO
+        // =====================================================
+
+        for (
+            let i = 0;
+            i <= yTicks;
+            i++
+        ) {
+
+            const value =
+                this.planeLength *
+                i /
+                yTicks;
+
+            const py =
+                y +
+                h -
+                (
+                    value /
+                    this.planeLength
+                ) *
+                h;
+
+
+            ctx.strokeStyle =
+                "#eeeeee";
+
+            ctx.beginPath();
+
+            ctx.moveTo(
+                x,
+                py
+            );
+
+            ctx.lineTo(
+                x + w,
+                py
+            );
+
+            ctx.stroke();
+
+
+            ctx.fillStyle =
+                "black";
+
+            ctx.textAlign =
+                "right";
+
+            ctx.fillText(
+                value.toFixed(1),
+                x - 10,
+                py + 4
+            );
+        }
+
+
+        // =====================================================
+        // CURVAS
+        // =====================================================
+
+        ctx.save();
+
+        ctx.beginPath();
+
+        ctx.rect(
+            x + 1,
+            y + 1,
+            w - 2,
+            h - 2
+        );
+
+        ctx.clip();
+
+
+        this.solids.forEach(solid => {
+
+            const data =
+                this.data[solid.name];
+
+            const n =
+                Math.min(
+                    Math.floor(this.frame) + 1,
+                    data.t.length
+                );
+
+            if (n < 1) {
+                return;
+            }
+
+
+            ctx.strokeStyle =
+                solid.color;
+
+            ctx.lineWidth =
+                2;
+
+            ctx.beginPath();
+
+
+            for (
+                let i = 0;
+                i < n;
+                i++
+            ) {
+
+                const px =
+                    x +
+                    (
+                        data.t[i] /
+                        this.graphTimeMax
+                    ) *
+                    w;
+
+                const py =
+                    y +
+                    h -
+                    (
+                        data.x[i] /
+                        this.planeLength
+                    ) *
+                    h;
+
+
+                if (i === 0) {
+
+                    ctx.moveTo(
+                        px,
+                        py
+                    );
+
+                }
+                else {
+
+                    ctx.lineTo(
+                        px,
+                        py
+                    );
+
+                }
+            }
+
+            ctx.stroke();
+
+
+            // =================================================
+            // PONTO ATUAL
+            // =================================================
+
+            const current =
+                n - 1;
+
+            const px =
+                x +
+                (
+                    data.t[current] /
+                    this.graphTimeMax
+                ) *
+                w;
+
+            const py =
+                y +
+                h -
+                (
+                    data.x[current] /
+                    this.planeLength
+                ) *
+                h;
+
+
+            ctx.fillStyle =
+                solid.color;
+
+            ctx.beginPath();
+
+            ctx.arc(
+                px,
+                py,
+                4,
+                0,
+                2 * Math.PI
+            );
+
+            ctx.fill();
+
+        });
+
+        ctx.restore();
+
+
+        // =====================================================
+        // BORDA
+        // =====================================================
+
+        ctx.strokeStyle =
+            "#777";
+
+        ctx.lineWidth =
+            1;
+
+        ctx.strokeRect(
+            x,
+            y,
+            w,
+            h
+        );
+
+
+        // =====================================================
+        // TÍTULO EIXO X
+        // =====================================================
+
+        ctx.fillStyle =
+            "black";
+
+        ctx.font =
+            "14px Arial";
+
+        ctx.textAlign =
+            "center";
+
+        ctx.fillText(
+            "Tempo [s]",
+            x + w / 2,
+            y + h + 45
+        );
+
+
+        // =====================================================
+        // TÍTULO EIXO Y
+        // =====================================================
+
+        ctx.save();
+
+        ctx.translate(
+            x - 48,
+            y + h / 2
+        );
+
+        ctx.rotate(
+            -Math.PI / 2
+        );
+
+        ctx.fillText(
+            "Posição [m]",
+            0,
+            0
+        );
+
+        ctx.restore();
+
+
+        // =====================================================
+        // LEGENDA
+        // =====================================================
+
+        ctx.font =
+            "12px Arial";
+
+        ctx.textAlign =
+            "left";
+
+        this.solids.forEach(
+            (solid, i) => {
+
+                ctx.fillStyle =
+                    solid.color;
+
+                ctx.fillText(
+                    solid.name,
+                    x + w - 85,
+                    y + 20 + i * 20
+                );
+            }
+        );
+    }
+
+
+    // =========================================================
     // HUD
     // =========================================================
 
@@ -1490,6 +1904,8 @@ class InclinedPlaneSolids {
         this.drawPlane(ctx);
 
         this.drawSolids(ctx);
+
+        this.drawGraph(ctx);
 
         this.drawHUD(ctx);
     }
