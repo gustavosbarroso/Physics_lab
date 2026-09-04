@@ -58,13 +58,16 @@ class ProjectileDrag {
         this.frame = 0;
 
         // =====================================================
-        // GEOMETRIA
+        // CONFIGURAÇÃO DO GRÁFICO
         // =====================================================
 
-        this.originX = 100;
-        this.originY = 470;
+        this.graphX = 70;
+        this.graphY = 80;
 
-        this.worldScale = 8;
+        this.graphW =
+            this.canvas.width - 120;
+
+        this.graphH = 400;
 
         // =====================================================
         // CONTROLES
@@ -91,9 +94,6 @@ class ProjectileDrag {
     // =========================================================
 
     f(state, t) {
-
-        const x = state[0];
-        const y = state[1];
 
         const vx = state[2];
         const vy = state[3];
@@ -247,7 +247,7 @@ class ProjectileDrag {
             );
 
             // =================================================
-            // TERMINA SE TOCOU O SOLO
+            // TOCOU O SOLO
             // =================================================
 
             if (
@@ -572,26 +572,6 @@ class ProjectileDrag {
                 ymax * 1.20,
                 1
             );
-
-        const graphWidth =
-            1080;
-
-        const graphHeight =
-            430;
-
-        const scaleX =
-            graphWidth /
-            this.xMax;
-
-        const scaleY =
-            graphHeight /
-            this.yMax;
-
-        this.worldScale =
-            Math.min(
-                scaleX,
-                scaleY
-            );
     }
 
 
@@ -713,9 +693,7 @@ class ProjectileDrag {
                 row.style.marginBottom =
                     "8px";
 
-                // -------------------------------------------------
                 // LABEL
-                // -------------------------------------------------
 
                 const label =
                     document.createElement(
@@ -728,9 +706,7 @@ class ProjectileDrag {
                 label.innerText =
                     config.label;
 
-                // -------------------------------------------------
                 // SLIDER
-                // -------------------------------------------------
 
                 const slider =
                     document.createElement(
@@ -757,9 +733,7 @@ class ProjectileDrag {
                 slider.style.flex =
                     "1";
 
-                // -------------------------------------------------
                 // VALOR
-                // -------------------------------------------------
 
                 const value =
                     document.createElement(
@@ -779,9 +753,7 @@ class ProjectileDrag {
                         ]
                     ).toFixed(2);
 
-                // -------------------------------------------------
                 // EVENTO
-                // -------------------------------------------------
 
                 slider.addEventListener(
                     "input",
@@ -880,7 +852,7 @@ class ProjectileDrag {
         ctx.stroke();
 
         // =====================================================
-        // ÍNDICES
+        // ÍNDICE
         // =====================================================
 
         const index =
@@ -1014,19 +986,22 @@ class ProjectileDrag {
 
 
     // =========================================================
-    // TRAJETÓRIA
+    // GRÁFICO ÚNICO — TRAJETÓRIA
     // =========================================================
 
     drawTrajectory(ctx) {
 
-        const graphX = 50;
-        const graphY = 80;
+        const graphX =
+            this.graphX;
+
+        const graphY =
+            this.graphY;
 
         const graphW =
-            610;
+            this.graphW;
 
         const graphH =
-            400;
+            this.graphH;
 
         // =====================================================
         // TÍTULO
@@ -1042,25 +1017,9 @@ class ProjectileDrag {
             "center";
 
         ctx.fillText(
-            "Trajetória",
+            "Trajetória do projétil",
             graphX + graphW / 2,
             graphY - 25
-        );
-
-        // =====================================================
-        // BORDA
-        // =====================================================
-
-        ctx.strokeStyle =
-            "#777";
-
-        ctx.lineWidth = 1;
-
-        ctx.strokeRect(
-            graphX,
-            graphY,
-            graphW,
-            graphH
         );
 
         // =====================================================
@@ -1091,37 +1050,21 @@ class ProjectileDrag {
             };
 
         // =====================================================
-        // EIXO X
+        // GRADE
         // =====================================================
 
-        ctx.strokeStyle =
-            "#777";
-
-        ctx.beginPath();
-
-        ctx.moveTo(
-            graphX,
-            convertY(0)
-        );
-
-        ctx.lineTo(
-            graphX + graphW,
-            convertY(0)
-        );
-
-        ctx.stroke();
-
-        // =====================================================
-        // TICKS X
-        // =====================================================
-
-        const xTicks = 5;
+        const xTicks = 6;
+        const yTicks = 5;
 
         ctx.font =
             "11px Arial";
 
         ctx.fillStyle =
             "black";
+
+        // -----------------------------------------------------
+        // GRADE / TICKS X
+        // -----------------------------------------------------
 
         ctx.textAlign =
             "center";
@@ -1140,6 +1083,28 @@ class ProjectileDrag {
             const px =
                 convertX(value);
 
+            if (k > 0) {
+
+                ctx.strokeStyle =
+                    "#eeeeee";
+
+                ctx.lineWidth = 1;
+
+                ctx.beginPath();
+
+                ctx.moveTo(
+                    px,
+                    graphY
+                );
+
+                ctx.lineTo(
+                    px,
+                    graphY + graphH
+                );
+
+                ctx.stroke();
+            }
+
             ctx.strokeStyle =
                 "#777";
 
@@ -1157,38 +1122,19 @@ class ProjectileDrag {
 
             ctx.stroke();
 
+            ctx.fillStyle =
+                "black";
+
             ctx.fillText(
                 value.toFixed(1),
                 px,
                 graphY + graphH + 20
             );
-
-            if (k > 0) {
-
-                ctx.strokeStyle =
-                    "#eeeeee";
-
-                ctx.beginPath();
-
-                ctx.moveTo(
-                    px,
-                    graphY
-                );
-
-                ctx.lineTo(
-                    px,
-                    graphY + graphH
-                );
-
-                ctx.stroke();
-            }
         }
 
-        // =====================================================
-        // TICKS Y
-        // =====================================================
-
-        const yTicks = 5;
+        // -----------------------------------------------------
+        // GRADE / TICKS Y
+        // -----------------------------------------------------
 
         ctx.textAlign =
             "right";
@@ -1206,6 +1152,28 @@ class ProjectileDrag {
 
             const py =
                 convertY(value);
+
+            if (k > 0) {
+
+                ctx.strokeStyle =
+                    "#eeeeee";
+
+                ctx.lineWidth = 1;
+
+                ctx.beginPath();
+
+                ctx.moveTo(
+                    graphX,
+                    py
+                );
+
+                ctx.lineTo(
+                    graphX + graphW,
+                    py
+                );
+
+                ctx.stroke();
+            }
 
             ctx.strokeStyle =
                 "#777";
@@ -1232,27 +1200,275 @@ class ProjectileDrag {
                 graphX - 10,
                 py + 4
             );
+        }
 
-            if (k > 0) {
+        // =====================================================
+        // EIXO X
+        // =====================================================
 
-                ctx.strokeStyle =
-                    "#eeeeee";
+        ctx.strokeStyle =
+            "#777";
 
-                ctx.beginPath();
+        ctx.lineWidth = 1;
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            graphX,
+            convertY(0)
+        );
+
+        ctx.lineTo(
+            graphX + graphW,
+            convertY(0)
+        );
+
+        ctx.stroke();
+
+        // =====================================================
+        // DADOS VISÍVEIS
+        // =====================================================
+
+        const n =
+            Math.min(
+                Math.floor(this.frame) + 1,
+                this.xDrag.length
+            );
+
+        if (n < 1)
+            return;
+
+        const ni =
+            Math.min(
+                Math.floor(
+                    this.frame *
+                    this.timeIdeal.length /
+                    this.timeDrag.length
+                ) + 1,
+
+                this.xIdeal.length
+            );
+
+        // =====================================================
+        // CLIPPING INTERNO
+        // =====================================================
+        //
+        // A margem de 2 px impede que a espessura da linha
+        // ou o padrão tracejado ultrapasse visualmente a borda.
+        //
+        // =====================================================
+
+        const clipMargin = 2;
+
+        ctx.save();
+
+        ctx.beginPath();
+
+        ctx.rect(
+            graphX + clipMargin,
+            graphY + clipMargin,
+            graphW - 2 * clipMargin,
+            graphH - 2 * clipMargin
+        );
+
+        ctx.clip();
+
+        // =====================================================
+        // TRAJETÓRIA COM ARRASTO
+        // =====================================================
+
+        ctx.strokeStyle =
+            "#d32f2f";
+
+        ctx.lineWidth = 2;
+
+        ctx.setLineDash([]);
+
+        ctx.beginPath();
+
+        for (
+            let i = 0;
+            i < n;
+            i++
+        ) {
+
+            const px =
+                convertX(
+                    this.xDrag[i]
+                );
+
+            const py =
+                convertY(
+                    this.yDrag[i]
+                );
+
+            if (i === 0) {
 
                 ctx.moveTo(
-                    graphX,
+                    px,
                     py
                 );
+
+            } else {
 
                 ctx.lineTo(
-                    graphX + graphW,
+                    px,
                     py
                 );
-
-                ctx.stroke();
             }
         }
+
+        ctx.stroke();
+
+        // =====================================================
+        // TRAJETÓRIA SEM ARRASTO
+        // =====================================================
+
+        if (ni > 0) {
+
+            ctx.strokeStyle =
+                "#1976d2";
+
+            ctx.lineWidth = 2;
+
+            ctx.setLineDash([
+                7,
+                5
+            ]);
+
+            ctx.beginPath();
+
+            for (
+                let i = 0;
+                i < ni;
+                i++
+            ) {
+
+                const px =
+                    convertX(
+                        this.xIdeal[i]
+                    );
+
+                const py =
+                    convertY(
+                        this.yIdeal[i]
+                    );
+
+                if (i === 0) {
+
+                    ctx.moveTo(
+                        px,
+                        py
+                    );
+
+                } else {
+
+                    ctx.lineTo(
+                        px,
+                        py
+                    );
+                }
+            }
+
+            ctx.stroke();
+
+            ctx.setLineDash([]);
+        }
+
+        // =====================================================
+        // TERMINA CLIPPING
+        // =====================================================
+
+        ctx.restore();
+
+        // =====================================================
+        // PARTÍCULA
+        // =====================================================
+
+        const particleIndex =
+            Math.min(
+                Math.floor(this.frame),
+                this.xDrag.length - 1
+            );
+
+        const particleX =
+            convertX(
+                this.xDrag[
+                    particleIndex
+                ]
+            );
+
+        const particleY =
+            convertY(
+                this.yDrag[
+                    particleIndex
+                ]
+            );
+
+        ctx.fillStyle =
+            "#d32f2f";
+
+        ctx.strokeStyle =
+            "#111";
+
+        ctx.lineWidth = 2;
+
+        ctx.beginPath();
+
+        ctx.arc(
+            particleX,
+            particleY,
+            7,
+            0,
+            2 * Math.PI
+        );
+
+        ctx.fill();
+        ctx.stroke();
+
+        // =====================================================
+        // BORDA DO GRÁFICO
+        // =====================================================
+
+        ctx.strokeStyle =
+            "#777";
+
+        ctx.lineWidth = 1;
+
+        ctx.strokeRect(
+            graphX,
+            graphY,
+            graphW,
+            graphH
+        );
+
+        // =====================================================
+        // LEGENDAS
+        // =====================================================
+
+        ctx.font =
+            "13px Arial";
+
+        ctx.textAlign =
+            "left";
+
+        ctx.fillStyle =
+            "#d32f2f";
+
+        ctx.fillText(
+            "Com arrasto",
+            graphX + graphW - 125,
+            graphY + 25
+        );
+
+        ctx.fillStyle =
+            "#1976d2";
+
+        ctx.fillText(
+            "Sem arrasto",
+            graphX + graphW - 125,
+            graphY + 45
+        );
 
         // =====================================================
         // LABEL X
@@ -1263,6 +1479,9 @@ class ProjectileDrag {
 
         ctx.textAlign =
             "center";
+
+        ctx.fillStyle =
+            "black";
 
         ctx.fillText(
             "x [m]",
@@ -1292,709 +1511,6 @@ class ProjectileDrag {
         );
 
         ctx.restore();
-
-        // =====================================================
-        // DADOS
-        // =====================================================
-
-        const n =
-            Math.min(
-                Math.floor(this.frame) + 1,
-                this.xDrag.length
-            );
-
-        if (n < 2)
-            return;
-
-        // =====================================================
-        // CLIPPING
-        // Tudo que for desenhado depois daqui ficará
-        // restrito à área interna do gráfico.
-        // =====================================================
-
-        ctx.save();
-
-        ctx.beginPath();
-
-        ctx.rect(
-            graphX,
-            graphY,
-            graphW,
-            graphH
-        );
-
-        ctx.clip();
-
-        // =====================================================
-        // TRAJETÓRIA COM ARRASTO
-        // =====================================================
-
-        ctx.lineWidth = 2;
-
-        ctx.strokeStyle =
-            "#d32f2f";
-
-        ctx.setLineDash([]);
-
-        ctx.beginPath();
-
-        for (
-            let i = 0;
-            i < n;
-            i++
-        ) {
-
-            const px =
-                convertX(
-                    this.xDrag[i]
-                );
-
-            const py =
-                convertY(
-                    this.yDrag[i]
-                );
-
-            if (i === 0)
-
-                ctx.moveTo(
-                    px,
-                    py
-                );
-
-            else
-
-                ctx.lineTo(
-                    px,
-                    py
-                );
-        }
-
-        ctx.stroke();
-
-        // =====================================================
-        // TRAJETÓRIA IDEAL
-        // =====================================================
-
-        const ni =
-            Math.min(
-                Math.floor(
-                    this.frame *
-                    this.timeIdeal.length /
-                    this.timeDrag.length
-                ) + 1,
-
-                this.xIdeal.length
-            );
-
-        ctx.strokeStyle =
-            "#1976d2";
-
-        ctx.setLineDash([
-            7,
-            5
-        ]);
-
-        ctx.beginPath();
-
-        for (
-            let i = 0;
-            i < ni;
-            i++
-        ) {
-
-            const px =
-                convertX(
-                    this.xIdeal[i]
-                );
-
-            const py =
-                convertY(
-                    this.yIdeal[i]
-                );
-
-            if (i === 0)
-
-                ctx.moveTo(
-                    px,
-                    py
-                );
-
-            else
-
-                ctx.lineTo(
-                    px,
-                    py
-                );
-        }
-
-        ctx.stroke();
-
-        ctx.setLineDash([]);
-
-        // =====================================================
-        // FIM DO CLIPPING
-        // =====================================================
-
-        ctx.restore();
-
-        // =====================================================
-        // PARTÍCULA
-        // =====================================================
-
-        const particleIndex =
-            Math.min(
-                Math.floor(this.frame),
-                this.xDrag.length - 1
-            );
-
-        const px =
-            convertX(
-                this.xDrag[
-                    particleIndex
-                ]
-            );
-
-        const py =
-            convertY(
-                this.yDrag[
-                    particleIndex
-                ]
-            );
-
-        ctx.fillStyle =
-            "#d32f2f";
-
-        ctx.strokeStyle =
-            "#111";
-
-        ctx.lineWidth = 2;
-
-        ctx.beginPath();
-
-        ctx.arc(
-            px,
-            py,
-            7,
-            0,
-            2 * Math.PI
-        );
-
-        ctx.fill();
-        ctx.stroke();
-
-        // =====================================================
-        // BORDA NOVAMENTE POR CIMA
-        // =====================================================
-
-        ctx.strokeStyle =
-            "#777";
-
-        ctx.lineWidth = 1;
-
-        ctx.strokeRect(
-            graphX,
-            graphY,
-            graphW,
-            graphH
-        );
-
-        // =====================================================
-        // LEGENDA
-        // =====================================================
-
-        ctx.font =
-            "13px Arial";
-
-        ctx.textAlign =
-            "left";
-
-        ctx.fillStyle =
-            "#d32f2f";
-
-        ctx.fillText(
-            "Com arrasto",
-            graphX + graphW - 120,
-            graphY + 25
-        );
-
-        ctx.fillStyle =
-            "#1976d2";
-
-        ctx.fillText(
-            "Sem arrasto",
-            graphX + graphW - 120,
-            graphY + 45
-        );
-    }
-
-
-    // =========================================================
-    // GRÁFICO y(t)
-    // =========================================================
-
-    drawGraph(ctx) {
-
-        const graphX = 700;
-        const graphY = 80;
-
-        const graphW =
-            this.canvas.width -
-            graphX -
-            40;
-
-        const graphH =
-            400;
-
-        // =====================================================
-        // TÍTULO
-        // =====================================================
-
-        ctx.font =
-            "bold 18px Arial";
-
-        ctx.fillStyle =
-            "black";
-
-        ctx.textAlign =
-            "center";
-
-        ctx.fillText(
-            "Altura em função do tempo",
-            graphX + graphW / 2,
-            graphY - 25
-        );
-
-        // =====================================================
-        // BORDA
-        // =====================================================
-
-        ctx.strokeStyle =
-            "#777";
-
-        ctx.lineWidth = 1;
-
-        ctx.strokeRect(
-            graphX,
-            graphY,
-            graphW,
-            graphH
-        );
-
-        // =====================================================
-        // DADOS
-        // =====================================================
-
-        const n =
-            Math.min(
-                Math.floor(this.frame) + 1,
-                this.timeDrag.length
-            );
-
-        if (n < 2)
-            return;
-
-        // =====================================================
-        // ESCALA
-        // =====================================================
-
-        const tMax =
-            Math.max(
-                this.timeDrag[
-                    this.timeDrag.length - 1
-                ],
-
-                this.timeIdeal[
-                    this.timeIdeal.length - 1
-                ]
-            );
-
-        let ymax = 0;
-
-        for (
-            const y of this.yDrag
-        ) {
-
-            ymax =
-                Math.max(
-                    ymax,
-                    y
-                );
-        }
-
-        for (
-            const y of this.yIdeal
-        ) {
-
-            ymax =
-                Math.max(
-                    ymax,
-                    y
-                );
-        }
-
-        ymax =
-            Math.max(
-                ymax * 1.2,
-                1
-            );
-
-        const convertX =
-            t => {
-
-                return graphX +
-                    (
-                        t /
-                        tMax
-                    ) *
-                    graphW;
-            };
-
-        const convertY =
-            y => {
-
-                return graphY +
-                    graphH -
-                    (
-                        y /
-                        ymax
-                    ) *
-                    graphH;
-            };
-
-        // =====================================================
-        // TICKS X
-        // =====================================================
-
-        const xTicks = 5;
-
-        ctx.font =
-            "11px Arial";
-
-        ctx.fillStyle =
-            "black";
-
-        ctx.textAlign =
-            "center";
-
-        for (
-            let k = 0;
-            k <= xTicks;
-            k++
-        ) {
-
-            const value =
-                tMax *
-                k /
-                xTicks;
-
-            const px =
-                convertX(value);
-
-            ctx.strokeStyle =
-                "#777";
-
-            ctx.beginPath();
-
-            ctx.moveTo(
-                px,
-                graphY + graphH - 5
-            );
-
-            ctx.lineTo(
-                px,
-                graphY + graphH + 5
-            );
-
-            ctx.stroke();
-
-            ctx.fillText(
-                value.toFixed(1),
-                px,
-                graphY + graphH + 20
-            );
-        }
-
-        // =====================================================
-        // TICKS Y
-        // =====================================================
-
-        const yTicks = 5;
-
-        ctx.textAlign =
-            "right";
-
-        for (
-            let k = 0;
-            k <= yTicks;
-            k++
-        ) {
-
-            const value =
-                ymax *
-                k /
-                yTicks;
-
-            const py =
-                convertY(value);
-
-            ctx.strokeStyle =
-                "#777";
-
-            ctx.beginPath();
-
-            ctx.moveTo(
-                graphX - 5,
-                py
-            );
-
-            ctx.lineTo(
-                graphX + 5,
-                py
-            );
-
-            ctx.stroke();
-
-            ctx.fillStyle =
-                "black";
-
-            ctx.fillText(
-                value.toFixed(1),
-                graphX - 10,
-                py + 4
-            );
-
-            if (k > 0) {
-
-                ctx.strokeStyle =
-                    "#eeeeee";
-
-                ctx.beginPath();
-
-                ctx.moveTo(
-                    graphX,
-                    py
-                );
-
-                ctx.lineTo(
-                    graphX + graphW,
-                    py
-                );
-
-                ctx.stroke();
-            }
-        }
-
-        // =====================================================
-        // LABEL X
-        // =====================================================
-
-        ctx.font =
-            "14px Arial";
-
-        ctx.textAlign =
-            "center";
-
-        ctx.fillText(
-            "t [s]",
-            graphX + graphW / 2,
-            graphY + graphH + 45
-        );
-
-        // =====================================================
-        // LABEL Y
-        // =====================================================
-
-        ctx.save();
-
-        ctx.translate(
-            graphX - 45,
-            graphY + graphH / 2
-        );
-
-        ctx.rotate(
-            -Math.PI / 2
-        );
-
-        ctx.fillText(
-            "y [m]",
-            0,
-            0
-        );
-
-        ctx.restore();
-
-        // =====================================================
-        // CLIPPING
-        // =====================================================
-
-        ctx.save();
-
-        ctx.beginPath();
-
-        ctx.rect(
-            graphX,
-            graphY,
-            graphW,
-            graphH
-        );
-
-        ctx.clip();
-
-        // =====================================================
-        // y(t) COM ARRASTO
-        // =====================================================
-
-        ctx.lineWidth = 2;
-
-        ctx.strokeStyle =
-            "#d32f2f";
-
-        ctx.setLineDash([]);
-
-        ctx.beginPath();
-
-        for (
-            let i = 0;
-            i < n;
-            i++
-        ) {
-
-            const px =
-                convertX(
-                    this.timeDrag[i]
-                );
-
-            const py =
-                convertY(
-                    this.yDrag[i]
-                );
-
-            if (i === 0)
-
-                ctx.moveTo(
-                    px,
-                    py
-                );
-
-            else
-
-                ctx.lineTo(
-                    px,
-                    py
-                );
-        }
-
-        ctx.stroke();
-
-        // =====================================================
-        // y(t) IDEAL
-        // =====================================================
-
-        const ni =
-            Math.min(
-                Math.floor(
-                    this.frame *
-                    this.timeIdeal.length /
-                    this.timeDrag.length
-                ) + 1,
-
-                this.timeIdeal.length
-            );
-
-        ctx.strokeStyle =
-            "#1976d2";
-
-        ctx.setLineDash([
-            7,
-            5
-        ]);
-
-        ctx.beginPath();
-
-        for (
-            let i = 0;
-            i < ni;
-            i++
-        ) {
-
-            const px =
-                convertX(
-                    this.timeIdeal[i]
-                );
-
-            const py =
-                convertY(
-                    this.yIdeal[i]
-                );
-
-            if (i === 0)
-
-                ctx.moveTo(
-                    px,
-                    py
-                );
-
-            else
-
-                ctx.lineTo(
-                    px,
-                    py
-                );
-        }
-
-        ctx.stroke();
-
-        ctx.setLineDash([]);
-
-        // =====================================================
-        // FIM DO CLIPPING
-        // =====================================================
-
-        ctx.restore();
-
-        // =====================================================
-        // BORDA NOVAMENTE POR CIMA
-        // =====================================================
-
-        ctx.strokeStyle =
-            "#777";
-
-        ctx.lineWidth = 1;
-
-        ctx.strokeRect(
-            graphX,
-            graphY,
-            graphW,
-            graphH
-        );
-
-        // =====================================================
-        // LEGENDA
-        // =====================================================
-
-        ctx.font =
-            "13px Arial";
-
-        ctx.textAlign =
-            "left";
-
-        ctx.fillStyle =
-            "#d32f2f";
-
-        ctx.fillText(
-            "Com arrasto",
-            graphX + graphW - 120,
-            graphY + 25
-        );
-
-        ctx.fillStyle =
-            "#1976d2";
-
-        ctx.fillText(
-            "Sem arrasto",
-            graphX + graphW - 120,
-            graphY + 45
-        );
     }
 
 
@@ -2043,14 +1559,6 @@ class ProjectileDrag {
         // =====================================================
 
         this.drawTrajectory(
-            ctx
-        );
-
-        // =====================================================
-        // GRÁFICO
-        // =====================================================
-
-        this.drawGraph(
             ctx
         );
 
