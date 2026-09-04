@@ -46,7 +46,7 @@ class InclinedPlaneSolids {
         // PLANO
         // =====================================================
 
-        // Comprimento físico usado apenas nos cálculos
+        // Comprimento físico usado nos cálculos
         this.planeLength = 10;
 
         // Extremidade inferior do plano
@@ -441,15 +441,16 @@ class InclinedPlaneSolids {
     // =========================================================
     // DESENHO DO PLANO
     //
-    // SOMENTE A SUPERFÍCIE É DESENHADA.
+    // Mostra somente:
+    // - superfície inclinada
+    // - base horizontal
+    // - altura vertical
     //
-    // Não há:
+    // Não mostra:
     // - θ
     // - arco de θ
     // - L
-    // - "10 m"
-    // - altura
-    // - base horizontal
+    // - 10 m
     // =========================================================
 
     drawPlane(ctx) {
@@ -458,6 +459,10 @@ class InclinedPlaneSolids {
             this.getPlaneGeometry();
 
         ctx.save();
+
+        // -----------------------------------------------------
+        // SUPERFÍCIE DO PLANO
+        // -----------------------------------------------------
 
         ctx.strokeStyle =
             "#222";
@@ -474,6 +479,50 @@ class InclinedPlaneSolids {
 
         ctx.lineTo(
             plane.x2,
+            plane.y2
+        );
+
+        ctx.stroke();
+
+
+        // -----------------------------------------------------
+        // BASE HORIZONTAL
+        // -----------------------------------------------------
+
+        ctx.strokeStyle =
+            "#888";
+
+        ctx.lineWidth =
+            2;
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            plane.x1,
+            plane.y2
+        );
+
+        ctx.lineTo(
+            plane.x2,
+            plane.y2
+        );
+
+        ctx.stroke();
+
+
+        // -----------------------------------------------------
+        // ALTURA VERTICAL
+        // -----------------------------------------------------
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            plane.x1,
+            plane.y1
+        );
+
+        ctx.lineTo(
+            plane.x1,
             plane.y2
         );
 
@@ -505,7 +554,6 @@ class InclinedPlaneSolids {
             y
         );
 
-        // A face do bloco acompanha o plano
         ctx.rotate(theta);
 
         ctx.fillStyle =
@@ -648,7 +696,6 @@ class InclinedPlaneSolids {
             y
         );
 
-        // Cilindro apoiado no plano
         ctx.rotate(theta);
 
         ctx.fillStyle =
@@ -672,6 +719,7 @@ class InclinedPlaneSolids {
 
         ctx.lineWidth =
             3;
+
 
         // -----------------------------------------------------
         // CORPO
@@ -787,6 +835,7 @@ class InclinedPlaneSolids {
         );
 
         ctx.rotate(theta);
+
 
         // -----------------------------------------------------
         // PARTE EXTERNA
@@ -994,7 +1043,6 @@ class InclinedPlaneSolids {
                     data.x.length - 1
                 );
 
-            // Distância percorrida ao longo do plano
             const physicalX =
                 Math.min(
                     data.x[index],
@@ -1008,6 +1056,7 @@ class InclinedPlaneSolids {
 
             const radius =
                 18;
+
 
             // -------------------------------------------------
             // NORMAL PARA CIMA DO PLANO
@@ -1023,6 +1072,7 @@ class InclinedPlaneSolids {
                 radius *
                 Math.cos(theta);
 
+
             // -------------------------------------------------
             // RASTRO
             // -------------------------------------------------
@@ -1032,6 +1082,7 @@ class InclinedPlaneSolids {
                 solid,
                 index
             );
+
 
             // -------------------------------------------------
             // ROTAÇÃO DE ROLAMENTO
