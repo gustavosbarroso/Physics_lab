@@ -516,23 +516,26 @@ class InclinedPlaneSolids {
 
 
         // -----------------------------------------------------
-        // Ângulo
+        // ÂNGULO
         // -----------------------------------------------------
 
-        ctx.strokeStyle =
-            "#555";
 
-        ctx.lineWidth = 1.5;
+        ctx.strokeStyle =
+        "#388e3c";
+
+        ctx.lineWidth = 2.5;
+
+        const angleRadius = 48;
 
         ctx.beginPath();
 
         ctx.arc(
             plane.x1,
             plane.y1,
-            50,
+            angleRadius,
             0,
             plane.theta
-        );
+            );
 
         ctx.stroke();
 
@@ -550,6 +553,37 @@ class InclinedPlaneSolids {
             plane.x1 + 55,
             plane.y1 + 20
         );
+        // -----------------------------------------------------
+        // MARCAÇÃO DO θ
+        // -----------------------------------------------------
+        const thetaLabelAngle =
+        plane.theta / 2;
+        const thetaLabelRadius =
+        angleRadius + 14;
+        const thetaLabelX =
+        plane.x1 +
+        thetaLabelRadius *
+        Math.cos(thetaLabelAngle);
+        const thetaLabelY =
+        plane.y1 +
+        thetaLabelRadius *
+        Math.sin(thetaLabelAngle);
+        ctx.fillStyle =
+        "#388e3c";
+        ctx.font =
+        "bold 14px Arial";
+        ctx.textAlign =
+        "center";
+        ctx.textBaseline =
+        "middle";
+        ctx.fillText(
+        `θ = ${this.params.theta.toFixed(0)}°`,
+        thetaLabelX,
+        thetaLabelY
+        );
+        ctx.textBaseline =
+        "alphabetic";
+        
 
 
         // -----------------------------------------------------
