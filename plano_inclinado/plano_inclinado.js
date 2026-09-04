@@ -449,7 +449,7 @@ class InclinedPlaneSolids {
         ctx.save();
 
         // -----------------------------------------------------
-        // Superfície
+        // SUPERFÍCIE DO PLANO
         // -----------------------------------------------------
 
         ctx.strokeStyle =
@@ -473,7 +473,7 @@ class InclinedPlaneSolids {
 
 
         // -----------------------------------------------------
-        // Base horizontal
+        // BASE HORIZONTAL
         // -----------------------------------------------------
 
         ctx.strokeStyle =
@@ -497,7 +497,7 @@ class InclinedPlaneSolids {
 
 
         // -----------------------------------------------------
-        // Altura
+        // ALTURA
         // -----------------------------------------------------
 
         ctx.beginPath();
@@ -516,131 +516,12 @@ class InclinedPlaneSolids {
 
 
         // -----------------------------------------------------
-        // ÂNGULO
+        // SEM MARCAÇÃO VISUAL DE θ
         // -----------------------------------------------------
-
-
-        ctx.strokeStyle =
-        "#388e3c";
-
-        ctx.lineWidth = 2.5;
-
-        const angleRadius = 48;
-
-        ctx.beginPath();
-
-        ctx.arc(
-            plane.x1,
-            plane.y1,
-            angleRadius,
-            0,
-            plane.theta
-            );
-
-        ctx.stroke();
-
-        ctx.font =
-            "14px Arial";
-
-        ctx.fillStyle =
-            "black";
-
-        ctx.textAlign =
-            "left";
-
-        ctx.fillText(
-            `θ = ${this.params.theta.toFixed(0)}°`,
-            plane.x1 + 55,
-            plane.y1 + 20
-        );
+        //
+        // O ângulo continua sendo mostrado no HUD.
+        //
         // -----------------------------------------------------
-        // MARCAÇÃO DO θ
-        // -----------------------------------------------------
-        const thetaLabelAngle =
-        plane.theta / 2;
-        const thetaLabelRadius =
-        angleRadius + 14;
-        const thetaLabelX =
-        plane.x1 +
-        thetaLabelRadius *
-        Math.cos(thetaLabelAngle);
-        const thetaLabelY =
-        plane.y1 +
-        thetaLabelRadius *
-        Math.sin(thetaLabelAngle);
-        ctx.fillStyle =
-        "#388e3c";
-        ctx.font =
-        "bold 14px Arial";
-        ctx.textAlign =
-        "center";
-        ctx.textBaseline =
-        "middle";
-        ctx.fillText(
-        `θ = ${this.params.theta.toFixed(0)}°`,
-        thetaLabelX,
-        thetaLabelY
-        );
-        ctx.textBaseline =
-        "alphabetic";
-        
-
-
-        // -----------------------------------------------------
-        // Comprimento
-        // -----------------------------------------------------
-
-        const midX =
-            (plane.x1 + plane.x2) / 2;
-
-        const midY =
-            (plane.y1 + plane.y2) / 2;
-
-        ctx.textAlign =
-            "center";
-
-        ctx.fillText(
-            "L = 10 m",
-            midX,
-            midY - 18
-        );
-
-
-        // -----------------------------------------------------
-        // Marcações
-        // -----------------------------------------------------
-
-        ctx.font =
-            "11px Arial";
-
-        ctx.fillStyle =
-            "#555";
-
-        for (
-            let i = 0;
-            i <= 5;
-            i++
-        ) {
-
-            const fraction =
-                i / 5;
-
-            const px =
-                plane.x1 +
-                fraction *
-                (plane.x2 - plane.x1);
-
-            const py =
-                plane.y1 +
-                fraction *
-                (plane.y2 - plane.y1);
-
-            ctx.fillText(
-                `${i * 2} m`,
-                px,
-                py - 12
-            );
-        }
 
         ctx.restore();
     }
@@ -762,7 +643,9 @@ class InclinedPlaneSolids {
         ctx.stroke();
 
 
-        // Indicador de rotação
+        // -----------------------------------------------------
+        // INDICADOR DE ROTAÇÃO
+        // -----------------------------------------------------
 
         ctx.rotate(rotation);
 
@@ -831,7 +714,9 @@ class InclinedPlaneSolids {
 
         ctx.lineWidth = 3;
 
-        // Corpo
+        // -----------------------------------------------------
+        // CORPO
+        // -----------------------------------------------------
 
         ctx.beginPath();
 
@@ -860,7 +745,9 @@ class InclinedPlaneSolids {
         ctx.stroke();
 
 
-        // Faces
+        // -----------------------------------------------------
+        // FACES
+        // -----------------------------------------------------
 
         ctx.beginPath();
 
@@ -891,7 +778,9 @@ class InclinedPlaneSolids {
         ctx.stroke();
 
 
-        // Indicador de rotação
+        // -----------------------------------------------------
+        // INDICADOR DE ROTAÇÃO
+        // -----------------------------------------------------
 
         ctx.save();
 
@@ -940,7 +829,9 @@ class InclinedPlaneSolids {
 
         ctx.rotate(theta);
 
-        // Parte externa
+        // -----------------------------------------------------
+        // PARTE EXTERNA
+        // -----------------------------------------------------
 
         ctx.strokeStyle =
             color;
@@ -960,7 +851,9 @@ class InclinedPlaneSolids {
         ctx.stroke();
 
 
-        // Interior
+        // -----------------------------------------------------
+        // INTERIOR
+        // -----------------------------------------------------
 
         ctx.strokeStyle =
             "white";
@@ -980,7 +873,9 @@ class InclinedPlaneSolids {
         ctx.stroke();
 
 
-        // Borda interna
+        // -----------------------------------------------------
+        // BORDA INTERNA
+        // -----------------------------------------------------
 
         ctx.strokeStyle =
             color;
@@ -1000,7 +895,9 @@ class InclinedPlaneSolids {
         ctx.stroke();
 
 
-        // Indicador de rotação
+        // -----------------------------------------------------
+        // INDICADOR DE ROTAÇÃO
+        // -----------------------------------------------------
 
         ctx.rotate(rotation);
 
@@ -1141,7 +1038,10 @@ class InclinedPlaneSolids {
 
             const radius = 18;
 
-            // Normal para cima do plano
+            // -------------------------------------------------
+            // NORMAL PARA CIMA DO PLANO
+            // -------------------------------------------------
+
             const x =
                 pos.x +
                 radius * Math.sin(theta);
@@ -1150,7 +1050,9 @@ class InclinedPlaneSolids {
                 pos.y -
                 radius * Math.cos(theta);
 
-            // Rastro
+            // -------------------------------------------------
+            // RASTRO
+            // -------------------------------------------------
 
             this.drawTrail(
                 ctx,
@@ -1158,7 +1060,9 @@ class InclinedPlaneSolids {
                 index
             );
 
-            // Rotação de rolamento
+            // -------------------------------------------------
+            // ROTAÇÃO DE ROLAMENTO
+            // -------------------------------------------------
 
             const rotation =
                 physicalX / radius;
@@ -1268,7 +1172,7 @@ class InclinedPlaneSolids {
 
 
         // -----------------------------------------------------
-        // Eixo X
+        // EIXO X
         // -----------------------------------------------------
 
         for (
@@ -1322,7 +1226,7 @@ class InclinedPlaneSolids {
 
 
         // -----------------------------------------------------
-        // Eixo Y
+        // EIXO Y
         // -----------------------------------------------------
 
         for (
@@ -1450,6 +1354,10 @@ class InclinedPlaneSolids {
             ctx.stroke();
 
 
+            // -------------------------------------------------
+            // PONTO ATUAL
+            // -------------------------------------------------
+
             const current =
                 n - 1;
 
@@ -1508,7 +1416,7 @@ class InclinedPlaneSolids {
 
 
         // -----------------------------------------------------
-        // TÍTULOS
+        // TÍTULO EIXO X
         // -----------------------------------------------------
 
         ctx.fillStyle =
@@ -1526,6 +1434,10 @@ class InclinedPlaneSolids {
             y + h + 45
         );
 
+
+        // -----------------------------------------------------
+        // TÍTULO EIXO Y
+        // -----------------------------------------------------
 
         ctx.save();
 
@@ -1602,7 +1514,7 @@ class InclinedPlaneSolids {
 
 
         // -----------------------------------------------------
-        // HUD ABAIXO DO TÍTULO
+        // HUD
         // -----------------------------------------------------
 
         const x = 20;
@@ -1636,6 +1548,10 @@ class InclinedPlaneSolids {
         ctx.stroke();
 
 
+        // -----------------------------------------------------
+        // TÍTULO
+        // -----------------------------------------------------
+
         ctx.fillStyle =
             "black";
 
@@ -1651,6 +1567,10 @@ class InclinedPlaneSolids {
             y + 20
         );
 
+
+        // -----------------------------------------------------
+        // PARÂMETROS
+        // -----------------------------------------------------
 
         ctx.font =
             "12px Arial";
@@ -1673,6 +1593,10 @@ class InclinedPlaneSolids {
             y + 78
         );
 
+
+        // -----------------------------------------------------
+        // ACELERAÇÕES
+        // -----------------------------------------------------
 
         ctx.fillStyle =
             "#7b1fa2";
