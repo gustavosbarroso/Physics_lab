@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <title>
+        Plano Inclinado — Sólidos
+    </title>
+
+    <style>
+
+        body {
+            margin: 0;
+            padding: 30px 0;
+            background: #f5f5f5;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+
+        .simulation-container {
+            width: 1200px;
+            max-width: 95%;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            box-sizing: border-box;
+            border-radius: 8px;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            margin: 0 auto;
+            border: 1px solid #ddd;
+            box-sizing: border-box;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+    <div class="simulation-container">
+
+        <canvas
+            id="inclinedPlaneCanvas"
+            width="1200"
+            height="550">
+        </canvas>
+
+    </div>
+
+
+    <script src="plano_inclinado.js"></script>
+
+
+    <script>
+
+        const canvas =
+            document.getElementById(
+                "inclinedPlaneCanvas"
+            );
+
+        const simulation =
+            new InclinedPlaneSolids(
+                canvas
+            );
+
+    </script>
+
+</body>
+
+</html>
