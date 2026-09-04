@@ -46,14 +46,11 @@ class InclinedPlaneSolids {
         // PLANO
         // =====================================================
 
-        // Comprimento físico usado nos cálculos
         this.planeLength = 10;
 
-        // Extremidade inferior do plano
         this.planeBottomX = 580;
         this.planeBottomY = 470;
 
-        // Comprimento visual da superfície inclinada
         this.planePixelLength = 400;
 
         // =====================================================
@@ -366,10 +363,18 @@ class InclinedPlaneSolids {
     // =========================================================
     // GEOMETRIA DO PLANO
     //
-    // distance = 0  -> topo
-    // distance = 10 -> base
+    // O triângulo retângulo possui:
     //
-    // Portanto x crescente significa DESCIDA.
+    //              topo
+    //                ●
+    //                |\
+    //                | \
+    //                |  \  hipotenusa
+    //                |   \
+    //                |    \
+    //                ●-----●
+    //              cateto  base
+    //
     // =========================================================
 
     getPlaneGeometry() {
@@ -441,18 +446,13 @@ class InclinedPlaneSolids {
     // =========================================================
     // DESENHO DO PLANO
     //
-    // Mostra os dois catetos:
-    // - base horizontal
-    // - altura vertical
+    // TRIÂNGULO RETÂNGULO COMPLETO
     //
-    // E a hipotenusa:
-    // - superfície inclinada
+    // 1. Cateto vertical
+    // 2. Cateto horizontal
+    // 3. Hipotenusa
     //
-    // Não mostra:
-    // - θ
-    // - arco de θ
-    // - L
-    // - 10 m
+    // Nenhuma marcação de θ ou L.
     // =========================================================
 
     drawPlane(ctx) {
@@ -460,55 +460,91 @@ class InclinedPlaneSolids {
         const plane =
             this.getPlaneGeometry();
 
+
+        // =====================================================
+        // PREENCHIMENTO DO TRIÂNGULO
+        // =====================================================
+
         ctx.save();
 
-        // -----------------------------------------------------
-        // TRIÂNGULO DO PLANO
-        // -----------------------------------------------------
+        ctx.fillStyle =
+            "rgba(220, 220, 220, 0.30)";
 
         ctx.beginPath();
 
-        // Topo da superfície inclinada
         ctx.moveTo(
             plane.x1,
             plane.y1
         );
 
-        // Base da superfície
-        ctx.lineTo(
-            plane.x2,
-            plane.y2
-        );
-
-        // Cateto horizontal
         ctx.lineTo(
             plane.x1,
             plane.y2
         );
 
-        // Fecha o triângulo
+        ctx.lineTo(
+            plane.x2,
+            plane.y2
+        );
+
         ctx.closePath();
-
-
-        // -----------------------------------------------------
-        // PREENCHIMENTO SUAVE DO TRIÂNGULO
-        // -----------------------------------------------------
-
-        ctx.fillStyle =
-            "rgba(220,220,220,0.25)";
 
         ctx.fill();
 
 
-        // -----------------------------------------------------
-        // HIPOTENUSA — SUPERFÍCIE INCLINADA
-        // -----------------------------------------------------
+        // =====================================================
+        // CATETO VERTICAL
+        // =====================================================
+
+        ctx.strokeStyle =
+            "#555";
+
+        ctx.lineWidth =
+            3;
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            plane.x1,
+            plane.y1
+        );
+
+        ctx.lineTo(
+            plane.x1,
+            plane.y2
+        );
+
+        ctx.stroke();
+
+
+        // =====================================================
+        // CATETO HORIZONTAL
+        // =====================================================
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            plane.x1,
+            plane.y2
+        );
+
+        ctx.lineTo(
+            plane.x2,
+            plane.y2
+        );
+
+        ctx.stroke();
+
+
+        // =====================================================
+        // HIPOTENUSA — PLANO INCLINADO
+        // =====================================================
 
         ctx.strokeStyle =
             "#222";
 
         ctx.lineWidth =
-            4;
+            5;
 
         ctx.beginPath();
 
@@ -519,50 +555,6 @@ class InclinedPlaneSolids {
 
         ctx.lineTo(
             plane.x2,
-            plane.y2
-        );
-
-        ctx.stroke();
-
-
-        // -----------------------------------------------------
-        // CATETO HORIZONTAL — BASE
-        // -----------------------------------------------------
-
-        ctx.strokeStyle =
-            "#888";
-
-        ctx.lineWidth =
-            2;
-
-        ctx.beginPath();
-
-        ctx.moveTo(
-            plane.x1,
-            plane.y2
-        );
-
-        ctx.lineTo(
-            plane.x2,
-            plane.y2
-        );
-
-        ctx.stroke();
-
-
-        // -----------------------------------------------------
-        // CATETO VERTICAL — ALTURA
-        // -----------------------------------------------------
-
-        ctx.beginPath();
-
-        ctx.moveTo(
-            plane.x1,
-            plane.y1
-        );
-
-        ctx.lineTo(
-            plane.x1,
             plane.y2
         );
 
@@ -690,10 +682,7 @@ class InclinedPlaneSolids {
         ctx.stroke();
 
 
-        // -----------------------------------------------------
-        // INDICADOR DE ROTAÇÃO
-        // -----------------------------------------------------
-
+        // Indicador de rotação
         ctx.rotate(rotation);
 
         ctx.beginPath();
@@ -762,10 +751,7 @@ class InclinedPlaneSolids {
             3;
 
 
-        // -----------------------------------------------------
-        // CORPO
-        // -----------------------------------------------------
-
+        // Corpo
         ctx.beginPath();
 
         ctx.moveTo(
@@ -793,10 +779,7 @@ class InclinedPlaneSolids {
         ctx.stroke();
 
 
-        // -----------------------------------------------------
-        // FACES
-        // -----------------------------------------------------
-
+        // Faces
         ctx.beginPath();
 
         ctx.ellipse(
@@ -826,10 +809,7 @@ class InclinedPlaneSolids {
         ctx.stroke();
 
 
-        // -----------------------------------------------------
-        // INDICADOR DE ROTAÇÃO
-        // -----------------------------------------------------
-
+        // Indicador de rotação
         ctx.save();
 
         ctx.rotate(rotation);
@@ -878,10 +858,7 @@ class InclinedPlaneSolids {
         ctx.rotate(theta);
 
 
-        // -----------------------------------------------------
-        // PARTE EXTERNA
-        // -----------------------------------------------------
-
+        // Parte externa
         ctx.strokeStyle =
             color;
 
@@ -901,10 +878,7 @@ class InclinedPlaneSolids {
         ctx.stroke();
 
 
-        // -----------------------------------------------------
-        // INTERIOR
-        // -----------------------------------------------------
-
+        // Interior
         ctx.strokeStyle =
             "white";
 
@@ -924,10 +898,7 @@ class InclinedPlaneSolids {
         ctx.stroke();
 
 
-        // -----------------------------------------------------
-        // BORDA INTERNA
-        // -----------------------------------------------------
-
+        // Borda interna
         ctx.strokeStyle =
             color;
 
@@ -947,10 +918,7 @@ class InclinedPlaneSolids {
         ctx.stroke();
 
 
-        // -----------------------------------------------------
-        // INDICADOR DE ROTAÇÃO
-        // -----------------------------------------------------
-
+        // Indicador de rotação
         ctx.rotate(rotation);
 
         ctx.lineWidth =
@@ -1030,7 +998,6 @@ class InclinedPlaneSolids {
                     physicalX
                 );
 
-            // Normal para fora do plano
             const px =
                 pos.x +
                 18 * Math.sin(theta);
@@ -1040,16 +1007,20 @@ class InclinedPlaneSolids {
                 18 * Math.cos(theta);
 
             if (i === 0) {
+
                 ctx.moveTo(
                     px,
                     py
                 );
+
             }
             else {
+
                 ctx.lineTo(
                     px,
                     py
                 );
+
             }
         }
 
@@ -1099,10 +1070,7 @@ class InclinedPlaneSolids {
                 18;
 
 
-            // -------------------------------------------------
-            // NORMAL PARA CIMA DO PLANO
-            // -------------------------------------------------
-
+            // Normal para cima do plano
             const x =
                 pos.x +
                 radius *
@@ -1114,10 +1082,7 @@ class InclinedPlaneSolids {
                 Math.cos(theta);
 
 
-            // -------------------------------------------------
-            // RASTRO
-            // -------------------------------------------------
-
+            // Rastro
             this.drawTrail(
                 ctx,
                 solid,
@@ -1125,10 +1090,7 @@ class InclinedPlaneSolids {
             );
 
 
-            // -------------------------------------------------
-            // ROTAÇÃO DE ROLAMENTO
-            // -------------------------------------------------
-
+            // Rotação
             const rotation =
                 physicalX / radius;
 
@@ -1144,6 +1106,7 @@ class InclinedPlaneSolids {
                     theta,
                     solid.color
                 );
+
             }
 
             else if (
@@ -1158,6 +1121,7 @@ class InclinedPlaneSolids {
                     rotation,
                     solid.color
                 );
+
             }
 
             else if (
@@ -1173,6 +1137,7 @@ class InclinedPlaneSolids {
                     theta,
                     solid.color
                 );
+
             }
 
             else if (
@@ -1188,6 +1153,7 @@ class InclinedPlaneSolids {
                     theta,
                     solid.color
                 );
+
             }
 
         });
@@ -1236,10 +1202,7 @@ class InclinedPlaneSolids {
             "11px Arial";
 
 
-        // -----------------------------------------------------
-        // EIXO X
-        // -----------------------------------------------------
-
+        // Eixo X
         for (
             let i = 0;
             i <= xTicks;
@@ -1291,10 +1254,7 @@ class InclinedPlaneSolids {
         }
 
 
-        // -----------------------------------------------------
-        // EIXO Y
-        // -----------------------------------------------------
-
+        // Eixo Y
         for (
             let i = 0;
             i <= yTicks;
@@ -1346,10 +1306,7 @@ class InclinedPlaneSolids {
         }
 
 
-        // -----------------------------------------------------
-        // CURVAS
-        // -----------------------------------------------------
-
+        // Curvas
         ctx.save();
 
         ctx.beginPath();
@@ -1411,26 +1368,27 @@ class InclinedPlaneSolids {
                     h;
 
                 if (i === 0) {
+
                     ctx.moveTo(
                         px,
                         py
                     );
+
                 }
                 else {
+
                     ctx.lineTo(
                         px,
                         py
                     );
+
                 }
             }
 
             ctx.stroke();
 
 
-            // -------------------------------------------------
-            // PONTO ATUAL
-            // -------------------------------------------------
-
+            // Ponto atual
             const current =
                 n - 1;
 
@@ -1471,10 +1429,7 @@ class InclinedPlaneSolids {
         ctx.restore();
 
 
-        // -----------------------------------------------------
-        // BORDA
-        // -----------------------------------------------------
-
+        // Borda
         ctx.strokeStyle =
             "#777";
 
@@ -1489,10 +1444,7 @@ class InclinedPlaneSolids {
         );
 
 
-        // -----------------------------------------------------
-        // TÍTULO EIXO X
-        // -----------------------------------------------------
-
+        // Eixo X
         ctx.fillStyle =
             "black";
 
@@ -1509,10 +1461,7 @@ class InclinedPlaneSolids {
         );
 
 
-        // -----------------------------------------------------
-        // TÍTULO EIXO Y
-        // -----------------------------------------------------
-
+        // Eixo Y
         ctx.save();
 
         ctx.translate(
@@ -1533,10 +1482,7 @@ class InclinedPlaneSolids {
         ctx.restore();
 
 
-        // -----------------------------------------------------
-        // LEGENDA
-        // -----------------------------------------------------
-
+        // Legenda
         ctx.font =
             "12px Arial";
 
@@ -1587,10 +1533,6 @@ class InclinedPlaneSolids {
             this.acceleration(1);
 
 
-        // -----------------------------------------------------
-        // HUD
-        // -----------------------------------------------------
-
         const x = 20;
         const y = 55;
 
@@ -1623,10 +1565,7 @@ class InclinedPlaneSolids {
         ctx.stroke();
 
 
-        // -----------------------------------------------------
-        // TÍTULO
-        // -----------------------------------------------------
-
+        // Título
         ctx.fillStyle =
             "black";
 
@@ -1643,10 +1582,7 @@ class InclinedPlaneSolids {
         );
 
 
-        // -----------------------------------------------------
-        // PARÂMETROS
-        // -----------------------------------------------------
-
+        // Parâmetros
         ctx.font =
             "12px Arial";
 
@@ -1669,10 +1605,7 @@ class InclinedPlaneSolids {
         );
 
 
-        // -----------------------------------------------------
-        // ACELERAÇÕES
-        // -----------------------------------------------------
-
+        // Acelerações
         ctx.fillStyle =
             "#7b1fa2";
 
@@ -1751,10 +1684,7 @@ class InclinedPlaneSolids {
         );
 
 
-        // =====================================================
-        // TÍTULO
-        // =====================================================
-
+        // Título
         ctx.fillStyle =
             "black";
 
@@ -1762,4 +1692,110 @@ class InclinedPlaneSolids {
             "bold 20px Arial";
 
         ctx.textAlign =
-            "center
+            "center";
+
+        ctx.fillText(
+            "Descida de sólidos em um plano inclinado",
+            330,
+            30
+        );
+
+
+        // Elementos
+        this.drawPlane(ctx);
+
+        this.drawSolids(ctx);
+
+        this.drawGraph(ctx);
+
+        this.drawHUD(ctx);
+    }
+
+
+    // =========================================================
+    // INICIAR
+    // =========================================================
+
+    iniciar() {
+
+        if (this.running) {
+            return;
+        }
+
+        this.running = true;
+
+        const loop = () => {
+
+            if (!this.running) {
+                return;
+            }
+
+            this.draw();
+
+            this.frame +=
+                this.animationSpeed;
+
+            if (
+                this.frame >=
+                this.totalFrames
+            ) {
+
+                this.frame = 0;
+            }
+
+            requestAnimationFrame(
+                loop
+            );
+        };
+
+        loop();
+    }
+
+
+    // =========================================================
+    // PARAR
+    // =========================================================
+
+    parar() {
+
+        this.running = false;
+    }
+
+
+    // =========================================================
+    // ATUALIZAR PARÂMETROS
+    // =========================================================
+
+    atualizarParametros(
+        newParams
+    ) {
+
+        this.params = {
+            ...this.params,
+            ...newParams
+        };
+
+        Object.keys(newParams)
+            .forEach(key => {
+
+                if (
+                    this.sliders[key]
+                ) {
+
+                    this.sliders[key].value =
+                        newParams[key];
+
+                    const event =
+                        new Event("input");
+
+                    this.sliders[key]
+                        .dispatchEvent(event);
+                }
+            });
+
+        this.solve();
+
+        this.draw();
+    }
+}
+
