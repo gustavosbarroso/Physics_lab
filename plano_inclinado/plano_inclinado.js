@@ -47,6 +47,16 @@ class InclinedPlaneSolids {
         ];
 
         // =====================================================
+        // PLANO
+        // =====================================================
+
+        this.planeLength = 10;
+
+        this.planeX = 80;
+        this.planeY = 440;
+        this.planePixelLength = 500;
+
+        // =====================================================
         // INTEGRAÇÃO
         // =====================================================
 
@@ -77,21 +87,13 @@ class InclinedPlaneSolids {
         this.animationSpeed = 1;
 
         // =====================================================
-        // GEOMETRIA DO PLANO
-        // =====================================================
-
-        this.planeX = 70;
-        this.planeY = 450;
-        this.planeLength = 520;
-
-        // =====================================================
         // GRÁFICO
         // =====================================================
 
-        this.graphX = 680;
+        this.graphX = 650;
         this.graphY = 80;
-        this.graphW = 450;
-        this.graphH = 370;
+        this.graphW = 480;
+        this.graphH = 360;
 
         // =====================================================
         // CONTROLES
@@ -132,7 +134,7 @@ class InclinedPlaneSolids {
 
 
     // =========================================================
-    // SOLUÇÃO ANALÍTICA
+    // SOLUÇÃO
     // =========================================================
 
     solve() {
@@ -210,9 +212,6 @@ class InclinedPlaneSolids {
                 maxX * 1.10,
                 1
             );
-
-        this.tGraphMax =
-            this.tMax;
     }
 
 
@@ -228,7 +227,6 @@ class InclinedPlaneSolids {
             );
 
         if (old) {
-
             old.remove();
         }
 
@@ -374,7 +372,6 @@ class InclinedPlaneSolids {
                         );
 
                     this.solve();
-
                     this.draw();
                 }
             );
@@ -385,7 +382,6 @@ class InclinedPlaneSolids {
             row.appendChild(value);
 
             container.appendChild(row);
-
 
             this.sliders[
                 config.name
@@ -401,7 +397,7 @@ class InclinedPlaneSolids {
 
 
     // =========================================================
-    // COORDENADAS DO PLANO
+    // GEOMETRIA DO PLANO
     // =========================================================
 
     getPlaneGeometry() {
@@ -418,12 +414,12 @@ class InclinedPlaneSolids {
 
         const x2 =
             x1 +
-            this.planeLength *
+            this.planePixelLength *
             Math.cos(theta);
 
         const y2 =
             y1 -
-            this.planeLength *
+            this.planePixelLength *
             Math.sin(theta);
 
         return {
@@ -446,10 +442,13 @@ class InclinedPlaneSolids {
             this.getPlaneGeometry();
 
         const fraction =
-            Math.min(
-                distance /
-                this.planeLength,
-                1
+            Math.max(
+                0,
+                Math.min(
+                    distance /
+                    this.planeLength,
+                    1
+                )
             );
 
         return {
@@ -457,18 +456,12 @@ class InclinedPlaneSolids {
             x:
                 plane.x1 +
                 fraction *
-                (
-                    plane.x2 -
-                    plane.x1
-                ),
+                (plane.x2 - plane.x1),
 
             y:
                 plane.y1 +
                 fraction *
-                (
-                    plane.y2 -
-                    plane.y1
-                )
+                (plane.y2 - plane.y1)
         };
     }
 
@@ -493,7 +486,7 @@ class InclinedPlaneSolids {
         ctx.strokeStyle =
             "#222";
 
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 4;
 
         ctx.beginPath();
 
@@ -515,7 +508,7 @@ class InclinedPlaneSolids {
         // -----------------------------------------------------
 
         ctx.strokeStyle =
-            "#777";
+            "#888";
 
         ctx.lineWidth = 2;
 
@@ -557,8 +550,6 @@ class InclinedPlaneSolids {
         // Ângulo
         // -----------------------------------------------------
 
-        const arcRadius = 55;
-
         ctx.strokeStyle =
             "#555";
 
@@ -569,7 +560,7 @@ class InclinedPlaneSolids {
         ctx.arc(
             plane.x1,
             plane.y1,
-            arcRadius,
+            55,
             -plane.theta,
             0
         );
@@ -611,23 +602,92 @@ class InclinedPlaneSolids {
         );
 
 
+        // -----------------------------------------------------
+        // Marcações do plano
+        // -----------------------------------------------------
+
+        ctx.font =
+            "11px Arial";
+
+        ctx.fillStyle =
+            "#555";
+
+
+        for (
+            let i = 0;
+            i <= 5;
+            i++
+        ) {
+
+            const fraction =
+                i / 5;
+
+            const px =
+                plane.x1 +
+                fraction *
+                (plane.x2 - plane.x1);
+
+            const py =
+                plane.y1 +
+                fraction *
+                (plane.y2 - plane.y1);
+
+            ctx.fillText(
+                `${i * 2} m`,
+                px,
+                py + 25
+            );
+        }
+
+
         ctx.restore();
     }
 
 
     // =========================================================
-    // DESENHO DO BLOCO
+    // BLOCO
     // =========================================================
 
-    drawBlock(ctx, x, y, angle, color) {
+    drawBlock(
+        ctx,
+        x,
+        y,
+        theta,
+        color
+    ) {
 
-        const size = 26;
+        const width = 32;
+        const height = 32;
 
         ctx.save();
 
-        ctx.translate(x, y);
+        ctx.translate(
+            x,
+            y
+        );
 
-        ctx.rotate(-angle);
+        // O bloco não gira:
+        // ele desliza pelo plano.
+
+        ctx.rotate(
+            -theta
+        );
+
+        ctx.fillStyle =
+            color;
+
+        ctx.globalAlpha =
+            0.18;
+
+        ctx.fillRect(
+            -width / 2,
+            -height / 2,
+            width,
+            height
+        );
+
+        ctx.globalAlpha =
+            1;
 
         ctx.strokeStyle =
             color;
@@ -635,10 +695,10 @@ class InclinedPlaneSolids {
         ctx.lineWidth = 3;
 
         ctx.strokeRect(
-            -size / 2,
-            -size / 2,
-            size,
-            size
+            -width / 2,
+            -height / 2,
+            width,
+            height
         );
 
         ctx.restore();
@@ -646,27 +706,49 @@ class InclinedPlaneSolids {
 
 
     // =========================================================
-    // DESENHO DOS CORPOS ROLANTES
+    // ESFERA
     // =========================================================
 
-    drawRollingBody(
+    drawSphere(
         ctx,
         x,
         y,
         radius,
-        angle,
-        color,
-        type
+        rotation,
+        color
     ) {
 
         ctx.save();
 
-        ctx.translate(x, y);
+        ctx.translate(
+            x,
+            y
+        );
 
 
-        // -----------------------------------------------------
-        // Corpo
-        // -----------------------------------------------------
+        // corpo
+
+        ctx.fillStyle =
+            color;
+
+        ctx.globalAlpha =
+            0.12;
+
+        ctx.beginPath();
+
+        ctx.arc(
+            0,
+            0,
+            radius,
+            0,
+            2 * Math.PI
+        );
+
+        ctx.fill();
+
+        ctx.globalAlpha =
+            1;
+
 
         ctx.strokeStyle =
             color;
@@ -686,102 +768,25 @@ class InclinedPlaneSolids {
         ctx.stroke();
 
 
-        // -----------------------------------------------------
-        // Marcação de rotação
-        // -----------------------------------------------------
+        // meridiano
 
-        if (
-            type === "sphere" ||
-            type === "cylinder" ||
-            type === "ring"
-        ) {
+        ctx.rotate(
+            rotation
+        );
 
-            ctx.rotate(
-                angle
-            );
+        ctx.beginPath();
 
+        ctx.ellipse(
+            0,
+            0,
+            radius * 0.38,
+            radius,
+            0,
+            0,
+            2 * Math.PI
+        );
 
-            if (type === "sphere") {
-
-                ctx.beginPath();
-
-                ctx.arc(
-                    0,
-                    0,
-                    radius * 0.55,
-                    0,
-                    Math.PI * 2
-                );
-
-                ctx.stroke();
-
-
-                ctx.beginPath();
-
-                ctx.moveTo(
-                    -radius * 0.75,
-                    0
-                );
-
-                ctx.lineTo(
-                    radius * 0.75,
-                    0
-                );
-
-                ctx.stroke();
-
-
-            } else if (
-                type === "cylinder"
-            ) {
-
-                ctx.beginPath();
-
-                ctx.moveTo(
-                    -radius * 0.75,
-                    0
-                );
-
-                ctx.lineTo(
-                    radius * 0.75,
-                    0
-                );
-
-                ctx.stroke();
-
-
-            } else if (
-                type === "ring"
-            ) {
-
-                ctx.beginPath();
-
-                ctx.arc(
-                    0,
-                    0,
-                    radius * 0.45,
-                    0,
-                    2 * Math.PI
-                );
-
-                ctx.stroke();
-
-
-                ctx.beginPath();
-
-                ctx.moveTo(
-                    0,
-                    -radius * 0.8
-                );
-
-                ctx.lineTo(
-                    0,
-                    radius * 0.8
-                );
-
-                ctx.stroke();
-            }
-        }
+        ctx.stroke();
 
 
         ctx.restore();
@@ -789,7 +794,270 @@ class InclinedPlaneSolids {
 
 
     // =========================================================
-    // DESENHO DO RASTRO
+    // CILINDRO
+    // =========================================================
+
+    drawCylinder(
+        ctx,
+        x,
+        y,
+        radius,
+        rotation,
+        theta,
+        color
+    ) {
+
+        const length = 32;
+
+        ctx.save();
+
+        ctx.translate(
+            x,
+            y
+        );
+
+        ctx.rotate(
+            -theta
+        );
+
+
+        // -----------------------------------------------------
+        // Corpo cilíndrico
+        // -----------------------------------------------------
+
+        ctx.fillStyle =
+            color;
+
+        ctx.globalAlpha =
+            0.12;
+
+        ctx.fillRect(
+            -length / 2,
+            -radius,
+            length,
+            2 * radius
+        );
+
+        ctx.globalAlpha =
+            1;
+
+
+        ctx.strokeStyle =
+            color;
+
+        ctx.lineWidth = 3;
+
+
+        // corpo
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            -length / 2,
+            -radius
+        );
+
+        ctx.lineTo(
+            length / 2,
+            -radius
+        );
+
+        ctx.lineTo(
+            length / 2,
+            radius
+        );
+
+        ctx.lineTo(
+            -length / 2,
+            radius
+        );
+
+        ctx.closePath();
+
+        ctx.stroke();
+
+
+        // faces
+
+        ctx.beginPath();
+
+        ctx.ellipse(
+            -length / 2,
+            0,
+            5,
+            radius,
+            0,
+            0,
+            2 * Math.PI
+        );
+
+        ctx.stroke();
+
+
+        ctx.beginPath();
+
+        ctx.ellipse(
+            length / 2,
+            0,
+            5,
+            radius,
+            0,
+            0,
+            2 * Math.PI
+        );
+
+        ctx.stroke();
+
+
+        // eixo/indicação de rotação
+
+        ctx.save();
+
+        ctx.translate(
+            0,
+            0
+        );
+
+        ctx.rotate(
+            rotation
+        );
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            -radius * 0.75,
+            0
+        );
+
+        ctx.lineTo(
+            radius * 0.75,
+            0
+        );
+
+        ctx.stroke();
+
+        ctx.restore();
+
+
+        ctx.restore();
+    }
+
+
+    // =========================================================
+    // ANEL
+    // =========================================================
+
+    drawRing(
+        ctx,
+        x,
+        y,
+        radius,
+        rotation,
+        theta,
+        color
+    ) {
+
+        ctx.save();
+
+        ctx.translate(
+            x,
+            y
+        );
+
+        ctx.rotate(
+            -theta
+        );
+
+
+        // anel externo
+
+        ctx.strokeStyle =
+            color;
+
+        ctx.lineWidth = 5;
+
+        ctx.beginPath();
+
+        ctx.arc(
+            0,
+            0,
+            radius,
+            0,
+            2 * Math.PI
+        );
+
+        ctx.stroke();
+
+
+        // abertura interna
+
+        ctx.strokeStyle =
+            "white";
+
+        ctx.lineWidth = 8;
+
+        ctx.beginPath();
+
+        ctx.arc(
+            0,
+            0,
+            radius * 0.48,
+            0,
+            2 * Math.PI
+        );
+
+        ctx.stroke();
+
+
+        // borda interna
+
+        ctx.strokeStyle =
+            color;
+
+        ctx.lineWidth = 2;
+
+        ctx.beginPath();
+
+        ctx.arc(
+            0,
+            0,
+            radius * 0.48,
+            0,
+            2 * Math.PI
+        );
+
+        ctx.stroke();
+
+
+        // marca de rotação
+
+        ctx.rotate(
+            rotation
+        );
+
+        ctx.lineWidth = 2;
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            0,
+            -radius * 0.8
+        );
+
+        ctx.lineTo(
+            0,
+            radius * 0.8
+        );
+
+        ctx.stroke();
+
+
+        ctx.restore();
+    }
+
+
+    // =========================================================
+    // RASTRO
     // =========================================================
 
     drawTrail(
@@ -797,6 +1065,11 @@ class InclinedPlaneSolids {
         solid,
         frame
     ) {
+
+        if (frame < 1) {
+            return;
+        }
+
 
         const data =
             this.data[solid.name];
@@ -806,14 +1079,6 @@ class InclinedPlaneSolids {
 
         const theta =
             plane.theta;
-
-        const radius = 16;
-
-
-        if (frame < 1) {
-
-            return;
-        }
 
 
         ctx.save();
@@ -826,6 +1091,11 @@ class InclinedPlaneSolids {
 
         ctx.lineWidth = 2;
 
+        ctx.setLineDash([
+            4,
+            4
+        ]);
+
         ctx.beginPath();
 
 
@@ -836,11 +1106,16 @@ class InclinedPlaneSolids {
             i++
         ) {
 
+            const physicalX =
+                Math.min(
+                    data.x[i],
+                    this.planeLength
+                );
+
+
             const pos =
                 this.positionOnPlane(
-                    data.x[i] *
-                    this.planeLength /
-                    this.xMax
+                    physicalX
                 );
 
 
@@ -849,7 +1124,7 @@ class InclinedPlaneSolids {
 
             const py =
                 pos.y -
-                radius *
+                18 *
                 Math.cos(theta);
 
 
@@ -872,25 +1147,30 @@ class InclinedPlaneSolids {
 
         ctx.stroke();
 
+        ctx.setLineDash([]);
+
         ctx.restore();
     }
 
 
     // =========================================================
-    // DESENHO DOS SÓLIDOS
+    // SÓLIDOS
     // =========================================================
 
     drawSolids(ctx) {
 
+        const plane =
+            this.getPlaneGeometry();
+
         const theta =
-            this.params.theta *
-            Math.PI / 180;
+            plane.theta;
 
 
         this.solids.forEach(solid => {
 
             const data =
                 this.data[solid.name];
+
 
             const index =
                 Math.min(
@@ -900,32 +1180,23 @@ class InclinedPlaneSolids {
 
 
             const physicalX =
-                data.x[index];
-
-
-            // Converte a posição física
-            // para a extensão visual do plano.
-
-            const distance =
-                (
-                    physicalX /
-                    this.xMax
-                ) *
-                this.planeLength;
+                Math.min(
+                    data.x[index],
+                    this.planeLength
+                );
 
 
             const pos =
                 this.positionOnPlane(
-                    distance
+                    physicalX
                 );
 
 
-            const radius = 16;
+            const radius = 18;
 
 
             // deslocamento perpendicular
-            // ao plano para colocar o corpo
-            // sobre a superfície.
+            // à superfície
 
             const offsetX =
                 radius *
@@ -957,7 +1228,16 @@ class InclinedPlaneSolids {
 
 
             // -------------------------------------------------
-            // Corpo
+            // Rotação
+            // -------------------------------------------------
+
+            const rotation =
+                physicalX /
+                radius;
+
+
+            // -------------------------------------------------
+            // Forma correspondente
             // -------------------------------------------------
 
             if (
@@ -972,25 +1252,51 @@ class InclinedPlaneSolids {
                     solid.color
                 );
 
-            } else {
+            }
 
-                // ângulo de rotação:
-                //
-                // φ = s/R
+            else if (
+                solid.type === "sphere"
+            ) {
 
-                const rotation =
-                    physicalX /
-                    radius;
-
-
-                this.drawRollingBody(
+                this.drawSphere(
                     ctx,
                     x,
                     y,
                     radius,
                     rotation,
-                    solid.color,
-                    solid.type
+                    solid.color
+                );
+
+            }
+
+            else if (
+                solid.type === "cylinder"
+            ) {
+
+                this.drawCylinder(
+                    ctx,
+                    x,
+                    y,
+                    radius,
+                    rotation,
+                    theta,
+                    solid.color
+                );
+
+            }
+
+            else if (
+                solid.type === "ring"
+            ) {
+
+                this.drawRing(
+                    ctx,
+                    x,
+                    y,
+                    radius,
+                    rotation,
+                    theta,
+                    solid.color
                 );
             }
         });
@@ -1055,14 +1361,14 @@ class InclinedPlaneSolids {
         ) {
 
             const value =
-                this.tGraphMax *
+                this.tMax *
                 i /
                 xTicks;
 
             const px =
                 x +
                 value /
-                this.tGraphMax *
+                this.tMax *
                 w;
 
 
@@ -1114,8 +1420,10 @@ class InclinedPlaneSolids {
             const py =
                 y +
                 h -
-                value /
-                this.xMax *
+                (
+                    value /
+                    this.xMax
+                ) *
                 h;
 
 
@@ -1174,6 +1482,7 @@ class InclinedPlaneSolids {
             const data =
                 this.data[solid.name];
 
+
             const n =
                 Math.min(
                     Math.floor(this.frame) + 1,
@@ -1182,7 +1491,6 @@ class InclinedPlaneSolids {
 
 
             if (n < 1) {
-
                 return;
             }
 
@@ -1205,7 +1513,7 @@ class InclinedPlaneSolids {
                     x +
                     (
                         data.t[i] /
-                        this.tGraphMax
+                        this.tMax
                     ) *
                     w;
 
@@ -1245,13 +1553,15 @@ class InclinedPlaneSolids {
             const current =
                 n - 1;
 
+
             const px =
                 x +
                 (
                     data.t[current] /
-                    this.tGraphMax
+                    this.tMax
                 ) *
                 w;
+
 
             const py =
                 y +
@@ -1301,7 +1611,7 @@ class InclinedPlaneSolids {
 
 
         // -----------------------------------------------------
-        // Eixos
+        // Eixo X
         // -----------------------------------------------------
 
         ctx.fillStyle =
@@ -1319,6 +1629,10 @@ class InclinedPlaneSolids {
             y + h + 45
         );
 
+
+        // -----------------------------------------------------
+        // Eixo Y
+        // -----------------------------------------------------
 
         ctx.save();
 
@@ -1359,7 +1673,7 @@ class InclinedPlaneSolids {
 
                 ctx.fillText(
                     solid.name,
-                    x + w - 90,
+                    x + w - 85,
                     y + 20 + i * 20
                 );
             }
@@ -1379,6 +1693,7 @@ class InclinedPlaneSolids {
                 this.data.Bloco.x.length - 1
             );
 
+
         const t =
             this.data.Bloco.t[index] || 0;
 
@@ -1388,11 +1703,27 @@ class InclinedPlaneSolids {
             Math.PI / 180;
 
 
-        const width = 300;
-        const height = 90;
+        const aBloco =
+            this.acceleration(0);
+
+
+        const aEsfera =
+            this.acceleration(2 / 5);
+
+
+        const aCilindro =
+            this.acceleration(1 / 2);
+
+
+        const aAnel =
+            this.acceleration(1);
+
 
         const x = 20;
         const y = 20;
+
+        const width = 350;
+        const height = 170;
 
 
         ctx.save();
@@ -1432,7 +1763,7 @@ class InclinedPlaneSolids {
 
 
         ctx.fillText(
-            "Plano inclinado",
+            "Descida no plano inclinado",
             x + 12,
             y + 20
         );
@@ -1456,14 +1787,48 @@ class InclinedPlaneSolids {
 
         ctx.fillText(
             `t = ${t.toFixed(2)} s`,
-            x + 150,
-            y + 42
+            x + 12,
+            y + 78
         );
 
+
+        ctx.fillStyle =
+            "#7b1fa2";
+
         ctx.fillText(
-            `a = g·sen(θ)/(1+k)`,
-            x + 150,
-            y + 60
+            `Bloco: a = ${aBloco.toFixed(2)} m/s²`,
+            x + 12,
+            y + 100
+        );
+
+
+        ctx.fillStyle =
+            "#1976d2";
+
+        ctx.fillText(
+            `Esfera: a = ${aEsfera.toFixed(2)} m/s²`,
+            x + 12,
+            y + 118
+        );
+
+
+        ctx.fillStyle =
+            "#388e3c";
+
+        ctx.fillText(
+            `Cilindro: a = ${aCilindro.toFixed(2)} m/s²`,
+            x + 12,
+            y + 136
+        );
+
+
+        ctx.fillStyle =
+            "#d32f2f";
+
+        ctx.fillText(
+            `Anel: a = ${aAnel.toFixed(2)} m/s²`,
+            x + 12,
+            y + 154
         );
 
 
@@ -1472,7 +1837,7 @@ class InclinedPlaneSolids {
 
 
     // =========================================================
-    // DESENHO
+    // DESENHO PRINCIPAL
     // =========================================================
 
     draw() {
@@ -1506,7 +1871,7 @@ class InclinedPlaneSolids {
         );
 
 
-        // título da animação
+        // título
 
         ctx.fillStyle =
             "black";
@@ -1535,13 +1900,12 @@ class InclinedPlaneSolids {
 
 
     // =========================================================
-    // INICIAR ANIMAÇÃO
+    // ANIMAÇÃO
     // =========================================================
 
     iniciar() {
 
         if (this.running) {
-
             return;
         }
 
@@ -1551,7 +1915,6 @@ class InclinedPlaneSolids {
         const loop = () => {
 
             if (!this.running) {
-
                 return;
             }
 
