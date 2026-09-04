@@ -46,6 +46,7 @@ class InclinedPlaneSolids {
         // PLANO
         // =====================================================
 
+        // Comprimento físico usado apenas nos cálculos
         this.planeLength = 10;
 
         // Extremidade inferior do plano
@@ -439,6 +440,16 @@ class InclinedPlaneSolids {
 
     // =========================================================
     // DESENHO DO PLANO
+    //
+    // SOMENTE A SUPERFÍCIE É DESENHADA.
+    //
+    // Não há:
+    // - θ
+    // - arco de θ
+    // - L
+    // - "10 m"
+    // - altura
+    // - base horizontal
     // =========================================================
 
     drawPlane(ctx) {
@@ -448,14 +459,11 @@ class InclinedPlaneSolids {
 
         ctx.save();
 
-        // -----------------------------------------------------
-        // SUPERFÍCIE DO PLANO
-        // -----------------------------------------------------
-
         ctx.strokeStyle =
             "#222";
 
-        ctx.lineWidth = 4;
+        ctx.lineWidth =
+            4;
 
         ctx.beginPath();
 
@@ -470,58 +478,6 @@ class InclinedPlaneSolids {
         );
 
         ctx.stroke();
-
-
-        // -----------------------------------------------------
-        // BASE HORIZONTAL
-        // -----------------------------------------------------
-
-        ctx.strokeStyle =
-            "#888";
-
-        ctx.lineWidth = 2;
-
-        ctx.beginPath();
-
-        ctx.moveTo(
-            plane.x1,
-            plane.y2
-        );
-
-        ctx.lineTo(
-            plane.x2,
-            plane.y2
-        );
-
-        ctx.stroke();
-
-
-        // -----------------------------------------------------
-        // ALTURA
-        // -----------------------------------------------------
-
-        ctx.beginPath();
-
-        ctx.moveTo(
-            plane.x1,
-            plane.y1
-        );
-
-        ctx.lineTo(
-            plane.x1,
-            plane.y2
-        );
-
-        ctx.stroke();
-
-
-        // -----------------------------------------------------
-        // SEM MARCAÇÃO VISUAL DE θ
-        // -----------------------------------------------------
-        //
-        // O ângulo continua sendo mostrado no HUD.
-        //
-        // -----------------------------------------------------
 
         ctx.restore();
     }
@@ -571,7 +527,8 @@ class InclinedPlaneSolids {
         ctx.strokeStyle =
             color;
 
-        ctx.lineWidth = 3;
+        ctx.lineWidth =
+            3;
 
         ctx.strokeRect(
             -width / 2,
@@ -628,7 +585,8 @@ class InclinedPlaneSolids {
         ctx.strokeStyle =
             color;
 
-        ctx.lineWidth = 3;
+        ctx.lineWidth =
+            3;
 
         ctx.beginPath();
 
@@ -712,7 +670,8 @@ class InclinedPlaneSolids {
         ctx.strokeStyle =
             color;
 
-        ctx.lineWidth = 3;
+        ctx.lineWidth =
+            3;
 
         // -----------------------------------------------------
         // CORPO
@@ -836,7 +795,8 @@ class InclinedPlaneSolids {
         ctx.strokeStyle =
             color;
 
-        ctx.lineWidth = 5;
+        ctx.lineWidth =
+            5;
 
         ctx.beginPath();
 
@@ -858,7 +818,8 @@ class InclinedPlaneSolids {
         ctx.strokeStyle =
             "white";
 
-        ctx.lineWidth = 8;
+        ctx.lineWidth =
+            8;
 
         ctx.beginPath();
 
@@ -880,7 +841,8 @@ class InclinedPlaneSolids {
         ctx.strokeStyle =
             color;
 
-        ctx.lineWidth = 2;
+        ctx.lineWidth =
+            2;
 
         ctx.beginPath();
 
@@ -901,7 +863,8 @@ class InclinedPlaneSolids {
 
         ctx.rotate(rotation);
 
-        ctx.lineWidth = 2;
+        ctx.lineWidth =
+            2;
 
         ctx.beginPath();
 
@@ -949,7 +912,8 @@ class InclinedPlaneSolids {
         ctx.globalAlpha =
             0.25;
 
-        ctx.lineWidth = 2;
+        ctx.lineWidth =
+            2;
 
         ctx.setLineDash([
             4,
@@ -986,10 +950,16 @@ class InclinedPlaneSolids {
                 18 * Math.cos(theta);
 
             if (i === 0) {
-                ctx.moveTo(px, py);
+                ctx.moveTo(
+                    px,
+                    py
+                );
             }
             else {
-                ctx.lineTo(px, py);
+                ctx.lineTo(
+                    px,
+                    py
+                );
             }
         }
 
@@ -1036,7 +1006,8 @@ class InclinedPlaneSolids {
                     physicalX
                 );
 
-            const radius = 18;
+            const radius =
+                18;
 
             // -------------------------------------------------
             // NORMAL PARA CIMA DO PLANO
@@ -1044,11 +1015,13 @@ class InclinedPlaneSolids {
 
             const x =
                 pos.x +
-                radius * Math.sin(theta);
+                radius *
+                Math.sin(theta);
 
             const y =
                 pos.y -
-                radius * Math.cos(theta);
+                radius *
+                Math.cos(theta);
 
             // -------------------------------------------------
             // RASTRO
@@ -1195,7 +1168,8 @@ class InclinedPlaneSolids {
             ctx.strokeStyle =
                 "#eeeeee";
 
-            ctx.lineWidth = 1;
+            ctx.lineWidth =
+                1;
 
             ctx.beginPath();
 
@@ -1316,7 +1290,8 @@ class InclinedPlaneSolids {
             ctx.strokeStyle =
                 solid.color;
 
-            ctx.lineWidth = 2;
+            ctx.lineWidth =
+                2;
 
             ctx.beginPath();
 
@@ -1344,10 +1319,16 @@ class InclinedPlaneSolids {
                     h;
 
                 if (i === 0) {
-                    ctx.moveTo(px, py);
+                    ctx.moveTo(
+                        px,
+                        py
+                    );
                 }
                 else {
-                    ctx.lineTo(px, py);
+                    ctx.lineTo(
+                        px,
+                        py
+                    );
                 }
             }
 
@@ -1405,7 +1386,8 @@ class InclinedPlaneSolids {
         ctx.strokeStyle =
             "#777";
 
-        ctx.lineWidth = 1;
+        ctx.lineWidth =
+            1;
 
         ctx.strokeRect(
             x,
@@ -1532,7 +1514,8 @@ class InclinedPlaneSolids {
         ctx.strokeStyle =
             "#777";
 
-        ctx.lineWidth = 1;
+        ctx.lineWidth =
+            1;
 
         ctx.beginPath();
 
