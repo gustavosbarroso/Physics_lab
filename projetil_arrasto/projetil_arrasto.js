@@ -10,22 +10,17 @@ class ProjectileDrag {
         // =====================================================
 
         this.params = {
-
             g: 9.81,
             v0: 20.0,
             theta0_deg: 45.0,
-
-            // Coeficiente de arrasto quadrático
-            // Fd = k v²
+            y0: 10.0,
             k: 0.02,
-
             m: 1.0,
-
             ...options
         };
 
         // =====================================================
-        // DADOS DA SOLUÇÃO
+        // ARRAYS
         // =====================================================
 
         this.timeDrag = [];
@@ -41,7 +36,7 @@ class ProjectileDrag {
         this.vyIdeal = [];
 
         // =====================================================
-        // CONFIGURAÇÃO NUMÉRICA
+        // INTEGRAÇÃO
         // =====================================================
 
         this.t0 = 0;
@@ -53,20 +48,16 @@ class ProjectileDrag {
         // =====================================================
 
         this.animationSpeed = 1.0;
-
         this.running = false;
         this.frame = 0;
 
         // =====================================================
-        // CONFIGURAÇÃO DO GRÁFICO
+        // GRÁFICO
         // =====================================================
 
         this.graphX = 70;
         this.graphY = 80;
-
-        this.graphW =
-            this.canvas.width - 120;
-
+        this.graphW = this.canvas.width - 120;
         this.graphH = 400;
 
         // =====================================================
@@ -82,7 +73,7 @@ class ProjectileDrag {
         this.solve();
 
         // =====================================================
-        // INICIA
+        // ANIMAÇÃO
         // =====================================================
 
         this.iniciar();
@@ -90,7 +81,7 @@ class ProjectileDrag {
 
 
     // =========================================================
-    // SISTEMA DIFERENCIAL
+    // EQUAÇÕES DO MOVIMENTO COM ARRASTO
     // =========================================================
 
     f(state, t) {
@@ -100,30 +91,19 @@ class ProjectileDrag {
 
         const p = this.params;
 
-        const v =
-            Math.sqrt(
-                vx * vx +
-                vy * vy
-            );
+        const v = Math.sqrt(vx * vx + vy * vy);
 
-        const ax =
-            -(p.k / p.m) *
-            v *
-            vx;
+        const ax = -(p.k / p.m) * v * vx;
 
         const ay =
             -p.g -
-            (p.k / p.m) *
-            v *
-            vy;
+            (p.k / p.m) * v * vy;
 
         return [
-
             vx,
             vy,
             ax,
             ay
-
         ];
     }
 
@@ -135,12 +115,10 @@ class ProjectileDrag {
     add(a, b) {
 
         return [
-
             a[0] + b[0],
             a[1] + b[1],
             a[2] + b[2],
             a[3] + b[3]
-
         ];
     }
 
@@ -148,12 +126,10 @@ class ProjectileDrag {
     mul(a, x) {
 
         return [
-
             a[0] * x,
             a[1] * x,
             a[2] * x,
             a[3] * x
-
         ];
     }
 
@@ -181,209 +157,12 @@ class ProjectileDrag {
             2 * b[3] +
             2 * c[3] +
             d[3]
-
         ];
     }
 
 
     // =========================================================
-    // RK4
-    // =========================================================
-
-    RK4() {
-
-        const a = this.t0;
-        const b = this.tf;
-        const N = this.N;
-
-        const h =
-            (b - a) / N;
-
-        let state = [
-
-            0,
-            0,
-
-            this.initialVx(),
-            this.initialVy()
-
-        ];
-
-        this.timeDrag = [];
-        this.xDrag = [];
-        this.yDrag = [];
-        this.vxDrag = [];
-        this.vyDrag = [];
-
-        for (
-            let n = 0;
-            n <= N;
-            n++
-        ) {
-
-            const t =
-                a + n * h;
-
-            // =================================================
-            // SALVA ESTADO
-            // =================================================
-
-            this.timeDrag.push(t);
-
-            this.xDrag.push(
-                state[0]
-            );
-
-            this.yDrag.push(
-                state[1]
-            );
-
-            this.vxDrag.push(
-                state[2]
-            );
-
-            this.vyDrag.push(
-                state[3]
-            );
-
-            // =================================================
-            // TOCOU O SOLO
-            // =================================================
-
-            if (
-                n > 0 &&
-                state[1] < 0
-            ) {
-
-                break;
-            }
-
-            if (n === N)
-                break;
-
-            // =================================================
-            // k1
-            // =================================================
-
-            const k1 =
-                this.mul(
-
-                    this.f(
-                        state,
-                        t
-                    ),
-
-                    h
-
-                );
-
-            // =================================================
-            // k2
-            // =================================================
-
-            const k2 =
-                this.mul(
-
-                    this.f(
-
-                        this.add(
-
-                            state,
-
-                            this.mul(
-                                k1,
-                                0.5
-                            )
-
-                        ),
-
-                        t + h / 2
-
-                    ),
-
-                    h
-
-                );
-
-            // =================================================
-            // k3
-            // =================================================
-
-            const k3 =
-                this.mul(
-
-                    this.f(
-
-                        this.add(
-
-                            state,
-
-                            this.mul(
-                                k2,
-                                0.5
-                            )
-
-                        ),
-
-                        t + h / 2
-
-                    ),
-
-                    h
-
-                );
-
-            // =================================================
-            // k4
-            // =================================================
-
-            const k4 =
-                this.mul(
-
-                    this.f(
-
-                        this.add(
-                            state,
-                            k3
-                        ),
-
-                        t + h
-
-                    ),
-
-                    h
-
-                );
-
-            // =================================================
-            // ATUALIZA
-            // =================================================
-
-            state =
-                this.add(
-
-                    state,
-
-                    this.mul(
-
-                        this.add4(
-                            k1,
-                            k2,
-                            k3,
-                            k4
-                        ),
-
-                        1 / 6
-
-                    )
-
-                );
-        }
-    }
-
-
-    // =========================================================
-    // VELOCIDADE INICIAL
+    // VELOCIDADES INICIAIS
     // =========================================================
 
     initialVx() {
@@ -396,10 +175,7 @@ class ProjectileDrag {
             this.params.v0 *
             Math.cos(theta);
 
-        if (
-            Math.abs(vx) <
-            1e-12
-        ) {
+        if (Math.abs(vx) < 1e-12) {
 
             vx = 0;
         }
@@ -414,19 +190,238 @@ class ProjectileDrag {
             this.params.theta0_deg *
             Math.PI / 180;
 
-        return this.params.v0 *
-            Math.sin(theta);
+        return (
+            this.params.v0 *
+            Math.sin(theta)
+        );
     }
 
 
     // =========================================================
-    // SOLUÇÃO IDEAL
+    // RK4 COM ARRASTO
+    // =========================================================
+
+    RK4() {
+
+        const a = this.t0;
+        const b = this.tf;
+        const N = this.N;
+
+        const h =
+            (b - a) / N;
+
+        // Estado inicial:
+        //
+        // x = 0
+        // y = y0
+        // vx = v0 cos(theta)
+        // vy = v0 sin(theta)
+
+        let state = [
+            0,
+            this.params.y0,
+            this.initialVx(),
+            this.initialVy()
+        ];
+
+        this.timeDrag = [];
+        this.xDrag = [];
+        this.yDrag = [];
+        this.vxDrag = [];
+        this.vyDrag = [];
+
+        for (let n = 0; n <= N; n++) {
+
+            const t =
+                a + n * h;
+
+            // -------------------------------------------------
+            // Guarda o estado atual
+            // -------------------------------------------------
+
+            this.timeDrag.push(t);
+            this.xDrag.push(state[0]);
+            this.yDrag.push(Math.max(0, state[1]));
+            this.vxDrag.push(state[2]);
+            this.vyDrag.push(state[3]);
+
+            // -------------------------------------------------
+            // Não integra depois do impacto
+            // -------------------------------------------------
+
+            if (state[1] <= 0) {
+
+                break;
+            }
+
+            if (n === N) {
+
+                break;
+            }
+
+            // -------------------------------------------------
+            // RK4
+            // -------------------------------------------------
+
+            const k1 =
+                this.mul(
+                    this.f(state, t),
+                    h
+                );
+
+            const state2 =
+                this.add(
+                    state,
+                    this.mul(k1, 0.5)
+                );
+
+            const k2 =
+                this.mul(
+                    this.f(
+                        state2,
+                        t + h / 2
+                    ),
+                    h
+                );
+
+            const state3 =
+                this.add(
+                    state,
+                    this.mul(k2, 0.5)
+                );
+
+            const k3 =
+                this.mul(
+                    this.f(
+                        state3,
+                        t + h / 2
+                    ),
+                    h
+                );
+
+            const state4 =
+                this.add(
+                    state,
+                    k3
+                );
+
+            const k4 =
+                this.mul(
+                    this.f(
+                        state4,
+                        t + h
+                    ),
+                    h
+                );
+
+            state =
+                this.add(
+                    state,
+                    this.mul(
+                        this.add4(
+                            k1,
+                            k2,
+                            k3,
+                            k4
+                        ),
+                        1 / 6
+                    )
+                );
+
+            // -------------------------------------------------
+            // Interpolação simples do impacto
+            //
+            // Se o próximo passo passou do solo,
+            // colocamos o último ponto exatamente em y = 0.
+            // -------------------------------------------------
+
+            if (state[1] < 0) {
+
+                const previousY =
+                    this.yDrag[
+                        this.yDrag.length - 1
+                    ];
+
+                const currentY =
+                    state[1];
+
+                const alpha =
+                    previousY /
+                    (previousY - currentY);
+
+                const previousT =
+                    this.timeDrag[
+                        this.timeDrag.length - 1
+                    ];
+
+                const impactTime =
+                    previousT +
+                    alpha * h;
+
+                const impactX =
+                    this.xDrag[
+                        this.xDrag.length - 1
+                    ] +
+                    alpha *
+                    (state[0] -
+                        this.xDrag[
+                            this.xDrag.length - 1
+                        ]);
+
+                const impactVx =
+                    this.vxDrag[
+                        this.vxDrag.length - 1
+                    ] +
+                    alpha *
+                    (state[2] -
+                        this.vxDrag[
+                            this.vxDrag.length - 1
+                        ]);
+
+                const impactVy =
+                    this.vyDrag[
+                        this.vyDrag.length - 1
+                    ] +
+                    alpha *
+                    (state[3] -
+                        this.vyDrag[
+                            this.vyDrag.length - 1
+                        ]);
+
+                // Substitui o último estado pelo impacto
+                // exato no solo.
+
+                this.timeDrag.push(
+                    impactTime
+                );
+
+                this.xDrag.push(
+                    impactX
+                );
+
+                this.yDrag.push(0);
+
+                this.vxDrag.push(
+                    impactVx
+                );
+
+                this.vyDrag.push(
+                    impactVy
+                );
+
+                break;
+            }
+        }
+    }
+
+
+    // =========================================================
+    // SOLUÇÃO IDEAL — SEM ARRASTO
     // =========================================================
 
     solveIdeal() {
 
-        const p =
-            this.params;
+        const p = this.params;
 
         const vx0 =
             this.initialVx();
@@ -434,14 +429,25 @@ class ProjectileDrag {
         const vy0 =
             this.initialVy();
 
-        let T;
+        // -----------------------------------------------------
+        // Equação:
+        //
+        // y(t) = y0 + vy0*t - g*t²/2
+        //
+        // Encontramos o instante em que y = 0.
+        // -----------------------------------------------------
 
-        if (vy0 > 0) {
+        const discriminant =
+            vy0 * vy0 +
+            2 * p.g * p.y0;
 
-            T =
-                2 * vy0 / p.g;
+        let T =
+            (
+                vy0 +
+                Math.sqrt(discriminant)
+            ) / p.g;
 
-        } else {
+        if (!Number.isFinite(T) || T <= 0) {
 
             T = 5;
         }
@@ -454,11 +460,7 @@ class ProjectileDrag {
         this.vxIdeal = [];
         this.vyIdeal = [];
 
-        for (
-            let i = 0;
-            i <= N;
-            i++
-        ) {
+        for (let i = 0; i <= N; i++) {
 
             const t =
                 T * i / N;
@@ -467,11 +469,9 @@ class ProjectileDrag {
                 vx0 * t;
 
             const y =
+                p.y0 +
                 vy0 * t -
-                0.5 *
-                p.g *
-                t *
-                t;
+                0.5 * p.g * t * t;
 
             const vx =
                 vx0;
@@ -480,12 +480,12 @@ class ProjectileDrag {
                 vy0 -
                 p.g * t;
 
-            if (y < 0)
-                break;
-
             this.timeIdeal.push(t);
             this.xIdeal.push(x);
-            this.yIdeal.push(y);
+            this.yIdeal.push(
+                Math.max(0, y)
+            );
+
             this.vxIdeal.push(vx);
             this.vyIdeal.push(vy);
         }
@@ -509,7 +509,7 @@ class ProjectileDrag {
 
 
     // =========================================================
-    // ESCALA
+    // ESCALA DO GRÁFICO
     // =========================================================
 
     calculateScale() {
@@ -517,48 +517,28 @@ class ProjectileDrag {
         let xmax = 0;
         let ymax = 0;
 
-        for (
-            const x of this.xDrag
-        ) {
+        for (const x of this.xDrag) {
 
             xmax =
-                Math.max(
-                    xmax,
-                    x
-                );
+                Math.max(xmax, x);
         }
 
-        for (
-            const x of this.xIdeal
-        ) {
+        for (const x of this.xIdeal) {
 
             xmax =
-                Math.max(
-                    xmax,
-                    x
-                );
+                Math.max(xmax, x);
         }
 
-        for (
-            const y of this.yDrag
-        ) {
+        for (const y of this.yDrag) {
 
             ymax =
-                Math.max(
-                    ymax,
-                    y
-                );
+                Math.max(ymax, y);
         }
 
-        for (
-            const y of this.yIdeal
-        ) {
+        for (const y of this.yIdeal) {
 
             ymax =
-                Math.max(
-                    ymax,
-                    y
-                );
+                Math.max(ymax, y);
         }
 
         this.xMax =
@@ -586,13 +566,13 @@ class ProjectileDrag {
                 "projectile-controls"
             );
 
-        if (old)
+        if (old) {
+
             old.remove();
+        }
 
         const container =
-            document.createElement(
-                "div"
-            );
+            document.createElement("div");
 
         container.id =
             "projectile-controls";
@@ -606,27 +586,18 @@ class ProjectileDrag {
         container.style.fontFamily =
             "Arial";
 
-        // =====================================================
-        // TÍTULO
-        // =====================================================
 
         const title =
-            document.createElement(
-                "h2"
-            );
+            document.createElement("h2");
 
         title.innerText =
             "Parâmetros do lançamento";
 
-        container.appendChild(
-            title
-        );
+        container.appendChild(title);
+
 
         this.sliders = {};
 
-        // =====================================================
-        // CONFIGURAÇÕES
-        // =====================================================
 
         const configs = [
 
@@ -655,6 +626,14 @@ class ProjectileDrag {
             },
 
             {
+                name: "y0",
+                label: "y₀ (m)",
+                min: 0.1,
+                max: 50,
+                step: 0.1
+            },
+
+            {
                 name: "k",
                 label: "k (kg/m)",
                 min: 0,
@@ -669,142 +648,114 @@ class ProjectileDrag {
                 max: 5,
                 step: 0.1
             }
-
         ];
 
-        // =====================================================
-        // SLIDERS
-        // =====================================================
 
-        configs.forEach(
-            config => {
+        configs.forEach(config => {
 
-                const row =
-                    document.createElement(
-                        "div"
-                    );
+            const row =
+                document.createElement("div");
 
-                row.style.display =
-                    "flex";
+            row.style.display =
+                "flex";
 
-                row.style.alignItems =
-                    "center";
+            row.style.alignItems =
+                "center";
 
-                row.style.marginBottom =
-                    "8px";
+            row.style.marginBottom =
+                "8px";
 
-                // LABEL
 
-                const label =
-                    document.createElement(
-                        "label"
-                    );
+            const label =
+                document.createElement("label");
 
-                label.style.width =
-                    "110px";
+            label.style.width =
+                "110px";
 
-                label.innerText =
-                    config.label;
+            label.innerText =
+                config.label;
 
-                // SLIDER
 
-                const slider =
-                    document.createElement(
-                        "input"
-                    );
+            const slider =
+                document.createElement("input");
 
-                slider.type =
-                    "range";
+            slider.type =
+                "range";
 
-                slider.min =
-                    config.min;
+            slider.min =
+                config.min;
 
-                slider.max =
-                    config.max;
+            slider.max =
+                config.max;
 
-                slider.step =
-                    config.step;
+            slider.step =
+                config.step;
 
-                slider.value =
+            slider.value =
+                this.params[
+                    config.name
+                ];
+
+            slider.style.flex =
+                "1";
+
+
+            const value =
+                document.createElement("span");
+
+            value.style.width =
+                "70px";
+
+            value.style.marginLeft =
+                "10px";
+
+            value.innerText =
+                Number(
                     this.params[
                         config.name
-                    ];
+                    ]
+                ).toFixed(2);
 
-                slider.style.flex =
-                    "1";
 
-                // VALOR
+            slider.addEventListener(
+                "input",
+                () => {
 
-                const value =
-                    document.createElement(
-                        "span"
-                    );
+                    const v =
+                        Number(
+                            slider.value
+                        );
 
-                value.style.width =
-                    "70px";
+                    this.params[
+                        config.name
+                    ] = v;
 
-                value.style.marginLeft =
-                    "10px";
+                    value.innerText =
+                        v.toFixed(2);
 
-                value.innerText =
-                    Number(
-                        this.params[
-                            config.name
-                        ]
-                    ).toFixed(2);
+                    this.solve();
 
-                // EVENTO
+                    this.draw();
+                }
+            );
 
-                slider.addEventListener(
-                    "input",
-                    () => {
 
-                        const v =
-                            Number(
-                                slider.value
-                            );
+            row.appendChild(label);
+            row.appendChild(slider);
+            row.appendChild(value);
 
-                        this.params[
-                            config.name
-                        ] = v;
+            container.appendChild(row);
 
-                        value.innerText =
-                            v.toFixed(2);
 
-                        this.solve();
+            this.sliders[
+                config.name
+            ] = slider;
+        });
 
-                        this.draw();
-                    }
-                );
-
-                row.appendChild(
-                    label
-                );
-
-                row.appendChild(
-                    slider
-                );
-
-                row.appendChild(
-                    value
-                );
-
-                container.appendChild(
-                    row
-                );
-
-                this.sliders[
-                    config.name
-                ] = slider;
-            }
-        );
 
         this.canvas.parentNode.insertBefore(
-
             container,
-
             this.canvas.nextSibling
-
         );
     }
 
@@ -821,14 +772,12 @@ class ProjectileDrag {
         const x = 20;
         const y = 20;
 
-        const width = 330;
-        const height = 155;
+        const width = 350;
+        const height = 175;
+
 
         ctx.save();
 
-        // =====================================================
-        // CAIXA
-        // =====================================================
 
         ctx.fillStyle =
             "rgba(255,255,255,0.95)";
@@ -837,6 +786,7 @@ class ProjectileDrag {
             "#777";
 
         ctx.lineWidth = 1;
+
 
         ctx.beginPath();
 
@@ -851,15 +801,13 @@ class ProjectileDrag {
         ctx.fill();
         ctx.stroke();
 
-        // =====================================================
-        // ÍNDICE
-        // =====================================================
 
         const index =
             Math.min(
                 Math.floor(this.frame),
                 this.xDrag.length - 1
             );
+
 
         const xd =
             this.xDrag[index] || 0;
@@ -876,15 +824,13 @@ class ProjectileDrag {
         const t =
             this.timeDrag[index] || 0;
 
+
         const speed =
             Math.sqrt(
                 vxd * vxd +
                 vyd * vyd
             );
 
-        // =====================================================
-        // TÍTULO
-        // =====================================================
 
         ctx.fillStyle =
             "black";
@@ -895,18 +841,17 @@ class ProjectileDrag {
         ctx.textAlign =
             "left";
 
+
         ctx.fillText(
             "Lançamento com arrasto",
             x + 12,
             y + 20
         );
 
-        // =====================================================
-        // COLUNA 1
-        // =====================================================
 
         ctx.font =
             "12px Arial";
+
 
         ctx.fillText(
             `g = ${p.g.toFixed(2)} m/s²`,
@@ -927,23 +872,27 @@ class ProjectileDrag {
         );
 
         ctx.fillText(
-            `k = ${p.k.toFixed(3)} kg/m`,
+            `y₀ = ${p.y0.toFixed(2)} m`,
             x + 12,
             y + 96
         );
 
         ctx.fillText(
-            `m = ${p.m.toFixed(2)} kg`,
+            `k = ${p.k.toFixed(3)} kg/m`,
             x + 12,
             y + 114
         );
 
-        // =====================================================
-        // COLUNA 2
-        // =====================================================
+        ctx.fillText(
+            `m = ${p.m.toFixed(2)} kg`,
+            x + 12,
+            y + 132
+        );
+
 
         const col2 =
-            x + 170;
+            x + 185;
+
 
         ctx.fillText(
             `t = ${t.toFixed(2)} s`,
@@ -981,12 +930,13 @@ class ProjectileDrag {
             y + 132
         );
 
+
         ctx.restore();
     }
 
 
     // =========================================================
-    // GRÁFICO ÚNICO — TRAJETÓRIA
+    // GRÁFICO DA TRAJETÓRIA
     // =========================================================
 
     drawTrajectory(ctx) {
@@ -1003,9 +953,10 @@ class ProjectileDrag {
         const graphH =
             this.graphH;
 
-        // =====================================================
+
+        // -----------------------------------------------------
         // TÍTULO
-        // =====================================================
+        // -----------------------------------------------------
 
         ctx.fillStyle =
             "black";
@@ -1022,39 +973,33 @@ class ProjectileDrag {
             graphY - 25
         );
 
-        // =====================================================
-        // ESCALA
-        // =====================================================
+
+        // -----------------------------------------------------
+        // CONVERSÃO DE COORDENADAS
+        // -----------------------------------------------------
 
         const convertX =
-            value => {
+            value =>
+                graphX +
+                (value / this.xMax) *
+                graphW;
 
-                return graphX +
-                    (
-                        value /
-                        this.xMax
-                    ) *
-                    graphW;
-            };
 
         const convertY =
-            value => {
+            value =>
+                graphY +
+                graphH -
+                (value / this.yMax) *
+                graphH;
 
-                return graphY +
-                    graphH -
-                    (
-                        value /
-                        this.yMax
-                    ) *
-                    graphH;
-            };
 
-        // =====================================================
+        // -----------------------------------------------------
         // GRADE
-        // =====================================================
+        // -----------------------------------------------------
 
         const xTicks = 6;
         const yTicks = 5;
+
 
         ctx.font =
             "11px Arial";
@@ -1062,12 +1007,9 @@ class ProjectileDrag {
         ctx.fillStyle =
             "black";
 
-        // -----------------------------------------------------
-        // GRADE / TICKS X
-        // -----------------------------------------------------
-
         ctx.textAlign =
             "center";
+
 
         for (
             let k = 0;
@@ -1082,6 +1024,7 @@ class ProjectileDrag {
 
             const px =
                 convertX(value);
+
 
             if (k > 0) {
 
@@ -1105,6 +1048,7 @@ class ProjectileDrag {
                 ctx.stroke();
             }
 
+
             ctx.strokeStyle =
                 "#777";
 
@@ -1122,6 +1066,7 @@ class ProjectileDrag {
 
             ctx.stroke();
 
+
             ctx.fillStyle =
                 "black";
 
@@ -1132,12 +1077,10 @@ class ProjectileDrag {
             );
         }
 
-        // -----------------------------------------------------
-        // GRADE / TICKS Y
-        // -----------------------------------------------------
 
         ctx.textAlign =
             "right";
+
 
         for (
             let k = 0;
@@ -1152,6 +1095,7 @@ class ProjectileDrag {
 
             const py =
                 convertY(value);
+
 
             if (k > 0) {
 
@@ -1175,6 +1119,7 @@ class ProjectileDrag {
                 ctx.stroke();
             }
 
+
             ctx.strokeStyle =
                 "#777";
 
@@ -1192,6 +1137,7 @@ class ProjectileDrag {
 
             ctx.stroke();
 
+
             ctx.fillStyle =
                 "black";
 
@@ -1202,9 +1148,10 @@ class ProjectileDrag {
             );
         }
 
-        // =====================================================
+
+        // -----------------------------------------------------
         // EIXO X
-        // =====================================================
+        // -----------------------------------------------------
 
         ctx.strokeStyle =
             "#777";
@@ -1225,9 +1172,10 @@ class ProjectileDrag {
 
         ctx.stroke();
 
-        // =====================================================
-        // DADOS VISÍVEIS
-        // =====================================================
+
+        // -----------------------------------------------------
+        // QUANTIDADE DE PONTOS ANIMADOS
+        // -----------------------------------------------------
 
         const n =
             Math.min(
@@ -1235,8 +1183,12 @@ class ProjectileDrag {
                 this.xDrag.length
             );
 
-        if (n < 1)
+
+        if (n < 1) {
+
             return;
+        }
+
 
         const ni =
             Math.min(
@@ -1249,16 +1201,13 @@ class ProjectileDrag {
                 this.xIdeal.length
             );
 
-        // =====================================================
-        // CLIPPING INTERNO
-        // =====================================================
-        //
-        // A margem de 2 px impede que a espessura da linha
-        // ou o padrão tracejado ultrapasse visualmente a borda.
-        //
-        // =====================================================
+
+        // -----------------------------------------------------
+        // CLIPPING
+        // -----------------------------------------------------
 
         const clipMargin = 2;
+
 
         ctx.save();
 
@@ -1273,9 +1222,10 @@ class ProjectileDrag {
 
         ctx.clip();
 
-        // =====================================================
+
+        // -----------------------------------------------------
         // TRAJETÓRIA COM ARRASTO
-        // =====================================================
+        // -----------------------------------------------------
 
         ctx.strokeStyle =
             "#d32f2f";
@@ -1285,6 +1235,7 @@ class ProjectileDrag {
         ctx.setLineDash([]);
 
         ctx.beginPath();
+
 
         for (
             let i = 0;
@@ -1301,6 +1252,7 @@ class ProjectileDrag {
                 convertY(
                     this.yDrag[i]
                 );
+
 
             if (i === 0) {
 
@@ -1320,9 +1272,10 @@ class ProjectileDrag {
 
         ctx.stroke();
 
-        // =====================================================
-        // TRAJETÓRIA SEM ARRASTO
-        // =====================================================
+
+        // -----------------------------------------------------
+        // TRAJETÓRIA IDEAL
+        // -----------------------------------------------------
 
         if (ni > 0) {
 
@@ -1331,12 +1284,12 @@ class ProjectileDrag {
 
             ctx.lineWidth = 2;
 
-            ctx.setLineDash([
-                7,
-                5
-            ]);
+            ctx.setLineDash(
+                [7, 5]
+            );
 
             ctx.beginPath();
+
 
             for (
                 let i = 0;
@@ -1354,6 +1307,7 @@ class ProjectileDrag {
                         this.yIdeal[i]
                     );
 
+
                 if (i === 0) {
 
                     ctx.moveTo(
@@ -1370,26 +1324,26 @@ class ProjectileDrag {
                 }
             }
 
+
             ctx.stroke();
 
             ctx.setLineDash([]);
         }
 
-        // =====================================================
-        // TERMINA CLIPPING
-        // =====================================================
 
         ctx.restore();
 
-        // =====================================================
+
+        // -----------------------------------------------------
         // PARTÍCULA
-        // =====================================================
+        // -----------------------------------------------------
 
         const particleIndex =
             Math.min(
                 Math.floor(this.frame),
                 this.xDrag.length - 1
             );
+
 
         const particleX =
             convertX(
@@ -1405,6 +1359,7 @@ class ProjectileDrag {
                 ]
             );
 
+
         ctx.fillStyle =
             "#d32f2f";
 
@@ -1412,6 +1367,7 @@ class ProjectileDrag {
             "#111";
 
         ctx.lineWidth = 2;
+
 
         ctx.beginPath();
 
@@ -1424,11 +1380,13 @@ class ProjectileDrag {
         );
 
         ctx.fill();
+
         ctx.stroke();
 
-        // =====================================================
+
+        // -----------------------------------------------------
         // BORDA DO GRÁFICO
-        // =====================================================
+        // -----------------------------------------------------
 
         ctx.strokeStyle =
             "#777";
@@ -1442,15 +1400,17 @@ class ProjectileDrag {
             graphH
         );
 
-        // =====================================================
-        // LEGENDAS
-        // =====================================================
+
+        // -----------------------------------------------------
+        // LEGENDA
+        // -----------------------------------------------------
 
         ctx.font =
             "13px Arial";
 
         ctx.textAlign =
             "left";
+
 
         ctx.fillStyle =
             "#d32f2f";
@@ -1461,6 +1421,7 @@ class ProjectileDrag {
             graphY + 25
         );
 
+
         ctx.fillStyle =
             "#1976d2";
 
@@ -1470,9 +1431,10 @@ class ProjectileDrag {
             graphY + 45
         );
 
-        // =====================================================
-        // LABEL X
-        // =====================================================
+
+        // -----------------------------------------------------
+        // EIXO X
+        // -----------------------------------------------------
 
         ctx.font =
             "14px Arial";
@@ -1489,9 +1451,10 @@ class ProjectileDrag {
             graphY + graphH + 45
         );
 
-        // =====================================================
-        // LABEL Y
-        // =====================================================
+
+        // -----------------------------------------------------
+        // EIXO Y
+        // -----------------------------------------------------
 
         ctx.save();
 
@@ -1515,7 +1478,7 @@ class ProjectileDrag {
 
 
     // =========================================================
-    // DRAW
+    // DESENHO
     // =========================================================
 
     draw() {
@@ -1529,9 +1492,6 @@ class ProjectileDrag {
         const h =
             this.canvas.height;
 
-        // =====================================================
-        // LIMPA
-        // =====================================================
 
         ctx.clearRect(
             0,
@@ -1540,9 +1500,6 @@ class ProjectileDrag {
             h
         );
 
-        // =====================================================
-        // FUNDO
-        // =====================================================
 
         ctx.fillStyle =
             "white";
@@ -1554,56 +1511,41 @@ class ProjectileDrag {
             h
         );
 
-        // =====================================================
-        // TRAJETÓRIA
-        // =====================================================
 
-        this.drawTrajectory(
-            ctx
-        );
+        this.drawTrajectory(ctx);
 
-        // =====================================================
-        // HUD
-        // =====================================================
-
-        this.drawHUD(
-            ctx
-        );
+        this.drawHUD(ctx);
     }
 
 
     // =========================================================
-    // ANIMAÇÃO
+    // INICIAR
     // =========================================================
 
     iniciar() {
 
-        if (this.running)
+        if (this.running) {
+
             return;
+        }
 
         this.running = true;
 
+
         const loop = () => {
 
-            if (!this.running)
-                return;
+            if (!this.running) {
 
-            // =================================================
-            // DESENHA
-            // =================================================
+                return;
+            }
+
 
             this.draw();
 
-            // =================================================
-            // AVANÇA
-            // =================================================
 
             this.frame +=
                 this.animationSpeed;
 
-            // =================================================
-            // REINICIA
-            // =================================================
 
             const maxFrames =
                 Math.max(
@@ -1611,18 +1553,20 @@ class ProjectileDrag {
                     this.timeIdeal.length
                 );
 
+
             if (
-                this.frame >=
-                maxFrames
+                this.frame >= maxFrames
             ) {
 
                 this.frame = 0;
             }
 
+
             requestAnimationFrame(
                 loop
             );
         };
+
 
         loop();
     }
@@ -1642,40 +1586,30 @@ class ProjectileDrag {
     // ATUALIZAR PARÂMETROS
     // =========================================================
 
-    atualizarParametros(
-        newParams
-    ) {
+    atualizarParametros(newParams) {
 
         this.params = {
-
             ...this.params,
             ...newParams
-
         };
 
-        Object.keys(
-            newParams
-        ).forEach(
-            key => {
 
-                if (
-                    this.sliders[key]
-                ) {
+        Object.keys(newParams)
+            .forEach(key => {
+
+                if (this.sliders[key]) {
 
                     this.sliders[key].value =
                         newParams[key];
 
                     const event =
-                        new Event(
-                            "input"
-                        );
+                        new Event("input");
 
-                    this.sliders[key].dispatchEvent(
-                        event
-                    );
+                    this.sliders[key]
+                        .dispatchEvent(event);
                 }
-            }
-        );
+            });
+
 
         this.solve();
 
