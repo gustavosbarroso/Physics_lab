@@ -106,13 +106,10 @@ Simulação de um capacitor de placas paralelas
 
 Simulação de um capacitor cilíndrico e o seu campo elétrico
 
-
-**[▶ Abrir simulação](https://gustavosbarroso.github.io/Physics_lab/CapacitorCilindrico/)**
-## 🌐 LABORATÓRIO VIRTUAL DE FÍSICA
-
-Todas as simulações interativas estão disponíveis no site do projeto:
-
-**[🚀 Abrir Physics_lab](https://gustavosbarroso.github.io/Physics_lab/)**
+### XII. [Lançamento oblíquo](https://gustavosbarroso.github.io/Physics_lab/projetil_arrasto/)
+<img width="1289" height="602" alt="image" src="https://github.com/user-attachments/assets/3671838b-6885-4dff-8ce0-17fd27eb69a6" />
+Simulação de lançamento oblíquo com e sem a resistência do ar.
+**[▶ Abrir simulação](https://gustavosbarroso.github.io/Physics_lab/projetil_arrasto/)**
 
 ---
 
