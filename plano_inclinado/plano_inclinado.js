@@ -138,7 +138,7 @@ class InclinedPlaneSolids {
 
 
     // =========================================================
-    // TEMPO MÁXIMO
+    // TEMPO DA SIMULAÇÃO
     // =========================================================
 
     calculateSimulationTime() {
@@ -276,7 +276,7 @@ class InclinedPlaneSolids {
 
 
     // =========================================================
-    // ESCALA DO GRÁFICO
+    // ESCALA
     // =========================================================
 
     calculateScale() {
@@ -851,186 +851,13 @@ class InclinedPlaneSolids {
     // =========================================================
     // CILINDRO
     //
-    // AGORA O CILINDRO TEM O MESMO DESENHO VISUAL DO ANEL.
+    // AGORA O CILINDRO POSSUI EXATAMENTE A MESMA
+    // REPRESENTAÇÃO VISUAL DO ANEL.
     //
-    // A física continua sendo de cilindro:
-    //
-    // k = 1/2
-    //
+    // A ÚNICA DIFERENÇA É A COR VERDE.
     // =========================================================
 
     drawCylinder(
-        ctx,
-        x,
-        y,
-        radius,
-        rotation,
-        theta,
-        color
-    ) {
-
-        ctx.save();
-
-
-        ctx.translate(
-            x,
-            y
-        );
-
-
-        ctx.rotate(theta);
-
-
-        // =====================================================
-        // PARTE EXTERNA
-        // =====================================================
-
-        ctx.fillStyle =
-            color;
-
-        ctx.globalAlpha =
-            0.12;
-
-
-        ctx.beginPath();
-
-
-        ctx.arc(
-            0,
-            0,
-            radius,
-            0,
-            2 * Math.PI
-        );
-
-
-        ctx.fill();
-
-
-        ctx.globalAlpha =
-            1;
-
-
-        ctx.strokeStyle =
-            color;
-
-        ctx.lineWidth =
-            5;
-
-
-        ctx.beginPath();
-
-
-        ctx.arc(
-            0,
-            0,
-            radius,
-            0,
-            2 * Math.PI
-        );
-
-
-        ctx.stroke();
-
-
-        // =====================================================
-        // PARTE INTERNA
-        //
-        // Mantém o mesmo aspecto visual do anel.
-        // =====================================================
-
-        ctx.strokeStyle =
-            "white";
-
-        ctx.lineWidth =
-            8;
-
-
-        ctx.beginPath();
-
-
-        ctx.arc(
-            0,
-            0,
-            radius * 0.48,
-            0,
-            2 * Math.PI
-        );
-
-
-        ctx.stroke();
-
-
-        // =====================================================
-        // BORDA INTERNA
-        // =====================================================
-
-        ctx.strokeStyle =
-            color;
-
-        ctx.lineWidth =
-            2;
-
-
-        ctx.beginPath();
-
-
-        ctx.arc(
-            0,
-            0,
-            radius * 0.48,
-            0,
-            2 * Math.PI
-        );
-
-
-        ctx.stroke();
-
-
-        // =====================================================
-        // INDICADOR DE ROTAÇÃO
-        // =====================================================
-
-        ctx.save();
-
-
-        ctx.rotate(rotation);
-
-
-        ctx.lineWidth =
-            2;
-
-
-        ctx.beginPath();
-
-
-        ctx.moveTo(
-            0,
-            -radius * 0.8
-        );
-
-
-        ctx.lineTo(
-            0,
-            radius * 0.8
-        );
-
-
-        ctx.stroke();
-
-
-        ctx.restore();
-
-
-        ctx.restore();
-    }
-
-
-    // =========================================================
-    // ANEL
-    // =========================================================
-
-    drawRing(
         ctx,
         x,
         y,
@@ -1133,6 +960,135 @@ class InclinedPlaneSolids {
         // =====================================================
         // INDICADOR DE ROTAÇÃO
         // =====================================================
+
+        ctx.rotate(rotation);
+
+
+        ctx.lineWidth =
+            2;
+
+
+        ctx.beginPath();
+
+
+        ctx.moveTo(
+            0,
+            -radius * 0.8
+        );
+
+
+        ctx.lineTo(
+            0,
+            radius * 0.8
+        );
+
+
+        ctx.stroke();
+
+
+        ctx.restore();
+    }
+
+
+    // =========================================================
+    // ANEL
+    // =========================================================
+
+    drawRing(
+        ctx,
+        x,
+        y,
+        radius,
+        rotation,
+        theta,
+        color
+    ) {
+
+        ctx.save();
+
+
+        ctx.translate(
+            x,
+            y
+        );
+
+
+        ctx.rotate(theta);
+
+
+        // Parte externa
+
+        ctx.strokeStyle =
+            color;
+
+        ctx.lineWidth =
+            5;
+
+
+        ctx.beginPath();
+
+
+        ctx.arc(
+            0,
+            0,
+            radius,
+            0,
+            2 * Math.PI
+        );
+
+
+        ctx.stroke();
+
+
+        // Interior
+
+        ctx.strokeStyle =
+            "white";
+
+        ctx.lineWidth =
+            8;
+
+
+        ctx.beginPath();
+
+
+        ctx.arc(
+            0,
+            0,
+            radius * 0.48,
+            0,
+            2 * Math.PI
+        );
+
+
+        ctx.stroke();
+
+
+        // Borda interna
+
+        ctx.strokeStyle =
+            color;
+
+        ctx.lineWidth =
+            2;
+
+
+        ctx.beginPath();
+
+
+        ctx.arc(
+            0,
+            0,
+            radius * 0.48,
+            0,
+            2 * Math.PI
+        );
+
+
+        ctx.stroke();
+
+
+        // Indicador de rotação
 
         ctx.rotate(rotation);
 
@@ -1319,9 +1275,7 @@ class InclinedPlaneSolids {
                 18;
 
 
-            // =================================================
-            // NORMAL PARA CIMA DO PLANO
-            // =================================================
+            // Normal para cima do plano
 
             const x =
                 pos.x +
@@ -1335,9 +1289,7 @@ class InclinedPlaneSolids {
                 Math.cos(theta);
 
 
-            // =================================================
-            // RASTRO
-            // =================================================
+            // Rastro
 
             this.drawTrail(
                 ctx,
@@ -1346,9 +1298,7 @@ class InclinedPlaneSolids {
             );
 
 
-            // =================================================
-            // ROTAÇÃO
-            // =================================================
+            // Rotação
 
             const rotation =
                 physicalX /
@@ -1387,6 +1337,10 @@ class InclinedPlaneSolids {
             else if (
                 solid.type === "cylinder"
             ) {
+
+                // O cilindro agora utiliza
+                // exatamente a mesma geometria
+                // visual do anel.
 
                 this.drawCylinder(
                     ctx,
