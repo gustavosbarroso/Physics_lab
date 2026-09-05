@@ -114,7 +114,9 @@ Simulação de lançamento oblíquo com e sem a resistência do ar.
 **[▶ Abrir simulação](https://gustavosbarroso.github.io/Physics_lab/projetil_arrasto/)**
 
 ### XIII. [Plano inclinado](https://gustavosbarroso.github.io/Physics_lab/plano_inclinado/)
-<img width="1169" height="515" alt="image" src="https://github.com/user-attachments/assets/cfe486d6-5b48-4d8f-9f6b-26762aabf78e" />
+
+<img width="1185" height="549" alt="image" src="https://github.com/user-attachments/assets/b4fdf1ec-4b38-4828-b301-e3ab947d8704" />
+
 Simulação interativa de plano inclinado com diferentes sólidos.
 
 **[▶ Abrir simulação](https://gustavosbarroso.github.io/Physics_lab/plano_inclinado/)**
