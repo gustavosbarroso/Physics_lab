@@ -51,7 +51,7 @@ Simulação do comportamento de um circuito RLC, permitindo visualizar a dinâmi
 
 ### V. [CIRCUITO RC](https://gustavosbarroso.github.io/Physics_lab/RC/)
 
-<img width="930" height="479" alt="Circuito RC" src="https://github.com/user-attachments/assets/4952861d-92a8-4c57-8dfd-6a7b202f6b4e" />
+<img width="1314" height="591" alt="image" src="https://github.com/user-attachments/assets/e39235cf-b5ff-455d-9ab3-e2fa1baf5a0a" />
 
 Comportamento de carga e descarga de um capacitor em um circuito RC.
 
