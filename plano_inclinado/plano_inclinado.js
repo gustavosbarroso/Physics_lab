@@ -117,7 +117,7 @@ class InclinedPlaneSolids {
 
 
     // =========================================================
-    // TEMPO DE CHEGADA
+    // TEMPO DE CHEGADA AO FINAL DO PLANO
     // =========================================================
 
     calculateArrivalTime(k) {
@@ -138,7 +138,7 @@ class InclinedPlaneSolids {
 
 
     // =========================================================
-    // TEMPO DA SIMULAÇÃO
+    // TEMPO MÁXIMO DA SIMULAÇÃO
     // =========================================================
 
     calculateSimulationTime() {
@@ -276,7 +276,7 @@ class InclinedPlaneSolids {
 
 
     // =========================================================
-    // ESCALA
+    // ESCALA DO GRÁFICO
     // =========================================================
 
     calculateScale() {
@@ -851,10 +851,14 @@ class InclinedPlaneSolids {
     // =========================================================
     // CILINDRO
     //
-    // AGORA O CILINDRO POSSUI EXATAMENTE A MESMA
-    // REPRESENTAÇÃO VISUAL DO ANEL.
+    // DESENHO IDÊNTICO AO ANEL.
     //
-    // A ÚNICA DIFERENÇA É A COR VERDE.
+    // A única diferença visual é a cor recebida:
+    // #388e3c (verde).
+    //
+    // NÃO HÁ CORPO RETANGULAR.
+    // NÃO HÁ FACES LATERAIS.
+    // NÃO HÁ ELIPSES.
     // =========================================================
 
     drawCylinder(
@@ -1016,7 +1020,9 @@ class InclinedPlaneSolids {
         ctx.rotate(theta);
 
 
-        // Parte externa
+        // =====================================================
+        // PARTE EXTERNA
+        // =====================================================
 
         ctx.strokeStyle =
             color;
@@ -1040,7 +1046,9 @@ class InclinedPlaneSolids {
         ctx.stroke();
 
 
-        // Interior
+        // =====================================================
+        // INTERIOR
+        // =====================================================
 
         ctx.strokeStyle =
             "white";
@@ -1064,7 +1072,9 @@ class InclinedPlaneSolids {
         ctx.stroke();
 
 
-        // Borda interna
+        // =====================================================
+        // BORDA INTERNA
+        // =====================================================
 
         ctx.strokeStyle =
             color;
@@ -1088,7 +1098,9 @@ class InclinedPlaneSolids {
         ctx.stroke();
 
 
-        // Indicador de rotação
+        // =====================================================
+        // INDICADOR DE ROTAÇÃO
+        // =====================================================
 
         ctx.rotate(rotation);
 
@@ -1275,7 +1287,9 @@ class InclinedPlaneSolids {
                 18;
 
 
-            // Normal para cima do plano
+            // =================================================
+            // NORMAL PARA CIMA DO PLANO
+            // =================================================
 
             const x =
                 pos.x +
@@ -1289,7 +1303,9 @@ class InclinedPlaneSolids {
                 Math.cos(theta);
 
 
-            // Rastro
+            // =================================================
+            // RASTRO
+            // =================================================
 
             this.drawTrail(
                 ctx,
@@ -1298,12 +1314,18 @@ class InclinedPlaneSolids {
             );
 
 
-            // Rotação
+            // =================================================
+            // ROTAÇÃO
+            // =================================================
 
             const rotation =
                 physicalX /
                 radius;
 
+
+            // =================================================
+            // BLOCO
+            // =================================================
 
             if (
                 solid.type === "block"
@@ -1318,6 +1340,11 @@ class InclinedPlaneSolids {
                 );
 
             }
+
+
+            // =================================================
+            // ESFERA
+            // =================================================
 
             else if (
                 solid.type === "sphere"
@@ -1334,13 +1361,14 @@ class InclinedPlaneSolids {
 
             }
 
+
+            // =================================================
+            // CILINDRO
+            // =================================================
+
             else if (
                 solid.type === "cylinder"
             ) {
-
-                // O cilindro agora utiliza
-                // exatamente a mesma geometria
-                // visual do anel.
 
                 this.drawCylinder(
                     ctx,
@@ -1353,6 +1381,11 @@ class InclinedPlaneSolids {
                 );
 
             }
+
+
+            // =================================================
+            // ANEL
+            // =================================================
 
             else if (
                 solid.type === "ring"
@@ -1423,7 +1456,7 @@ class InclinedPlaneSolids {
 
 
         // =====================================================
-        // EIXO X
+        // EIXO X — TEMPO
         // =====================================================
 
         for (
@@ -1488,7 +1521,7 @@ class InclinedPlaneSolids {
 
 
         // =====================================================
-        // EIXO Y
+        // EIXO Y — POSIÇÃO
         // =====================================================
 
         for (
