@@ -46,14 +46,11 @@ class InclinedPlaneSolids {
         // PLANO
         // =====================================================
 
-        // Comprimento físico do plano
-        // O tempo da simulação será calculado a partir deste L.
         this.planeLength = 10;
 
         this.planeBottomX = 580;
         this.planeBottomY = 470;
 
-        // Comprimento visual da superfície
         this.planePixelLength = 400;
 
         // =====================================================
@@ -62,8 +59,6 @@ class InclinedPlaneSolids {
 
         this.dt = 0.02;
 
-        // Será calculado automaticamente em solve()
-        // a partir de L, g e theta.
         this.tMax = 1;
 
         this.data = {};
@@ -122,20 +117,7 @@ class InclinedPlaneSolids {
 
 
     // =========================================================
-    // TEMPO DE CHEGADA AO FINAL DO PLANO
-    //
-    // x(t) = 1/2 a t²
-    //
-    // Quando o sólido chega ao final:
-    //
-    // x = L
-    //
-    // Portanto:
-    //
-    // L = 1/2 a t²
-    //
-    // t = sqrt(2L/a)
-    //
+    // TEMPO DE CHEGADA
     // =========================================================
 
     calculateArrivalTime(k) {
@@ -156,32 +138,7 @@ class InclinedPlaneSolids {
 
 
     // =========================================================
-    // TEMPO MÁXIMO DA SIMULAÇÃO
-    //
-    // O tempo é determinado pelo sólido mais lento.
-    //
-    // Portanto:
-    //
-    // tMax =
-    // max(
-    //     sqrt(2L/a_bloco),
-    //     sqrt(2L/a_esfera),
-    //     sqrt(2L/a_cilindro),
-    //     sqrt(2L/a_anel)
-    // )
-    //
-    // Como o anel é o mais lento:
-    //
-    // tMax = sqrt(2L/a_anel)
-    //
-    // e como:
-    //
-    // a_anel = g sin(theta) / 2
-    //
-    // temos:
-    //
-    // tMax = sqrt(4L / (g sin(theta)))
-    //
+    // TEMPO MÁXIMO
     // =========================================================
 
     calculateSimulationTime() {
@@ -216,18 +173,7 @@ class InclinedPlaneSolids {
 
     solve() {
 
-        // -----------------------------------------------------
-        // O tempo máximo é calculado a partir de L.
-        // -----------------------------------------------------
-
         this.calculateSimulationTime();
-
-
-        // -----------------------------------------------------
-        // Número de passos.
-        //
-        // O +1 garante que exista o instante inicial.
-        // -----------------------------------------------------
 
         const steps =
             Math.ceil(
@@ -238,10 +184,6 @@ class InclinedPlaneSolids {
         this.totalFrames =
             steps;
 
-
-        // -----------------------------------------------------
-        // Calcula o movimento de cada sólido.
-        // -----------------------------------------------------
 
         this.solids.forEach(solid => {
 
@@ -282,10 +224,6 @@ class InclinedPlaneSolids {
                 let v;
 
 
-                // -------------------------------------------------
-                // Antes de chegar ao final
-                // -------------------------------------------------
-
                 if (
                     t <
                     arrivalTime
@@ -302,11 +240,6 @@ class InclinedPlaneSolids {
                         t;
                 }
 
-
-                // -------------------------------------------------
-                // Depois de chegar ao final
-                // -------------------------------------------------
-
                 else {
 
                     x =
@@ -320,10 +253,6 @@ class InclinedPlaneSolids {
                         );
                 }
 
-
-                // -------------------------------------------------
-                // Segurança numérica
-                // -------------------------------------------------
 
                 x =
                     Math.min(
@@ -340,16 +269,7 @@ class InclinedPlaneSolids {
         });
 
 
-        // =====================================================
-        // ESCALA
-        // =====================================================
-
         this.calculateScale();
-
-
-        // =====================================================
-        // REINICIA A ANIMAÇÃO
-        // =====================================================
 
         this.frame = 0;
     }
@@ -361,8 +281,6 @@ class InclinedPlaneSolids {
 
     calculateScale() {
 
-        // O eixo vertical representa diretamente o comprimento
-        // físico do plano.
         this.xMax =
             Math.max(
                 this.planeLength,
@@ -932,6 +850,13 @@ class InclinedPlaneSolids {
 
     // =========================================================
     // CILINDRO
+    //
+    // AGORA O CILINDRO TEM O MESMO DESENHO VISUAL DO ANEL.
+    //
+    // A física continua sendo de cilindro:
+    //
+    // k = 1/2
+    //
     // =========================================================
 
     drawCylinder(
@@ -943,9 +868,6 @@ class InclinedPlaneSolids {
         theta,
         color
     ) {
-
-        const length = 32;
-
 
         ctx.save();
 
@@ -959,6 +881,10 @@ class InclinedPlaneSolids {
         ctx.rotate(theta);
 
 
+        // =====================================================
+        // PARTE EXTERNA
+        // =====================================================
+
         ctx.fillStyle =
             color;
 
@@ -966,12 +892,19 @@ class InclinedPlaneSolids {
             0.12;
 
 
-        ctx.fillRect(
-            -length / 2,
-            -radius,
-            length,
-            2 * radius
+        ctx.beginPath();
+
+
+        ctx.arc(
+            0,
+            0,
+            radius,
+            0,
+            2 * Math.PI
         );
+
+
+        ctx.fill();
 
 
         ctx.globalAlpha =
@@ -982,55 +915,16 @@ class InclinedPlaneSolids {
             color;
 
         ctx.lineWidth =
-            3;
+            5;
 
-
-        // Corpo
 
         ctx.beginPath();
 
 
-        ctx.moveTo(
-            -length / 2,
-            -radius
-        );
-
-
-        ctx.lineTo(
-            length / 2,
-            -radius
-        );
-
-
-        ctx.lineTo(
-            length / 2,
-            radius
-        );
-
-
-        ctx.lineTo(
-            -length / 2,
-            radius
-        );
-
-
-        ctx.closePath();
-
-
-        ctx.stroke();
-
-
-        // Faces
-
-        ctx.beginPath();
-
-
-        ctx.ellipse(
-            -length / 2,
+        ctx.arc(
             0,
-            5,
+            0,
             radius,
-            0,
             0,
             2 * Math.PI
         );
@@ -1039,15 +933,26 @@ class InclinedPlaneSolids {
         ctx.stroke();
 
 
+        // =====================================================
+        // PARTE INTERNA
+        //
+        // Mantém o mesmo aspecto visual do anel.
+        // =====================================================
+
+        ctx.strokeStyle =
+            "white";
+
+        ctx.lineWidth =
+            8;
+
+
         ctx.beginPath();
 
 
-        ctx.ellipse(
-            length / 2,
+        ctx.arc(
             0,
-            5,
-            radius,
             0,
+            radius * 0.48,
             0,
             2 * Math.PI
         );
@@ -1056,7 +961,35 @@ class InclinedPlaneSolids {
         ctx.stroke();
 
 
-        // Indicador de rotação
+        // =====================================================
+        // BORDA INTERNA
+        // =====================================================
+
+        ctx.strokeStyle =
+            color;
+
+        ctx.lineWidth =
+            2;
+
+
+        ctx.beginPath();
+
+
+        ctx.arc(
+            0,
+            0,
+            radius * 0.48,
+            0,
+            2 * Math.PI
+        );
+
+
+        ctx.stroke();
+
+
+        // =====================================================
+        // INDICADOR DE ROTAÇÃO
+        // =====================================================
 
         ctx.save();
 
@@ -1064,18 +997,22 @@ class InclinedPlaneSolids {
         ctx.rotate(rotation);
 
 
+        ctx.lineWidth =
+            2;
+
+
         ctx.beginPath();
 
 
         ctx.moveTo(
-            -radius * 0.75,
-            0
+            0,
+            -radius * 0.8
         );
 
 
         ctx.lineTo(
-            radius * 0.75,
-            0
+            0,
+            radius * 0.8
         );
 
 
@@ -1115,7 +1052,9 @@ class InclinedPlaneSolids {
         ctx.rotate(theta);
 
 
-        // Parte externa
+        // =====================================================
+        // PARTE EXTERNA
+        // =====================================================
 
         ctx.strokeStyle =
             color;
@@ -1139,7 +1078,9 @@ class InclinedPlaneSolids {
         ctx.stroke();
 
 
-        // Interior
+        // =====================================================
+        // INTERIOR
+        // =====================================================
 
         ctx.strokeStyle =
             "white";
@@ -1163,7 +1104,9 @@ class InclinedPlaneSolids {
         ctx.stroke();
 
 
-        // Borda interna
+        // =====================================================
+        // BORDA INTERNA
+        // =====================================================
 
         ctx.strokeStyle =
             color;
@@ -1187,7 +1130,9 @@ class InclinedPlaneSolids {
         ctx.stroke();
 
 
-        // Indicador de rotação
+        // =====================================================
+        // INDICADOR DE ROTAÇÃO
+        // =====================================================
 
         ctx.rotate(rotation);
 
@@ -1303,6 +1248,7 @@ class InclinedPlaneSolids {
                 );
 
             }
+
             else {
 
                 ctx.lineTo(
@@ -1373,7 +1319,9 @@ class InclinedPlaneSolids {
                 18;
 
 
-            // Normal para cima do plano
+            // =================================================
+            // NORMAL PARA CIMA DO PLANO
+            // =================================================
 
             const x =
                 pos.x +
@@ -1387,7 +1335,9 @@ class InclinedPlaneSolids {
                 Math.cos(theta);
 
 
-            // Rastro
+            // =================================================
+            // RASTRO
+            // =================================================
 
             this.drawTrail(
                 ctx,
@@ -1396,7 +1346,9 @@ class InclinedPlaneSolids {
             );
 
 
-            // Rotação
+            // =================================================
+            // ROTAÇÃO
+            // =================================================
 
             const rotation =
                 physicalX /
@@ -1470,9 +1422,6 @@ class InclinedPlaneSolids {
 
     // =========================================================
     // GRÁFICO
-    //
-    // O eixo X vai de 0 até o tempo necessário para o sólido
-    // mais lento percorrer o comprimento L.
     // =========================================================
 
     drawGraph(ctx) {
@@ -1520,7 +1469,7 @@ class InclinedPlaneSolids {
 
 
         // =====================================================
-        // EIXO X — TEMPO
+        // EIXO X
         // =====================================================
 
         for (
@@ -1585,7 +1534,7 @@ class InclinedPlaneSolids {
 
 
         // =====================================================
-        // EIXO Y — POSIÇÃO
+        // EIXO Y
         // =====================================================
 
         for (
@@ -1729,6 +1678,7 @@ class InclinedPlaneSolids {
                     );
 
                 }
+
                 else {
 
                     ctx.lineTo(
@@ -2177,11 +2127,6 @@ class InclinedPlaneSolids {
             this.frame +=
                 this.animationSpeed;
 
-
-            // -------------------------------------------------
-            // Quando chega ao final da simulação,
-            // reinicia.
-            // -------------------------------------------------
 
             if (
                 this.frame >=
