@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="pt-BR">
 
 <head>
@@ -12,17 +13,31 @@
 
     <title>Lei de Snell</title>
 
+
     <style>
+
+        /* =====================================================
+           RESET
+           ===================================================== */
 
         * {
             box-sizing: border-box;
         }
 
+
+        /* =====================================================
+           PÁGINA
+           ===================================================== */
+
+        html,
         body {
 
             margin: 0;
-
             padding: 0;
+
+            width: 100%;
+
+            min-height: 100%;
 
             background: white;
 
@@ -32,37 +47,242 @@
 
         }
 
+
+        body {
+
+            overflow-x: hidden;
+
+        }
+
+
+        /* =====================================================
+           CANVAS
+           ===================================================== */
+
         canvas {
 
             display: block;
+
+            /*
+             * O tamanho interno continua sendo
+             * 900 × 600.
+             *
+             * A largura visual se adapta à tela.
+             */
+
+            width: min(
+                900px,
+                calc(100vw - 20px)
+            );
+
+            height: auto;
+
+            aspect-ratio: 900 / 600;
 
             margin: 20px auto;
 
             border:
                 1px solid #ccc;
 
-            background:
-                white;
+            background: white;
 
         }
 
-        h2 {
+
+        /* =====================================================
+           CONTROLES
+           ===================================================== */
+
+        .snell-controls {
+
+            width: min(
+                900px,
+                calc(100vw - 20px)
+            );
+
+            margin:
+                20px auto
+                30px auto;
+
+            padding:
+                0;
+
+            font-family:
+                Arial,
+                sans-serif;
+
+        }
+
+
+        /* =====================================================
+           TÍTULO
+           ===================================================== */
+
+        .snell-controls h2 {
 
             margin-top: 10px;
 
             margin-bottom: 15px;
 
+            font-size: 24px;
+
         }
 
-        #snell-controls {
 
-            width: 900px;
+        /* =====================================================
+           CONTROLE
+           ===================================================== */
 
-            margin: 20px auto;
+        .control {
 
-            font-family:
-                Arial,
-                sans-serif;
+            width: 100%;
+
+            margin-bottom: 15px;
+
+        }
+
+
+        .control label {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 10px;
+
+            width: 100%;
+
+        }
+
+
+        .control-label {
+
+            flex: 0 0 60px;
+
+        }
+
+
+        .control input[type="range"] {
+
+            flex: 1;
+
+            min-width: 0;
+
+        }
+
+
+        .control span:last-child {
+
+            flex: 0 0 55px;
+
+            text-align: right;
+
+        }
+
+
+        /* =====================================================
+           CELULAR
+           ===================================================== */
+
+        @media (max-width: 600px) {
+
+            canvas {
+
+                width: calc(100vw - 20px);
+
+                margin:
+                    10px auto;
+            }
+
+
+            .snell-controls {
+
+                width: calc(100vw - 20px);
+
+                margin:
+                    15px auto
+                    25px auto;
+
+            }
+
+
+            .snell-controls h2 {
+
+                font-size: 20px;
+
+                margin-top: 5px;
+
+                margin-bottom: 15px;
+
+            }
+
+
+            .control {
+
+                margin-bottom: 18px;
+
+            }
+
+
+            .control label {
+
+                gap: 8px;
+
+            }
+
+
+            .control-label {
+
+                flex: 0 0 45px;
+
+            }
+
+
+            .control span:last-child {
+
+                flex: 0 0 48px;
+
+                font-size: 14px;
+
+            }
+
+        }
+
+
+        /* =====================================================
+           CELULARES MUITO PEQUENOS
+           ===================================================== */
+
+        @media (max-width: 380px) {
+
+            .snell-controls h2 {
+
+                font-size: 18px;
+
+            }
+
+
+            .control label {
+
+                gap: 6px;
+
+            }
+
+
+            .control-label {
+
+                flex: 0 0 40px;
+
+            }
+
+
+            .control span:last-child {
+
+                flex: 0 0 45px;
+
+                font-size: 13px;
+
+            }
 
         }
 
@@ -111,23 +331,9 @@
 
                 {
 
-                    // =================================================
-                    // MEIO 1
-                    // =================================================
-
                     n1: 1.0,
 
-
-                    // =================================================
-                    // MEIO 2
-                    // =================================================
-
                     n2: 1.5,
-
-
-                    // =================================================
-                    // ÂNGULO DE INCIDÊNCIA
-                    // =================================================
 
                     theta1: 30.0
 
