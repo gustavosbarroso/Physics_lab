@@ -8,34 +8,58 @@
     <title>Movimento de Projétil com Arrasto</title>
 
     <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
         body {
             margin: 0;
+            padding: 0;
+            width: 100%;
+        }
+
+        body {
             padding: 30px 0;
             background: #f5f5f5;
             font-family: Arial, sans-serif;
             text-align: center;
+            overflow-x: hidden;
         }
 
         .simulation-container {
-            width: 1200px;
-            max-width: 95%;
+            width: min(1200px, calc(100vw - 40px));
             margin: 0 auto;
+
             background: white;
+
             padding: 20px;
-            box-sizing: border-box;
+
             border-radius: 8px;
         }
 
-        canvas {
+        #projectileCanvas {
             display: block;
+
             width: 100%;
             height: auto;
+
             aspect-ratio: 1200 / 550;
+
             margin: 0 auto;
+
             border: 1px solid #ddd;
-            box-sizing: border-box;
         }
+
+        #projectile-controls {
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 20px auto !important;
+        }
+
     </style>
+
 </head>
 
 <body>
@@ -53,13 +77,16 @@
     <script src="projetil_arrasto.js"></script>
 
     <script>
+
         const canvas =
             document.getElementById("projectileCanvas");
 
         const projectile =
             new ProjectileDrag(canvas);
+
     </script>
 
 </body>
 
 </html>
+
