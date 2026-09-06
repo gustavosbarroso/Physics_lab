@@ -589,8 +589,6 @@ class CapacitorCilindrico {
         // λ = 0:
         //      nenhum sinal
         //
-        // Os sinais são colocados sobre as superfícies
-        // condutoras, e não no centro do capacitor.
         // ====================================================
 
         if (Math.abs(this.params.lambda) > 1e-12) {
@@ -604,6 +602,10 @@ class CapacitorCilindrico {
                 this.params.lambda > 0
                     ? "−"
                     : "+";
+
+            // =================================================
+            // TAMANHO DOS SINAIS
+            // =================================================
 
             ctx.font =
                 "bold 28px Arial";
@@ -621,14 +623,13 @@ class CapacitorCilindrico {
             // SINAIS DA PLACA INTERNA
             // =================================================
             //
-            // Colocados ligeiramente para dentro da
-            // superfície do cilindro interno.
+            // Afastados da borda em direção ao centro.
             // =================================================
 
             const numberOfInnerSigns = 10;
 
             const innerSignRadius =
-                this.innerRadius - 1;
+                this.innerRadius - 12;
 
             for (
                 let i = 0;
@@ -665,14 +666,13 @@ class CapacitorCilindrico {
             // SINAIS DA PLACA EXTERNA
             // =================================================
             //
-            // Colocados ligeiramente para dentro da superfície
-            // interna do cilindro externo.
+            // Afastados da borda interna do cilindro externo.
             // =================================================
 
             const numberOfOuterSigns = 16;
 
             const outerSignRadius =
-                this.outerRadius - 2;
+                this.outerRadius - 12;
 
             for (
                 let i = 0;
