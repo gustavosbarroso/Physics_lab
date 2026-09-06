@@ -606,7 +606,7 @@ class CapacitorCilindrico {
                     : "+";
 
             ctx.font =
-                "bold 17px Arial";
+                "bold 28px Arial";
 
             ctx.fillStyle =
                 "#222";
