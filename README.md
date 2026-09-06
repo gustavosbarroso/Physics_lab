@@ -85,6 +85,8 @@ Pêndulo com ponto de suspensão oscilando horizontalmente.
 
 Sistema orbital de duas estrelas em órbita.
 
+**[▶ Abrir simulação](https://gustavosbarroso.github.io/Physics_lab/TwoBody/)**
+
 ### IX. [Lei de Snell](https://gustavosbarroso.github.io/Physics_lab/Snell/)
 
 <img width="911" height="593" alt="image" src="https://github.com/user-attachments/assets/e90c1683-d069-47e4-9b32-f8eb4aa2d943" />
@@ -93,6 +95,7 @@ Sistema orbital de duas estrelas em órbita.
 Simulação de feixe de luz aplicado sob interface entre dois materiais e sujeito a lei de Snell.
 
 **[▶ Abrir simulação](https://gustavosbarroso.github.io/Physics_lab/Snell/)**
+
 ### X. [Capacitor de placas paralelas](https://gustavosbarroso.github.io/Physics_lab/Capacitor/)
 
 <img width="890" height="521" alt="image" src="https://github.com/user-attachments/assets/39a3d1be-89b9-4e68-9851-cdf2f165b3bc" />
