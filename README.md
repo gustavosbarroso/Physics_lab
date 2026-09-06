@@ -100,12 +100,15 @@ Simulação de feixe de luz aplicado sob interface entre dois materiais e sujeit
 
 <img width="890" height="521" alt="image" src="https://github.com/user-attachments/assets/39a3d1be-89b9-4e68-9851-cdf2f165b3bc" />
 
+**[▶ Abrir simulação](https://gustavosbarroso.github.io/Physics_lab/Capacitor/)**
 
 Simulação de um capacitor de placas paralelas
 
 ### XI. [Capacitor Cilíndrico](https://gustavosbarroso.github.io/Physics_lab/CapacitorCilindrico/)
 
-<img width="987" height="543" alt="image" src="https://github.com/user-attachments/assets/57bb9836-9f73-4fe4-9eef-9f12da7e1a4b" />
+<img width="1004" height="570" alt="image" src="https://github.com/user-attachments/assets/56781a53-a676-4d6a-91f3-2cc9256114ee" />
+
+**[▶ Abrir simulação](https://gustavosbarroso.github.io/Physics_lab/CapacitorCilindrico/)**
 
 Simulação de um capacitor cilíndrico e o seu campo elétrico
 
