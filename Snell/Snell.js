@@ -18,15 +18,16 @@ class Snell {
     // ========================================================
     // CONSTRUTOR
     // ========================================================
+
     constructor(canvas, options = {}) {
 
-        // Canvas
         this.canvas = canvas;
         this.ctx = canvas.getContext("2d");
 
         // ====================================================
         // PARÂMETROS
         // ====================================================
+
         this.params = {
             n1: options.n1 ?? 1.0,
             n2: options.n2 ?? 1.5,
@@ -36,6 +37,7 @@ class Snell {
         // ====================================================
         // RESULTADOS
         // ====================================================
+
         this.theta2 = null;
         this.sinTheta2 = null;
         this.reflexaoTotal = false;
@@ -43,6 +45,7 @@ class Snell {
         // ====================================================
         // GEOMETRIA
         // ====================================================
+
         this.interfaceY = this.canvas.height / 2;
         this.normalX = this.canvas.width / 2;
 
@@ -62,19 +65,21 @@ class Snell {
     // ========================================================
     // CONTROLES
     // ========================================================
+
     createControls() {
 
-        // Container dos controles
         this.controlsContainer = document.createElement("div");
 
         this.controlsContainer.className = "snell-controls";
 
         this.controlsContainer.innerHTML = `
+
             <h2>Parâmetros da Lei de Snell</h2>
 
             <div class="control">
                 <label>
-                    n₁:
+                    <span class="control-label">n₁:</span>
+
                     <input
                         type="range"
                         id="snell-n1"
@@ -83,15 +88,18 @@ class Snell {
                         step="0.1"
                         value="${this.params.n1}"
                     >
+
                     <span id="snell-n1-value">
                         ${this.params.n1.toFixed(2)}
                     </span>
                 </label>
             </div>
 
+
             <div class="control">
                 <label>
-                    n₂:
+                    <span class="control-label">n₂:</span>
+
                     <input
                         type="range"
                         id="snell-n2"
@@ -100,15 +108,18 @@ class Snell {
                         step="0.1"
                         value="${this.params.n2}"
                     >
+
                     <span id="snell-n2-value">
                         ${this.params.n2.toFixed(2)}
                     </span>
                 </label>
             </div>
 
+
             <div class="control">
                 <label>
-                    θ₁ (°):
+                    <span class="control-label">θ₁ (°):</span>
+
                     <input
                         type="range"
                         id="snell-theta1"
@@ -117,6 +128,7 @@ class Snell {
                         step="1"
                         value="${this.params.theta1}"
                     >
+
                     <span id="snell-theta1-value">
                         ${this.params.theta1.toFixed(2)}
                     </span>
@@ -124,30 +136,42 @@ class Snell {
             </div>
         `;
 
+
         // Coloca os controles depois do canvas
-        this.canvas.parentElement.appendChild(this.controlsContainer);
+        this.canvas.parentElement.appendChild(
+            this.controlsContainer
+        );
+
 
         // ====================================================
         // EVENTOS
         // ====================================================
 
         const n1Input =
-            this.controlsContainer.querySelector("#snell-n1");
+            this.controlsContainer.querySelector(
+                "#snell-n1"
+            );
 
         const n2Input =
-            this.controlsContainer.querySelector("#snell-n2");
+            this.controlsContainer.querySelector(
+                "#snell-n2"
+            );
 
         const theta1Input =
-            this.controlsContainer.querySelector("#snell-theta1");
+            this.controlsContainer.querySelector(
+                "#snell-theta1"
+            );
 
 
         n1Input.addEventListener("input", () => {
 
-            this.params.n1 = parseFloat(n1Input.value);
+            this.params.n1 =
+                parseFloat(n1Input.value);
 
             this.controlsContainer.querySelector(
                 "#snell-n1-value"
-            ).textContent = this.params.n1.toFixed(2);
+            ).textContent =
+                this.params.n1.toFixed(2);
 
             this.solve();
             this.draw();
@@ -156,11 +180,13 @@ class Snell {
 
         n2Input.addEventListener("input", () => {
 
-            this.params.n2 = parseFloat(n2Input.value);
+            this.params.n2 =
+                parseFloat(n2Input.value);
 
             this.controlsContainer.querySelector(
                 "#snell-n2-value"
-            ).textContent = this.params.n2.toFixed(2);
+            ).textContent =
+                this.params.n2.toFixed(2);
 
             this.solve();
             this.draw();
@@ -169,11 +195,13 @@ class Snell {
 
         theta1Input.addEventListener("input", () => {
 
-            this.params.theta1 = parseFloat(theta1Input.value);
+            this.params.theta1 =
+                parseFloat(theta1Input.value);
 
             this.controlsContainer.querySelector(
                 "#snell-theta1-value"
-            ).textContent = this.params.theta1.toFixed(2);
+            ).textContent =
+                this.params.theta1.toFixed(2);
 
             this.solve();
             this.draw();
@@ -184,34 +212,30 @@ class Snell {
     // ========================================================
     // RESOLUÇÃO DA LEI DE SNELL
     // ========================================================
+
     solve() {
 
         const n1 = this.params.n1;
         const n2 = this.params.n2;
         const theta1 = this.params.theta1;
 
-        // Converter graus para radianos
-        const theta1Rad = theta1 * Math.PI / 180;
-
-        // Lei de Snell:
-        //
-        // n₁ sen(θ₁) = n₂ sen(θ₂)
-        //
-        // Portanto:
-        //
-        // sen(θ₂) = (n₁/n₂) sen(θ₁)
+        const theta1Rad =
+            theta1 * Math.PI / 180;
 
         this.sinTheta2 =
-            (n1 / n2) * Math.sin(theta1Rad);
+            (n1 / n2) *
+            Math.sin(theta1Rad);
 
 
-        // Verificar reflexão total interna
+        // Reflexão total interna
+
         if (Math.abs(this.sinTheta2) <= 1) {
 
             this.reflexaoTotal = false;
 
             this.theta2 =
-                Math.asin(this.sinTheta2) * 180 / Math.PI;
+                Math.asin(this.sinTheta2) *
+                180 / Math.PI;
 
         } else {
 
@@ -225,36 +249,43 @@ class Snell {
     // ========================================================
     // ÂNGULO CRÍTICO
     // ========================================================
-    getAnguloCritico() {
 
-        // Reflexão total só pode ocorrer quando:
-        //
-        // n₁ > n₂
+    getAnguloCritico() {
 
         if (this.params.n1 <= this.params.n2) {
             return null;
         }
 
         const valor =
-            this.params.n2 / this.params.n1;
+            this.params.n2 /
+            this.params.n1;
 
-        return Math.asin(valor) * 180 / Math.PI;
+        return Math.asin(valor) *
+            180 / Math.PI;
     }
 
 
     // ========================================================
     // DESENHA A INTERFACE ENTRE OS MEIOS
     // ========================================================
+
     drawInterface() {
 
         const ctx = this.ctx;
-        const width = this.canvas.width;
-        const height = this.canvas.height;
+
+        const width =
+            this.canvas.width;
+
+        const height =
+            this.canvas.height;
+
 
         // ----------------------------------------------------
         // Meio 1
         // ----------------------------------------------------
-        ctx.fillStyle = "rgba(100, 180, 255, 0.25)";
+
+        ctx.fillStyle =
+            "rgba(100, 180, 255, 0.25)";
 
         ctx.fillRect(
             0,
@@ -267,7 +298,9 @@ class Snell {
         // ----------------------------------------------------
         // Meio 2
         // ----------------------------------------------------
-        ctx.fillStyle = "rgba(100, 220, 130, 0.25)";
+
+        ctx.fillStyle =
+            "rgba(100, 220, 130, 0.25)";
 
         ctx.fillRect(
             0,
@@ -280,6 +313,7 @@ class Snell {
         // ----------------------------------------------------
         // Interface
         // ----------------------------------------------------
+
         ctx.beginPath();
 
         ctx.moveTo(
@@ -301,6 +335,7 @@ class Snell {
         // ----------------------------------------------------
         // Normal
         // ----------------------------------------------------
+
         ctx.beginPath();
 
         ctx.moveTo(
@@ -313,7 +348,9 @@ class Snell {
             height
         );
 
-        ctx.strokeStyle = "rgba(100, 100, 100, 0.5)";
+        ctx.strokeStyle =
+            "rgba(100, 100, 100, 0.5)";
+
         ctx.lineWidth = 2;
 
         ctx.setLineDash([8, 6]);
@@ -347,36 +384,34 @@ class Snell {
     // ========================================================
     // RAIO INCIDENTE
     // ========================================================
+
     drawIncidentRay() {
 
         const ctx = this.ctx;
 
         const theta =
-            this.params.theta1 * Math.PI / 180;
+            this.params.theta1 *
+            Math.PI / 180;
 
 
-        // Ponto de incidência
-        const x0 = this.normalX;
-        const y0 = this.interfaceY;
+        const x0 =
+            this.normalX;
 
+        const y0 =
+            this.interfaceY;
 
-        // Comprimento do raio
-        const L = this.rayLength;
+        const L =
+            this.rayLength;
 
-
-        // Como o raio vem do canto superior esquerdo
-        // em direção ao ponto de incidência:
 
         const x1 =
-            x0 - L * Math.sin(theta);
+            x0 -
+            L * Math.sin(theta);
 
         const y1 =
-            y0 - L * Math.cos(theta);
+            y0 -
+            L * Math.cos(theta);
 
-
-        // ----------------------------------------------------
-        // Raio
-        // ----------------------------------------------------
 
         ctx.beginPath();
 
@@ -389,10 +424,6 @@ class Snell {
 
         ctx.stroke();
 
-
-        // ----------------------------------------------------
-        // Seta
-        // ----------------------------------------------------
 
         this.drawArrow(
             x1,
@@ -407,6 +438,7 @@ class Snell {
     // ========================================================
     // RAIO REFRATADO
     // ========================================================
+
     drawRefractedRay() {
 
         if (this.reflexaoTotal) {
@@ -416,25 +448,27 @@ class Snell {
         const ctx = this.ctx;
 
         const theta =
-            this.theta2 * Math.PI / 180;
+            this.theta2 *
+            Math.PI / 180;
 
 
-        const x0 = this.normalX;
-        const y0 = this.interfaceY;
+        const x0 =
+            this.normalX;
 
-        const L = this.rayLength;
+        const y0 =
+            this.interfaceY;
 
+        const L =
+            this.rayLength;
 
-        // Raio refratado:
-        //
-        // sai do ponto de incidência para a direita
-        // e para baixo.
 
         const x2 =
-            x0 + L * Math.sin(theta);
+            x0 +
+            L * Math.sin(theta);
 
         const y2 =
-            y0 + L * Math.cos(theta);
+            y0 +
+            L * Math.cos(theta);
 
 
         ctx.beginPath();
@@ -449,10 +483,6 @@ class Snell {
         ctx.stroke();
 
 
-        // ----------------------------------------------------
-        // Seta
-        // ----------------------------------------------------
-
         this.drawArrow(
             x0,
             y0,
@@ -466,6 +496,7 @@ class Snell {
     // ========================================================
     // REFLEXÃO TOTAL INTERNA
     // ========================================================
+
     drawTotalReflection() {
 
         if (!this.reflexaoTotal) {
@@ -475,24 +506,27 @@ class Snell {
         const ctx = this.ctx;
 
         const theta =
-            this.params.theta1 * Math.PI / 180;
+            this.params.theta1 *
+            Math.PI / 180;
 
 
-        const x0 = this.normalX;
-        const y0 = this.interfaceY;
+        const x0 =
+            this.normalX;
 
-        const L = this.rayLength;
+        const y0 =
+            this.interfaceY;
 
+        const L =
+            this.rayLength;
 
-        // ----------------------------------------------------
-        // Raio refletido
-        // ----------------------------------------------------
 
         const x2 =
-            x0 + L * Math.sin(theta);
+            x0 +
+            L * Math.sin(theta);
 
         const y2 =
-            y0 - L * Math.cos(theta);
+            y0 -
+            L * Math.cos(theta);
 
 
         ctx.beginPath();
@@ -511,10 +545,6 @@ class Snell {
         ctx.setLineDash([]);
 
 
-        // ----------------------------------------------------
-        // Seta
-        // ----------------------------------------------------
-
         this.drawArrow(
             x0,
             y0,
@@ -528,24 +558,34 @@ class Snell {
     // ========================================================
     // DESENHA SETA
     // ========================================================
-    drawArrow(x1, y1, x2, y2, color) {
+
+    drawArrow(
+        x1,
+        y1,
+        x2,
+        y2,
+        color
+    ) {
 
         const ctx = this.ctx;
 
         const angle =
-            Math.atan2(y2 - y1, x2 - x1);
+            Math.atan2(
+                y2 - y1,
+                x2 - x1
+            );
 
         const arrowSize = 12;
 
-
-        // Posição aproximada da seta
         const t = 0.75;
 
         const x =
-            x1 + (x2 - x1) * t;
+            x1 +
+            (x2 - x1) * t;
 
         const y =
-            y1 + (y2 - y1) * t;
+            y1 +
+            (y2 - y1) * t;
 
 
         ctx.beginPath();
@@ -553,13 +593,23 @@ class Snell {
         ctx.moveTo(x, y);
 
         ctx.lineTo(
-            x - arrowSize * Math.cos(angle - Math.PI / 6),
-            y - arrowSize * Math.sin(angle - Math.PI / 6)
+            x -
+            arrowSize *
+            Math.cos(angle - Math.PI / 6),
+
+            y -
+            arrowSize *
+            Math.sin(angle - Math.PI / 6)
         );
 
         ctx.lineTo(
-            x - arrowSize * Math.cos(angle + Math.PI / 6),
-            y - arrowSize * Math.sin(angle + Math.PI / 6)
+            x -
+            arrowSize *
+            Math.cos(angle + Math.PI / 6),
+
+            y -
+            arrowSize *
+            Math.sin(angle + Math.PI / 6)
         );
 
         ctx.closePath();
@@ -570,197 +620,37 @@ class Snell {
     }
 
 
-// ========================================================
-// DESENHA OS ÂNGULOS
-// ========================================================
-drawAngles() {
+    // ========================================================
+    // DESENHA OS ÂNGULOS
+    // ========================================================
 
-    const ctx = this.ctx;
+    drawAngles() {
 
-    const x0 = this.normalX;
-    const y0 = this.interfaceY;
+        const ctx = this.ctx;
 
-    const radius = 50;
+        const x0 =
+            this.normalX;
 
+        const y0 =
+            this.interfaceY;
 
-    // ====================================================
-    // ÂNGULO DE INCIDÊNCIA θ₁
-    // ====================================================
-
-    const theta1Rad =
-        this.params.theta1 * Math.PI / 180;
+        const radius = 50;
 
 
-    /*
-     * No Canvas:
-     *
-     * 0°   -> direita
-     * 90°  -> baixo
-     * 180° -> esquerda
-     * -90° -> cima
-     *
-     * O raio incidente está à esquerda da normal.
-     *
-     * Normal superior:
-     *      -90°
-     *
-     * Raio incidente:
-     *      -90° - θ₁
-     */
+        // ====================================================
+        // ÂNGULO DE INCIDÊNCIA θ₁
+        // ====================================================
 
-    const normalSuperior = -Math.PI / 2;
-
-    const raioIncidente =
-        normalSuperior - theta1Rad;
-
-
-    ctx.beginPath();
-
-    /*
-     * Começamos no raio e terminamos na normal.
-     *
-     * Como os dois ângulos estão no setor superior
-     * esquerdo, esse arco fica corretamente entre
-     * o raio incidente e a normal.
-     */
-    ctx.arc(
-        x0,
-        y0,
-        radius,
-        raioIncidente,
-        normalSuperior,
-        false
-    );
-
-    ctx.strokeStyle = "#1976d2";
-    ctx.lineWidth = 2;
-
-    ctx.stroke();
-
-
-    // ----------------------------------------------------
-    // Texto θ₁
-    // ----------------------------------------------------
-
-    ctx.fillStyle = "#1976d2";
-    ctx.font = "16px Arial";
-
-    ctx.fillText(
-        `θ₁ = ${this.params.theta1.toFixed(1)}°`,
-        x0 - 95,
-        y0 - 55
-    );
-
-
-    // ====================================================
-    // ÂNGULO DE REFRAÇÃO θ₂
-    // ====================================================
-
-    if (!this.reflexaoTotal) {
-
-        const theta2Rad =
-            this.theta2 * Math.PI / 180;
-
-
-        /*
-         * O raio refratado está no QUADRANTE
-         * inferior direito.
-         *
-         * Normal inferior:
-         *
-         *       π/2 = 90°
-         *
-         * Raio refratado:
-         *
-         *       π/2 - θ₂
-         *
-         * Exemplo:
-         *
-         * θ₂ = 20.9°
-         *
-         * raio = 90° - 20.9°
-         *      = 69.1°
-         *
-         * Portanto o arco deve ficar entre:
-         *
-         *       69.1°  → raio
-         *        90°   → normal
-         *
-         * no lado INFERIOR DIREITO.
-         */
-
-        const normalInferior = Math.PI / 2;
-
-        const raioRefratado =
-            normalInferior - theta2Rad;
-
-
-        ctx.beginPath();
-
-        /*
-         * Aqui usamos explicitamente o sentido
-         * anti-horário do Canvas para evitar que o
-         * arco seja desenhado no setor oposto.
-         *
-         * De 90° para 69.1° é exatamente o pequeno
-         * arco entre a normal e o raio refratado.
-         */
-        ctx.arc(
-            x0,
-            y0,
-            radius,
-            normalInferior,
-            raioRefratado,
-            true
-        );
-
-        ctx.strokeStyle = "#d62728";
-        ctx.lineWidth = 2;
-
-        ctx.stroke();
-
-
-        // ------------------------------------------------
-        // Texto θ₂
-        // ------------------------------------------------
-
-        ctx.fillStyle = "#d62728";
-        ctx.font = "16px Arial";
-
-        ctx.fillText(
-            `θ₂ = ${this.theta2.toFixed(1)}°`,
-            x0 + 65,
-            y0 + 55
-        );
-    }
-
-
-    // ====================================================
-    // REFLEXÃO TOTAL INTERNA
-    // ====================================================
-
-    else {
-
-        const thetaRad =
-            this.params.theta1 * Math.PI / 180;
-
-
-        /*
-         * Na reflexão total:
-         *
-         * normal superior = -90°
-         *
-         * raio refletido = -90° + θ₁
-         *
-         * O raio refletido fica no quadrante
-         * superior direito.
-         */
+        const theta1Rad =
+            this.params.theta1 *
+            Math.PI / 180;
 
         const normalSuperior =
             -Math.PI / 2;
 
-        const raioRefletido =
-            normalSuperior + thetaRad;
+        const raioIncidente =
+            normalSuperior -
+            theta1Rad;
 
 
         ctx.beginPath();
@@ -769,49 +659,143 @@ drawAngles() {
             x0,
             y0,
             radius,
+            raioIncidente,
             normalSuperior,
-            raioRefletido,
             false
         );
 
-        ctx.strokeStyle = "orange";
+        ctx.strokeStyle = "#1976d2";
         ctx.lineWidth = 2;
 
         ctx.stroke();
 
 
-        // ------------------------------------------------
-        // Texto
-        // ------------------------------------------------
-
-        ctx.fillStyle = "orange";
+        ctx.fillStyle = "#1976d2";
         ctx.font = "16px Arial";
 
         ctx.fillText(
             `θ₁ = ${this.params.theta1.toFixed(1)}°`,
-            x0 + 55,
+            x0 - 95,
             y0 - 55
         );
+
+
+        // ====================================================
+        // ÂNGULO DE REFRAÇÃO θ₂
+        // ====================================================
+
+        if (!this.reflexaoTotal) {
+
+            const theta2Rad =
+                this.theta2 *
+                Math.PI / 180;
+
+            const normalInferior =
+                Math.PI / 2;
+
+            const raioRefratado =
+                normalInferior -
+                theta2Rad;
+
+
+            ctx.beginPath();
+
+            ctx.arc(
+                x0,
+                y0,
+                radius,
+                normalInferior,
+                raioRefratado,
+                true
+            );
+
+            ctx.strokeStyle = "#d62728";
+            ctx.lineWidth = 2;
+
+            ctx.stroke();
+
+
+            ctx.fillStyle = "#d62728";
+            ctx.font = "16px Arial";
+
+            ctx.fillText(
+                `θ₂ = ${this.theta2.toFixed(1)}°`,
+                x0 + 65,
+                y0 + 55
+            );
+
+        }
+
+
+        // ====================================================
+        // REFLEXÃO TOTAL INTERNA
+        // ====================================================
+
+        else {
+
+            const thetaRad =
+                this.params.theta1 *
+                Math.PI / 180;
+
+            const normalSuperior =
+                -Math.PI / 2;
+
+            const raioRefletido =
+                normalSuperior +
+                thetaRad;
+
+
+            ctx.beginPath();
+
+            ctx.arc(
+                x0,
+                y0,
+                radius,
+                normalSuperior,
+                raioRefletido,
+                false
+            );
+
+            ctx.strokeStyle = "orange";
+            ctx.lineWidth = 2;
+
+            ctx.stroke();
+
+
+            ctx.fillStyle = "orange";
+            ctx.font = "16px Arial";
+
+            ctx.fillText(
+                `θ₁ = ${this.params.theta1.toFixed(1)}°`,
+                x0 + 55,
+                y0 - 55
+            );
+        }
     }
-}
+
 
     // ========================================================
     // HUD / INFORMAÇÕES
     // ========================================================
+
     drawHUD() {
 
         const ctx = this.ctx;
 
         const x = 15;
-        const y = this.canvas.height - 155;
+        const y =
+            this.canvas.height - 155;
 
         const width = 300;
         const height = 135;
 
 
+        // ----------------------------------------------------
         // Fundo
+        // ----------------------------------------------------
 
-        ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+        ctx.fillStyle =
+            "rgba(255, 255, 255, 0.9)";
 
         ctx.beginPath();
 
@@ -826,18 +810,26 @@ drawAngles() {
         ctx.fill();
 
 
+        // ----------------------------------------------------
         // Borda
+        // ----------------------------------------------------
 
-        ctx.strokeStyle = "rgba(0, 0, 0, 0.3)";
+        ctx.strokeStyle =
+            "rgba(0, 0, 0, 0.3)";
+
         ctx.lineWidth = 1;
 
         ctx.stroke();
 
 
+        // ----------------------------------------------------
         // Título
+        // ----------------------------------------------------
 
         ctx.fillStyle = "#222";
-        ctx.font = "bold 16px Arial";
+
+        ctx.font =
+            "bold 16px Arial";
 
         ctx.fillText(
             "Lei de Snell",
@@ -846,10 +838,13 @@ drawAngles() {
         );
 
 
-        ctx.font = "14px Arial";
+        ctx.font =
+            "14px Arial";
 
 
+        // ----------------------------------------------------
         // n1
+        // ----------------------------------------------------
 
         ctx.fillText(
             `n₁ = ${this.params.n1.toFixed(2)}`,
@@ -858,7 +853,9 @@ drawAngles() {
         );
 
 
+        // ----------------------------------------------------
         // n2
+        // ----------------------------------------------------
 
         ctx.fillText(
             `n₂ = ${this.params.n2.toFixed(2)}`,
@@ -867,7 +864,9 @@ drawAngles() {
         );
 
 
+        // ----------------------------------------------------
         // theta1
+        // ----------------------------------------------------
 
         ctx.fillText(
             `θ₁ = ${this.params.theta1.toFixed(2)}°`,
@@ -876,7 +875,9 @@ drawAngles() {
         );
 
 
+        // ----------------------------------------------------
         // theta2
+        // ----------------------------------------------------
 
         if (!this.reflexaoTotal) {
 
@@ -893,7 +894,14 @@ drawAngles() {
                 y + 124
             );
 
-        } else {
+        }
+
+
+        // ----------------------------------------------------
+        // RTI
+        // ----------------------------------------------------
+
+        else {
 
             ctx.fillStyle = "orange";
 
@@ -925,11 +933,11 @@ drawAngles() {
     // ========================================================
     // DESENHO PRINCIPAL
     // ========================================================
+
     draw() {
 
         const ctx = this.ctx;
 
-        // Limpar canvas
 
         ctx.clearRect(
             0,
@@ -939,23 +947,10 @@ drawAngles() {
         );
 
 
-        // ----------------------------------------------------
-        // Interface e meios
-        // ----------------------------------------------------
-
         this.drawInterface();
-
-
-        // ----------------------------------------------------
-        // Raio incidente
-        // ----------------------------------------------------
 
         this.drawIncidentRay();
 
-
-        // ----------------------------------------------------
-        // Raio refratado ou refletido
-        // ----------------------------------------------------
 
         if (this.reflexaoTotal) {
 
@@ -967,16 +962,7 @@ drawAngles() {
         }
 
 
-        // ----------------------------------------------------
-        // Ângulos
-        // ----------------------------------------------------
-
         this.drawAngles();
-
-
-        // ----------------------------------------------------
-        // Informações
-        // ----------------------------------------------------
 
         this.drawHUD();
     }
@@ -985,6 +971,7 @@ drawAngles() {
     // ========================================================
     // ATUALIZAR PARÂMETROS
     // ========================================================
+
     atualizarParametros(newParams) {
 
         this.params = {
