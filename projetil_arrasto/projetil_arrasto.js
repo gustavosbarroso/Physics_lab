@@ -91,13 +91,22 @@ class ProjectileDrag {
 
         const p = this.params;
 
-        const v = Math.sqrt(vx * vx + vy * vy);
+        const v =
+            Math.sqrt(
+                vx * vx +
+                vy * vy
+            );
 
-        const ax = -(p.k / p.m) * v * vx;
+        const ax =
+            -(p.k / p.m) *
+            v *
+            vx;
 
         const ay =
             -p.g -
-            (p.k / p.m) * v * vy;
+            (p.k / p.m) *
+            v *
+            vy;
 
         return [
             vx,
@@ -210,13 +219,6 @@ class ProjectileDrag {
         const h =
             (b - a) / N;
 
-        // Estado inicial:
-        //
-        // x = 0
-        // y = y0
-        // vx = v0 cos(theta)
-        // vy = v0 sin(theta)
-
         let state = [
             0,
             this.params.y0,
@@ -235,19 +237,13 @@ class ProjectileDrag {
             const t =
                 a + n * h;
 
-            // -------------------------------------------------
-            // Guarda o estado atual
-            // -------------------------------------------------
-
             this.timeDrag.push(t);
             this.xDrag.push(state[0]);
-            this.yDrag.push(Math.max(0, state[1]));
+            this.yDrag.push(
+                Math.max(0, state[1])
+            );
             this.vxDrag.push(state[2]);
             this.vyDrag.push(state[3]);
-
-            // -------------------------------------------------
-            // Não integra depois do impacto
-            // -------------------------------------------------
 
             if (state[1] <= 0) {
 
@@ -258,10 +254,6 @@ class ProjectileDrag {
 
                 break;
             }
-
-            // -------------------------------------------------
-            // RK4
-            // -------------------------------------------------
 
             const k1 =
                 this.mul(
@@ -328,13 +320,6 @@ class ProjectileDrag {
                     )
                 );
 
-            // -------------------------------------------------
-            // Interpolação simples do impacto
-            //
-            // Se o próximo passo passou do solo,
-            // colocamos o último ponto exatamente em y = 0.
-            // -------------------------------------------------
-
             if (state[1] < 0) {
 
                 const previousY =
@@ -363,33 +348,36 @@ class ProjectileDrag {
                         this.xDrag.length - 1
                     ] +
                     alpha *
-                    (state[0] -
+                    (
+                        state[0] -
                         this.xDrag[
                             this.xDrag.length - 1
-                        ]);
+                        ]
+                    );
 
                 const impactVx =
                     this.vxDrag[
                         this.vxDrag.length - 1
                     ] +
                     alpha *
-                    (state[2] -
+                    (
+                        state[2] -
                         this.vxDrag[
                             this.vxDrag.length - 1
-                        ]);
+                        ]
+                    );
 
                 const impactVy =
                     this.vyDrag[
                         this.vyDrag.length - 1
                     ] +
                     alpha *
-                    (state[3] -
+                    (
+                        state[3] -
                         this.vyDrag[
                             this.vyDrag.length - 1
-                        ]);
-
-                // Substitui o último estado pelo impacto
-                // exato no solo.
+                        ]
+                    );
 
                 this.timeDrag.push(
                     impactTime
@@ -429,14 +417,6 @@ class ProjectileDrag {
         const vy0 =
             this.initialVy();
 
-        // -----------------------------------------------------
-        // Equação:
-        //
-        // y(t) = y0 + vy0*t - g*t²/2
-        //
-        // Encontramos o instante em que y = 0.
-        // -----------------------------------------------------
-
         const discriminant =
             vy0 * vy0 +
             2 * p.g * p.y0;
@@ -447,7 +427,10 @@ class ProjectileDrag {
                 Math.sqrt(discriminant)
             ) / p.g;
 
-        if (!Number.isFinite(T) || T <= 0) {
+        if (
+            !Number.isFinite(T) ||
+            T <= 0
+        ) {
 
             T = 5;
         }
@@ -481,12 +464,15 @@ class ProjectileDrag {
                 p.g * t;
 
             this.timeIdeal.push(t);
+
             this.xIdeal.push(x);
+
             this.yIdeal.push(
                 Math.max(0, y)
             );
 
             this.vxIdeal.push(vx);
+
             this.vyIdeal.push(vy);
         }
     }
@@ -520,25 +506,37 @@ class ProjectileDrag {
         for (const x of this.xDrag) {
 
             xmax =
-                Math.max(xmax, x);
+                Math.max(
+                    xmax,
+                    x
+                );
         }
 
         for (const x of this.xIdeal) {
 
             xmax =
-                Math.max(xmax, x);
+                Math.max(
+                    xmax,
+                    x
+                );
         }
 
         for (const y of this.yDrag) {
 
             ymax =
-                Math.max(ymax, y);
+                Math.max(
+                    ymax,
+                    y
+                );
         }
 
         for (const y of this.yIdeal) {
 
             ymax =
-                Math.max(ymax, y);
+                Math.max(
+                    ymax,
+                    y
+                );
         }
 
         this.xMax =
@@ -577,11 +575,24 @@ class ProjectileDrag {
         container.id =
             "projectile-controls";
 
+        /*
+         * ALTERAÇÃO:
+         * Antes era 900px fixos.
+         *
+         * Agora acompanha a largura disponível
+         * da página, inclusive no celular.
+         */
         container.style.width =
-            "900px";
+            "100%";
+
+        container.style.maxWidth =
+            "100%";
 
         container.style.margin =
             "20px auto";
+
+        container.style.boxSizing =
+            "border-box";
 
         container.style.fontFamily =
             "Arial";
@@ -665,12 +676,18 @@ class ProjectileDrag {
             row.style.marginBottom =
                 "8px";
 
+            row.style.width =
+                "100%";
+
 
             const label =
                 document.createElement("label");
 
             label.style.width =
                 "110px";
+
+            label.style.flexShrink =
+                "0";
 
             label.innerText =
                 config.label;
@@ -699,12 +716,18 @@ class ProjectileDrag {
             slider.style.flex =
                 "1";
 
+            slider.style.minWidth =
+                "0";
+
 
             const value =
                 document.createElement("span");
 
             value.style.width =
                 "70px";
+
+            value.style.flexShrink =
+                "0";
 
             value.style.marginLeft =
                 "10px";
@@ -741,7 +764,9 @@ class ProjectileDrag {
 
 
             row.appendChild(label);
+
             row.appendChild(slider);
+
             row.appendChild(value);
 
             container.appendChild(row);
@@ -799,6 +824,7 @@ class ProjectileDrag {
         );
 
         ctx.fill();
+
         ctx.stroke();
 
 
