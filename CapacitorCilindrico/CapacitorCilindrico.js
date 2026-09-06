@@ -26,13 +26,10 @@
 //
 // U = 1/2 C V²
 //
-// Não utiliza bibliotecas externas.
-// Utiliza apenas JavaScript, Canvas e DOM.
 // ============================================================
 
 
 class CapacitorCilindrico {
-
 
     // ========================================================
     // CONSTRUTOR
@@ -40,10 +37,8 @@ class CapacitorCilindrico {
 
     constructor(canvas, options = {}) {
 
-        // Canvas
         this.canvas = canvas;
         this.ctx = canvas.getContext("2d");
-
 
         // ====================================================
         // PARÂMETROS
@@ -52,71 +47,47 @@ class CapacitorCilindrico {
         this.params = {
 
             // Densidade linear de carga
-            // em nC/m
+            // nC/m
+            lambda: options.lambda ?? 1.0,
 
-            lambda:
-                options.lambda ?? 1.0,
+            // Raio interno
+            a: options.a ?? 1.0,
 
-
-            // Raio do cilindro interno
-
-            a:
-                options.a ?? 1.0,
-
-
-            // Raio do cilindro externo
-
-            b:
-                options.b ?? 2.0,
-
+            // Raio externo
+            b: options.b ?? 2.0,
 
             // Comprimento
-
-            L:
-                options.L ?? 1.0
+            L: options.L ?? 1.0
         };
-
 
         // ====================================================
         // CONSTANTE
         // ====================================================
 
-        this.epsilon0 =
-            8.85e-12;
-
+        this.epsilon0 = 8.85e-12;
 
         // ====================================================
         // RESULTADOS
         // ====================================================
 
         this.lambdaSI = 0;
-
         this.C = 0;
-
         this.V = 0;
-
         this.U = 0;
-
 
         // ====================================================
         // ANIMAÇÃO
         // ====================================================
 
         this.animationTime = 0;
-
         this.lastTime = null;
-
 
         // ====================================================
         // GEOMETRIA
         // ====================================================
 
-        this.centerX =
-            this.canvas.width / 2;
-
-        this.centerY =
-            this.canvas.height / 2;
-
+        this.centerX = this.canvas.width / 2;
+        this.centerY = this.canvas.height / 2;
 
         // ====================================================
         // CONTROLES
@@ -124,13 +95,11 @@ class CapacitorCilindrico {
 
         this.createControls();
 
-
         // ====================================================
         // RESOLVE
         // ====================================================
 
         this.solve();
-
 
         // ====================================================
         // DESENHA
@@ -138,9 +107,8 @@ class CapacitorCilindrico {
 
         this.draw();
 
-
         // ====================================================
-        // INICIA ANIMAÇÃO
+        // ANIMAÇÃO
         // ====================================================
 
         this.animate();
@@ -156,25 +124,14 @@ class CapacitorCilindrico {
         this.controlsContainer =
             document.createElement("div");
 
-
         this.controlsContainer.className =
             "capacitor-cilindrico-controls";
-
-
-        // ====================================================
-        // HTML
-        // ====================================================
 
         this.controlsContainer.innerHTML = `
 
             <h2>
                 Parâmetros do Capacitor Cilíndrico
             </h2>
-
-
-            <!-- ==============================================
-                 LAMBDA
-                 ============================================== -->
 
             <div class="control">
 
@@ -200,10 +157,6 @@ class CapacitorCilindrico {
             </div>
 
 
-            <!-- ==============================================
-                 RAIO INTERNO
-                 ============================================== -->
-
             <div class="control">
 
                 <label>
@@ -227,10 +180,6 @@ class CapacitorCilindrico {
 
             </div>
 
-
-            <!-- ==============================================
-                 RAIO EXTERNO
-                 ============================================== -->
 
             <div class="control">
 
@@ -256,10 +205,6 @@ class CapacitorCilindrico {
             </div>
 
 
-            <!-- ==============================================
-                 COMPRIMENTO
-                 ============================================== -->
-
             <div class="control">
 
                 <label>
@@ -282,18 +227,11 @@ class CapacitorCilindrico {
                 </label>
 
             </div>
-
         `;
-
-
-        // ====================================================
-        // INSERIR CONTROLES
-        // ====================================================
 
         this.canvas.parentElement.appendChild(
             this.controlsContainer
         );
-
 
         // ====================================================
         // REFERÊNCIAS
@@ -304,27 +242,23 @@ class CapacitorCilindrico {
                 "#cc-lambda"
             );
 
-
         const aInput =
             this.controlsContainer.querySelector(
                 "#cc-a"
             );
-
 
         const bInput =
             this.controlsContainer.querySelector(
                 "#cc-b"
             );
 
-
         const LInput =
             this.controlsContainer.querySelector(
                 "#cc-L"
             );
 
-
         // ====================================================
-        // LAMBDA
+        // λ
         // ====================================================
 
         lambdaInput.addEventListener(
@@ -332,23 +266,16 @@ class CapacitorCilindrico {
             () => {
 
                 this.params.lambda =
-                    parseFloat(
-                        lambdaInput.value
-                    );
-
+                    parseFloat(lambdaInput.value);
 
                 this.controlsContainer
-                    .querySelector(
-                        "#cc-lambda-value"
-                    )
+                    .querySelector("#cc-lambda-value")
                     .textContent =
                     this.params.lambda.toFixed(2);
-
 
                 this.solve();
             }
         );
-
 
         // ====================================================
         // a
@@ -359,23 +286,16 @@ class CapacitorCilindrico {
             () => {
 
                 this.params.a =
-                    parseFloat(
-                        aInput.value
-                    );
-
+                    parseFloat(aInput.value);
 
                 this.controlsContainer
-                    .querySelector(
-                        "#cc-a-value"
-                    )
+                    .querySelector("#cc-a-value")
                     .textContent =
                     this.params.a.toFixed(2);
-
 
                 this.solve();
             }
         );
-
 
         // ====================================================
         // b
@@ -386,23 +306,16 @@ class CapacitorCilindrico {
             () => {
 
                 this.params.b =
-                    parseFloat(
-                        bInput.value
-                    );
-
+                    parseFloat(bInput.value);
 
                 this.controlsContainer
-                    .querySelector(
-                        "#cc-b-value"
-                    )
+                    .querySelector("#cc-b-value")
                     .textContent =
                     this.params.b.toFixed(2);
-
 
                 this.solve();
             }
         );
-
 
         // ====================================================
         // L
@@ -413,18 +326,12 @@ class CapacitorCilindrico {
             () => {
 
                 this.params.L =
-                    parseFloat(
-                        LInput.value
-                    );
-
+                    parseFloat(LInput.value);
 
                 this.controlsContainer
-                    .querySelector(
-                        "#cc-L-value"
-                    )
+                    .querySelector("#cc-L-value")
                     .textContent =
                     this.params.L.toFixed(2);
-
 
                 this.solve();
             }
@@ -438,86 +345,39 @@ class CapacitorCilindrico {
 
     solve() {
 
-        // ====================================================
-        // GARANTIR b > a
-        // ====================================================
-
-        if (
-            this.params.b <=
-            this.params.a
-        ) {
+        // Garantir b > a
+        if (this.params.b <= this.params.a) {
 
             this.params.b =
                 this.params.a + 0.1;
 
-
             const bInput =
-                this.controlsContainer
-                    .querySelector(
-                        "#cc-b"
-                    );
+                this.controlsContainer.querySelector(
+                    "#cc-b"
+                );
 
-
-            bInput.value =
-                this.params.b;
-
+            bInput.value = this.params.b;
 
             this.controlsContainer
-                .querySelector(
-                    "#cc-b-value"
-                )
+                .querySelector("#cc-b-value")
                 .textContent =
                 this.params.b.toFixed(2);
         }
 
-
-        // ====================================================
-        // PARÂMETROS
-        // ====================================================
-
         const lambda =
             this.params.lambda * 1e-9;
 
+        const a = this.params.a;
+        const b = this.params.b;
+        const L = this.params.L;
 
-        const a =
-            this.params.a;
-
-
-        const b =
-            this.params.b;
-
-
-        const L =
-            this.params.L;
-
-
-        // ====================================================
-        // λ EM SI
-        // ====================================================
-
-        this.lambdaSI =
-            lambda;
-
+        this.lambdaSI = lambda;
 
         // ====================================================
         // CAPACITÂNCIA
         // ====================================================
-        //
-        // Se λ = 0, o campo elétrico entre os cilindros
-        // também é nulo.
-        //
-        // Nesta simulação, isso implica:
-        //
-        // E = 0
-        // C = 0
-        // V = 0
-        // U = 0
-        //
-        // ====================================================
 
-        if (
-            Math.abs(lambda) < 1e-20
-        ) {
+        if (Math.abs(lambda) < 1e-20) {
 
             this.C = 0;
 
@@ -533,14 +393,11 @@ class CapacitorCilindrico {
                 Math.log(b / a);
         }
 
-
         // ====================================================
         // DIFERENÇA DE POTENCIAL
         // ====================================================
 
-        if (
-            Math.abs(lambda) < 1e-20
-        ) {
+        if (Math.abs(lambda) < 1e-20) {
 
             this.V = 0;
 
@@ -557,7 +414,6 @@ class CapacitorCilindrico {
                 ) *
                 Math.log(b / a);
         }
-
 
         // ====================================================
         // ENERGIA
@@ -577,27 +433,18 @@ class CapacitorCilindrico {
 
     electricField(r) {
 
-        // Fora da região entre os cilindros,
-        // o campo é considerado nulo.
-
         if (
             r <= this.params.a ||
             r >= this.params.b
         ) {
-
             return 0;
         }
-
-
-        // Se λ = 0, o campo é exatamente zero.
 
         if (
             Math.abs(this.lambdaSI) < 1e-20
         ) {
-
             return 0;
         }
-
 
         return (
             this.lambdaSI /
@@ -617,17 +464,10 @@ class CapacitorCilindrico {
 
     drawCylinders() {
 
-        const ctx =
-            this.ctx;
+        const ctx = this.ctx;
 
-
-        const cx =
-            this.centerX;
-
-
-        const cy =
-            this.centerY;
-
+        const cx = this.centerX;
+        const cy = this.centerY;
 
         // ====================================================
         // ESCALA
@@ -639,25 +479,17 @@ class CapacitorCilindrico {
                 this.canvas.height
             ) * 0.32;
 
-
         const scale =
             maxRadius /
             this.params.b;
 
-
-        this.scale =
-            scale;
-
+        this.scale = scale;
 
         this.innerRadius =
-            this.params.a *
-            scale;
-
+            this.params.a * scale;
 
         this.outerRadius =
-            this.params.b *
-            scale;
-
+            this.params.b * scale;
 
         // ====================================================
         // CILINDRO EXTERNO
@@ -673,15 +505,9 @@ class CapacitorCilindrico {
             2 * Math.PI
         );
 
-
-        ctx.strokeStyle =
-            "#222";
-
-        ctx.lineWidth =
-            5;
-
+        ctx.strokeStyle = "#222";
+        ctx.lineWidth = 5;
         ctx.stroke();
-
 
         // ====================================================
         // CILINDRO INTERNO
@@ -697,23 +523,16 @@ class CapacitorCilindrico {
             2 * Math.PI
         );
 
-
-        ctx.strokeStyle =
-            "#222";
-
-        ctx.lineWidth =
-            7;
-
+        ctx.strokeStyle = "#222";
+        ctx.lineWidth = 7;
         ctx.stroke();
 
-
         // ====================================================
-        // PREENCHIMENTO DA REGIÃO CONDUTORA
+        // PREENCHIMENTO DA REGIÃO CONDUTORA INTERNA
         // ====================================================
 
         ctx.fillStyle =
             "rgba(120, 120, 120, 0.08)";
-
 
         ctx.beginPath();
 
@@ -727,14 +546,12 @@ class CapacitorCilindrico {
 
         ctx.fill();
 
-
         // ====================================================
         // REGIÃO ENTRE OS CILINDROS
         // ====================================================
 
         ctx.fillStyle =
             "rgba(100, 180, 255, 0.08)";
-
 
         ctx.beginPath();
 
@@ -745,7 +562,6 @@ class CapacitorCilindrico {
             0,
             2 * Math.PI
         );
-
 
         ctx.arc(
             cx,
@@ -758,37 +574,137 @@ class CapacitorCilindrico {
 
         ctx.fill();
 
-
         // ====================================================
-        // SINAIS
+        // SINAIS NAS PLACAS
+        // ====================================================
+        //
+        // λ > 0:
+        //      placa interna = +
+        //      placa externa = -
+        //
+        // λ < 0:
+        //      placa interna = -
+        //      placa externa = +
+        //
+        // λ = 0:
+        //      nenhum sinal
+        //
+        // Os sinais são colocados sobre as superfícies
+        // condutoras, e não no centro do capacitor.
         // ====================================================
 
-        ctx.font =
-            "bold 22px Arial";
+        if (Math.abs(this.params.lambda) > 1e-12) {
 
-        ctx.fillStyle =
-            "#222";
+            const innerSignal =
+                this.params.lambda > 0
+                    ? "+"
+                    : "−";
 
-        ctx.textAlign =
-            "center";
-
-        ctx.textBaseline =
-            "middle";
-
-
-        const signal =
-            this.params.lambda > 0
-                ? "+"
-                : this.params.lambda < 0
+            const outerSignal =
+                this.params.lambda > 0
                     ? "−"
-                    : "0";
+                    : "+";
 
+            ctx.font =
+                "bold 17px Arial";
 
-        ctx.fillText(
-            signal,
-            cx,
-            cy
-        );
+            ctx.fillStyle =
+                "#222";
+
+            ctx.textAlign =
+                "center";
+
+            ctx.textBaseline =
+                "middle";
+
+            // =================================================
+            // SINAIS DA PLACA INTERNA
+            // =================================================
+            //
+            // Colocados ligeiramente para dentro da
+            // superfície do cilindro interno.
+            // =================================================
+
+            const numberOfInnerSigns = 10;
+
+            const innerSignRadius =
+                this.innerRadius - 1;
+
+            for (
+                let i = 0;
+                i < numberOfInnerSigns;
+                i++
+            ) {
+
+                const angle =
+                    (
+                        2 *
+                        Math.PI *
+                        i
+                    ) /
+                    numberOfInnerSigns;
+
+                const x =
+                    cx +
+                    innerSignRadius *
+                    Math.cos(angle);
+
+                const y =
+                    cy +
+                    innerSignRadius *
+                    Math.sin(angle);
+
+                ctx.fillText(
+                    innerSignal,
+                    x,
+                    y
+                );
+            }
+
+            // =================================================
+            // SINAIS DA PLACA EXTERNA
+            // =================================================
+            //
+            // Colocados ligeiramente para dentro da superfície
+            // interna do cilindro externo.
+            // =================================================
+
+            const numberOfOuterSigns = 16;
+
+            const outerSignRadius =
+                this.outerRadius - 2;
+
+            for (
+                let i = 0;
+                i < numberOfOuterSigns;
+                i++
+            ) {
+
+                const angle =
+                    (
+                        2 *
+                        Math.PI *
+                        i
+                    ) /
+                    numberOfOuterSigns;
+
+                const x =
+                    cx +
+                    outerSignRadius *
+                    Math.cos(angle);
+
+                const y =
+                    cy +
+                    outerSignRadius *
+                    Math.sin(angle);
+
+                ctx.fillText(
+                    outerSignal,
+                    x,
+                    y
+                );
+            }
+        }
 
 
         // ====================================================
@@ -801,6 +717,8 @@ class CapacitorCilindrico {
         ctx.textAlign =
             "left";
 
+        ctx.fillStyle =
+            "#333";
 
         ctx.fillText(
             `a = ${this.params.a.toFixed(2)} m`,
@@ -809,7 +727,6 @@ class CapacitorCilindrico {
             10,
             cy - 5
         );
-
 
         ctx.fillText(
             `b = ${this.params.b.toFixed(2)} m`,
@@ -827,62 +744,37 @@ class CapacitorCilindrico {
 
     drawFieldLines() {
 
-        const ctx =
-            this.ctx;
+        const ctx = this.ctx;
 
-
-        const cx =
-            this.centerX;
-
-
-        const cy =
-            this.centerY;
-
+        const cx = this.centerX;
+        const cy = this.centerY;
 
         // ====================================================
         // CAMPO NULO
         // ====================================================
 
         if (
-            Math.abs(
-                this.lambdaSI
-            ) < 1e-20
+            Math.abs(this.lambdaSI) < 1e-20
         ) {
-
             return;
         }
 
-
         // ====================================================
-        // NÚMERO DE LINHAS RADIAIS
+        // NÚMERO DE LINHAS
         // ====================================================
 
-        const numberOfLines =
-            16;
-
+        const numberOfLines = 16;
 
         // ====================================================
         // DIREÇÃO DO CAMPO
         // ====================================================
-
-        /*
-         *
-         * λ > 0:
-         *
-         * Campo aponta radialmente
-         * para fora.
-         *
-         *
-         * λ < 0:
-         *
-         * Campo aponta radialmente
-         * para dentro.
-         *
-         */
+        //
+        // λ > 0 → para fora
+        // λ < 0 → para dentro
+        // ====================================================
 
         const outward =
             this.lambdaSI > 0;
-
 
         // ====================================================
         // LINHAS RADIAIS
@@ -902,14 +794,11 @@ class CapacitorCilindrico {
                 ) /
                 numberOfLines;
 
-
             const cos =
                 Math.cos(angle);
 
-
             const sin =
                 Math.sin(angle);
-
 
             // =================================================
             // PONTO INICIAL
@@ -920,12 +809,10 @@ class CapacitorCilindrico {
                 this.innerRadius *
                 cos;
 
-
             const y1 =
                 cy +
                 this.innerRadius *
                 sin;
-
 
             // =================================================
             // PONTO FINAL
@@ -936,12 +823,10 @@ class CapacitorCilindrico {
                 this.outerRadius *
                 cos;
 
-
             const y2 =
                 cy +
                 this.outerRadius *
                 sin;
-
 
             // =================================================
             // LINHA
@@ -959,23 +844,18 @@ class CapacitorCilindrico {
                 y2
             );
 
-
             ctx.strokeStyle =
                 "rgba(60, 60, 60, 0.40)";
 
-            ctx.lineWidth =
-                1.5;
+            ctx.lineWidth = 1.5;
 
             ctx.stroke();
-
 
             // =================================================
             // SETAS FIXAS
             // =================================================
 
-            const numberOfArrows =
-                3;
-
+            const numberOfArrows = 3;
 
             for (
                 let j = 0;
@@ -987,14 +867,12 @@ class CapacitorCilindrico {
                     0.22 +
                     j * 0.28;
 
-
                 this.drawFieldArrow(
                     angle,
                     t,
                     outward
                 );
             }
-
 
             // =================================================
             // SETA ANIMADA
@@ -1018,98 +896,55 @@ class CapacitorCilindrico {
         outward
     ) {
 
-        const ctx =
-            this.ctx;
-
-
-        // ====================================================
-        // POSIÇÃO RADIAL
-        // ====================================================
+        const ctx = this.ctx;
 
         const range =
             this.outerRadius -
             this.innerRadius;
 
-
         const radius =
             this.innerRadius +
             t * range;
-
 
         const x =
             this.centerX +
             radius *
             Math.cos(angle);
 
-
         const y =
             this.centerY +
             radius *
             Math.sin(angle);
 
-
-        // ====================================================
-        // DIREÇÃO
-        // ====================================================
-
         const direction =
-            outward
-                ? 1
-                : -1;
-
+            outward ? 1 : -1;
 
         const dx =
             Math.cos(angle) *
             direction;
 
-
         const dy =
             Math.sin(angle) *
             direction;
 
-
-        // ====================================================
-        // TAMANHO
-        // ====================================================
-
-        const arrowLength =
-            14;
-
-
-        const headLength =
-            7;
-
-
-        // ====================================================
-        // PONTA DA SETA
-        // ====================================================
+        const arrowLength = 14;
+        const headLength = 7;
 
         const tipX =
             x +
             dx *
             arrowLength;
 
-
         const tipY =
             y +
             dy *
             arrowLength;
-
-
-        // ====================================================
-        // ÂNGULO
-        // ====================================================
 
         const theta =
             Math.atan2(
                 dy,
                 dx
             );
-
-
-        // ====================================================
-        // DESENHAR
-        // ====================================================
 
         ctx.beginPath();
 
@@ -1118,7 +953,6 @@ class CapacitorCilindrico {
             tipY
         );
 
-
         ctx.lineTo(
             tipX -
             headLength *
@@ -1126,7 +960,6 @@ class CapacitorCilindrico {
                 theta -
                 Math.PI / 6
             ),
-
             tipY -
             headLength *
             Math.sin(
@@ -1135,7 +968,6 @@ class CapacitorCilindrico {
             )
         );
 
-
         ctx.lineTo(
             tipX -
             headLength *
@@ -1143,7 +975,6 @@ class CapacitorCilindrico {
                 theta +
                 Math.PI / 6
             ),
-
             tipY -
             headLength *
             Math.sin(
@@ -1151,10 +982,8 @@ class CapacitorCilindrico {
                 Math.PI / 6
             )
         );
-
 
         ctx.closePath();
-
 
         ctx.fillStyle =
             "#1976d2";
@@ -1172,18 +1001,11 @@ class CapacitorCilindrico {
         outward
     ) {
 
-        const ctx =
-            this.ctx;
-
-
-        // ====================================================
-        // POSIÇÃO ANIMADA
-        // ====================================================
+        const ctx = this.ctx;
 
         const range =
             this.outerRadius -
             this.innerRadius;
-
 
         let t =
             (
@@ -1194,112 +1016,63 @@ class CapacitorCilindrico {
                 (2 * Math.PI)
             ) % 1;
 
-
         if (!outward) {
 
             t =
                 1 - t;
         }
 
-
-        // ====================================================
-        // MARGEM
-        // ====================================================
-
-        const margin =
-            0.08;
-
+        const margin = 0.08;
 
         t =
             margin +
             t *
             (1 - 2 * margin);
 
-
         const radius =
             this.innerRadius +
             t *
             range;
-
-
-        // ====================================================
-        // POSIÇÃO
-        // ====================================================
 
         const x =
             this.centerX +
             radius *
             Math.cos(angle);
 
-
         const y =
             this.centerY +
             radius *
             Math.sin(angle);
 
-
-        // ====================================================
-        // DIREÇÃO
-        // ====================================================
-
         const direction =
-            outward
-                ? 1
-                : -1;
-
+            outward ? 1 : -1;
 
         const dx =
             Math.cos(angle) *
             direction;
 
-
         const dy =
             Math.sin(angle) *
             direction;
 
-
-        // ====================================================
-        // TAMANHO
-        // ====================================================
-
-        const arrowLength =
-            16;
-
-
-        const headLength =
-            8;
-
-
-        // ====================================================
-        // PONTA
-        // ====================================================
+        const arrowLength = 16;
+        const headLength = 8;
 
         const x2 =
             x +
             dx *
             arrowLength;
 
-
         const y2 =
             y +
             dy *
             arrowLength;
-
-
-        // ====================================================
-        // ÂNGULO
-        // ====================================================
 
         const theta =
             Math.atan2(
                 dy,
                 dx
             );
-
-
-        // ====================================================
-        // DESENHAR
-        // ====================================================
 
         ctx.beginPath();
 
@@ -1308,7 +1081,6 @@ class CapacitorCilindrico {
             y2
         );
 
-
         ctx.lineTo(
             x2 -
             headLength *
@@ -1316,7 +1088,6 @@ class CapacitorCilindrico {
                 theta -
                 Math.PI / 6
             ),
-
             y2 -
             headLength *
             Math.sin(
@@ -1325,7 +1096,6 @@ class CapacitorCilindrico {
             )
         );
 
-
         ctx.lineTo(
             x2 -
             headLength *
@@ -1333,7 +1103,6 @@ class CapacitorCilindrico {
                 theta +
                 Math.PI / 6
             ),
-
             y2 -
             headLength *
             Math.sin(
@@ -1341,10 +1110,8 @@ class CapacitorCilindrico {
                 Math.PI / 6
             )
         );
-
 
         ctx.closePath();
-
 
         ctx.fillStyle =
             "#1976d2";
@@ -1359,29 +1126,13 @@ class CapacitorCilindrico {
 
     drawGraph() {
 
-        const ctx =
-            this.ctx;
+        const ctx = this.ctx;
 
+        const graphX = 25;
+        const graphY = 25;
 
-        // ====================================================
-        // POSIÇÃO DO GRÁFICO
-        // ====================================================
-
-        const graphX =
-            25;
-
-
-        const graphY =
-            25;
-
-
-        const graphWidth =
-            320;
-
-
-        const graphHeight =
-            210;
-
+        const graphWidth = 320;
+        const graphHeight = 210;
 
         // ====================================================
         // FUNDO
@@ -1389,7 +1140,6 @@ class CapacitorCilindrico {
 
         ctx.fillStyle =
             "rgba(255,255,255,0.94)";
-
 
         ctx.beginPath();
 
@@ -1403,38 +1153,29 @@ class CapacitorCilindrico {
 
         ctx.fill();
 
-
         ctx.strokeStyle =
             "rgba(0,0,0,0.25)";
 
-        ctx.lineWidth =
-            1;
+        ctx.lineWidth = 1;
 
         ctx.stroke();
-
 
         // ====================================================
         // TÍTULO
         // ====================================================
 
-        ctx.fillStyle =
-            "#222";
+        ctx.fillStyle = "#222";
 
         ctx.font =
             "bold 15px Arial";
 
-        ctx.textAlign =
-            "left";
-
-
-        // UNIDADE FOI MOVIDA PARA O TÍTULO
+        ctx.textAlign = "left";
 
         ctx.fillText(
             "Campo elétrico E(r) (V/m)",
             graphX + 10,
             graphY + 22
         );
-
 
         // ====================================================
         // ÁREA DO GRÁFICO
@@ -1443,69 +1184,41 @@ class CapacitorCilindrico {
         const left =
             graphX + 55;
 
-
         const right =
             graphX +
             graphWidth -
             18;
 
-
         const top =
             graphY + 42;
-
 
         const bottom =
             graphY +
             graphHeight -
             45;
 
-
         // ====================================================
         // VALORES DE E
         // ====================================================
 
-        const epsilon =
-            1e-9;
-
+        const epsilon = 1e-9;
 
         const rMin =
             this.params.a +
             epsilon;
 
-
         const rMax =
             this.params.b -
             epsilon;
 
-
         const E_min =
-            this.electricField(
-                rMax
-            );
-
+            this.electricField(rMax);
 
         const E_max =
-            this.electricField(
-                rMin
-            );
-
+            this.electricField(rMin);
 
         // ====================================================
-        // ESCALA VERTICAL
-        // ====================================================
-        //
-        // A escala agora é SIMÉTRICA:
-        //
-        //       +E_scale
-        //          |
-        //          |
-        //          0
-        //          |
-        //          |
-        //       -E_scale
-        //
-        // Isso é importante para λ < 0.
-        //
+        // ESCALA VERTICAL SIMÉTRICA
         // ====================================================
 
         const E_scale =
@@ -1514,16 +1227,11 @@ class CapacitorCilindrico {
                 Math.abs(E_min)
             );
 
-
         // ====================================================
-        // CASO λ = 0
+        // CAMPO NULO
         // ====================================================
 
-        if (
-            E_scale === 0
-        ) {
-
-            // Eixo horizontal representa E = 0.
+        if (E_scale === 0) {
 
             ctx.beginPath();
 
@@ -1537,12 +1245,10 @@ class CapacitorCilindrico {
                 bottom
             );
 
-
             ctx.strokeStyle =
                 "#1976d2";
 
-            ctx.lineWidth =
-                2.5;
+            ctx.lineWidth = 2.5;
 
             ctx.stroke();
 
@@ -1569,29 +1275,18 @@ class CapacitorCilindrico {
                 bottom
             );
 
-
             ctx.strokeStyle =
                 "#444";
 
-            ctx.lineWidth =
-                1;
+            ctx.lineWidth = 1;
 
             ctx.stroke();
 
-
             // =================================================
-            // CURVA REAL E(r)
+            // CLIPPING
             // =================================================
-
-            // Guarda o estado para que a curva jamais saia
-            // da região interna do gráfico.
 
             ctx.save();
-
-
-            // =================================================
-            // CLIPPING DA ÁREA DO GRÁFICO
-            // =================================================
 
             ctx.beginPath();
 
@@ -1604,17 +1299,13 @@ class CapacitorCilindrico {
 
             ctx.clip();
 
-
             // =================================================
-            // CURVA
+            // CURVA E(r)
             // =================================================
 
             ctx.beginPath();
 
-
-            const samples =
-                200;
-
+            const samples = 200;
 
             for (
                 let i = 0;
@@ -1631,16 +1322,8 @@ class CapacitorCilindrico {
                     i /
                     samples;
 
-
                 const E =
-                    this.electricField(
-                        r
-                    );
-
-
-                // =================================================
-                // COORDENADA X
-                // =================================================
+                    this.electricField(r);
 
                 const x =
                     left +
@@ -1657,19 +1340,6 @@ class CapacitorCilindrico {
                         left
                     );
 
-
-                // =================================================
-                // COORDENADA Y
-                // =================================================
-                //
-                // E = +E_scale -> topo
-                //
-                // E = 0        -> centro
-                //
-                // E = -E_scale -> baixo
-                //
-                // =================================================
-
                 const y =
                     (
                         top +
@@ -1685,10 +1355,7 @@ class CapacitorCilindrico {
                         top
                     ) / 2;
 
-
-                if (
-                    i === 0
-                ) {
+                if (i === 0) {
 
                     ctx.moveTo(
                         x,
@@ -1704,23 +1371,15 @@ class CapacitorCilindrico {
                 }
             }
 
-
             ctx.strokeStyle =
                 "#1976d2";
 
-            ctx.lineWidth =
-                2.5;
+            ctx.lineWidth = 2.5;
 
             ctx.stroke();
 
-
-            // =================================================
-            // RESTAURA ÁREA ORIGINAL
-            // =================================================
-
             ctx.restore();
         }
-
 
         // ====================================================
         // MARCAÇÕES DO EIXO r
@@ -1735,10 +1394,7 @@ class CapacitorCilindrico {
         ctx.textAlign =
             "center";
 
-
-        const rTicks =
-            5;
-
+        const rTicks = 5;
 
         for (
             let i = 0;
@@ -1755,7 +1411,6 @@ class CapacitorCilindrico {
                 i /
                 rTicks;
 
-
             const x =
                 left +
                 (
@@ -1771,9 +1426,6 @@ class CapacitorCilindrico {
                     left
                 );
 
-
-            // Pequena marca
-
             ctx.beginPath();
 
             ctx.moveTo(
@@ -1786,12 +1438,10 @@ class CapacitorCilindrico {
                 bottom + 5
             );
 
-
             ctx.strokeStyle =
                 "#444";
 
             ctx.stroke();
-
 
             ctx.fillText(
                 r.toFixed(2),
@@ -1800,9 +1450,8 @@ class CapacitorCilindrico {
             );
         }
 
-
         // ====================================================
-        // RÓTULO DO EIXO r
+        // RÓTULO r
         // ====================================================
 
         ctx.font =
@@ -1810,7 +1459,6 @@ class CapacitorCilindrico {
 
         ctx.fillStyle =
             "#333";
-
 
         ctx.fillText(
             "r (m)",
@@ -1821,25 +1469,18 @@ class CapacitorCilindrico {
             bottom + 35
         );
 
-
         // ====================================================
-        // MARCAÇÕES DO EIXO E
+        // EIXO E
         // ====================================================
 
-        ctx.textAlign =
-            "right";
+        ctx.textAlign = "right";
 
         ctx.font =
             "11px Arial";
 
+        const E_ticks = 5;
 
-        const E_ticks =
-            5;
-
-
-        if (
-            E_scale > 0
-        ) {
+        if (E_scale > 0) {
 
             for (
                 let i = 0;
@@ -1851,24 +1492,12 @@ class CapacitorCilindrico {
                     i /
                     E_ticks;
 
-
-                // =================================================
-                // ESCALA SIMÉTRICA
-                // =================================================
-                //
-                // i = 0       -> +E_scale
-                // i = 2.5     -> 0
-                // i = 5       -> -E_scale
-                //
-                // =================================================
-
                 const E =
                     E_scale *
                     (
                         1 -
                         2 * fraction
                     );
-
 
                 const y =
                     top +
@@ -1877,9 +1506,6 @@ class CapacitorCilindrico {
                         bottom -
                         top
                     );
-
-
-                // Pequena marca
 
                 ctx.beginPath();
 
@@ -1893,43 +1519,30 @@ class CapacitorCilindrico {
                     y
                 );
 
-
                 ctx.strokeStyle =
                     "#444";
 
                 ctx.stroke();
 
-
                 ctx.fillText(
-                    this.formatScientific(
-                        E
-                    ),
+                    this.formatScientific(E),
                     left - 8,
                     y + 4
                 );
             }
         }
 
-
         // ====================================================
-        // LINHA HORIZONTAL E = 0
-        // ====================================================
-        //
-        // Para λ diferente de zero, o zero fica no meio da
-        // área vertical do gráfico.
-        //
+        // LINHA E = 0
         // ====================================================
 
-        if (
-            E_scale > 0
-        ) {
+        if (E_scale > 0) {
 
             const zeroY =
                 (
                     top +
                     bottom
                 ) / 2;
-
 
             ctx.beginPath();
 
@@ -1943,12 +1556,10 @@ class CapacitorCilindrico {
                 zeroY
             );
 
-
             ctx.strokeStyle =
                 "rgba(0,0,0,0.15)";
 
-            ctx.lineWidth =
-                1;
+            ctx.lineWidth = 1;
 
             ctx.stroke();
         }
@@ -1964,10 +1575,8 @@ class CapacitorCilindrico {
         if (
             Math.abs(value) < 1e-15
         ) {
-
             return "0";
         }
-
 
         const exponent =
             Math.floor(
@@ -1976,14 +1585,12 @@ class CapacitorCilindrico {
                 )
             );
 
-
         const mantissa =
             value /
             Math.pow(
                 10,
                 exponent
             );
-
 
         return (
             mantissa.toFixed(1) +
@@ -1999,29 +1606,19 @@ class CapacitorCilindrico {
 
     drawRadiusIndicators() {
 
-        const ctx =
-            this.ctx;
+        const ctx = this.ctx;
 
-
-        const cx =
-            this.centerX;
-
-
-        const cy =
-            this.centerY;
-
+        const cx = this.centerX;
+        const cy = this.centerY;
 
         const angle =
             -Math.PI / 4;
 
-
         const cos =
             Math.cos(angle);
 
-
         const sin =
             Math.sin(angle);
-
 
         // ====================================================
         // RAIO a
@@ -2034,26 +1631,21 @@ class CapacitorCilindrico {
             cy
         );
 
-
         ctx.lineTo(
             cx +
             this.innerRadius *
             cos,
-
             cy +
             this.innerRadius *
             sin
         );
 
-
         ctx.strokeStyle =
             "#555";
 
-        ctx.lineWidth =
-            1;
+        ctx.lineWidth = 1;
 
         ctx.stroke();
-
 
         // ====================================================
         // RAIO b
@@ -2066,23 +1658,19 @@ class CapacitorCilindrico {
             cy
         );
 
-
         ctx.lineTo(
             cx +
             this.outerRadius *
             cos,
-
             cy +
             this.outerRadius *
             sin
         );
 
-
         ctx.strokeStyle =
             "#555";
 
         ctx.stroke();
-
 
         // ====================================================
         // TEXTO a
@@ -2091,26 +1679,21 @@ class CapacitorCilindrico {
         ctx.font =
             "14px Arial";
 
-
         ctx.fillStyle =
             "#333";
 
-
         ctx.textAlign =
             "center";
-
 
         ctx.fillText(
             "a",
             cx +
             this.innerRadius *
             cos / 2,
-
             cy +
             this.innerRadius *
             sin / 2 - 8
         );
-
 
         // ====================================================
         // TEXTO b
@@ -2121,7 +1704,6 @@ class CapacitorCilindrico {
             cx +
             this.outerRadius *
             cos / 2,
-
             cy +
             this.outerRadius *
             sin / 2 - 8
@@ -2135,25 +1717,15 @@ class CapacitorCilindrico {
 
     drawHUD() {
 
-        const ctx =
-            this.ctx;
-
+        const ctx = this.ctx;
 
         const x =
             this.canvas.width - 300;
 
+        const y = 25;
 
-        const y =
-            25;
-
-
-        const width =
-            275;
-
-
-        const height =
-            175;
-
+        const width = 275;
+        const height = 175;
 
         // ====================================================
         // FUNDO
@@ -2161,7 +1733,6 @@ class CapacitorCilindrico {
 
         ctx.fillStyle =
             "rgba(255,255,255,0.94)";
-
 
         ctx.beginPath();
 
@@ -2175,7 +1746,6 @@ class CapacitorCilindrico {
 
         ctx.fill();
 
-
         // ====================================================
         // BORDA
         // ====================================================
@@ -2183,11 +1753,9 @@ class CapacitorCilindrico {
         ctx.strokeStyle =
             "rgba(0,0,0,0.3)";
 
-        ctx.lineWidth =
-            1;
+        ctx.lineWidth = 1;
 
         ctx.stroke();
-
 
         // ====================================================
         // TÍTULO
@@ -2202,13 +1770,11 @@ class CapacitorCilindrico {
         ctx.textAlign =
             "left";
 
-
         ctx.fillText(
             "Capacitor cilíndrico",
             x + 10,
             y + 23
         );
-
 
         // ====================================================
         // RESULTADOS
@@ -2217,13 +1783,11 @@ class CapacitorCilindrico {
         ctx.font =
             "14px Arial";
 
-
         ctx.fillText(
             `λ = ${this.params.lambda.toFixed(2)} nC/m`,
             x + 10,
             y + 48
         );
-
 
         ctx.fillText(
             `C = ${(this.C * 1e9).toFixed(4)} nF`,
@@ -2231,13 +1795,11 @@ class CapacitorCilindrico {
             y + 71
         );
 
-
         ctx.fillText(
             `V = ${this.V.toFixed(2)} V`,
             x + 10,
             y + 94
         );
-
 
         ctx.fillText(
             `U = ${(this.U * 1e6).toFixed(4)} µJ`,
@@ -2245,20 +1807,17 @@ class CapacitorCilindrico {
             y + 117
         );
 
-
         ctx.fillText(
             `a = ${this.params.a.toFixed(2)} m`,
             x + 10,
             y + 140
         );
 
-
         ctx.fillText(
             `b = ${this.params.b.toFixed(2)} m`,
             x + 130,
             y + 140
         );
-
 
         ctx.fillText(
             `L = ${this.params.L.toFixed(2)} m`,
@@ -2274,9 +1833,7 @@ class CapacitorCilindrico {
 
     draw() {
 
-        const ctx =
-            this.ctx;
-
+        const ctx = this.ctx;
 
         // ====================================================
         // LIMPAR
@@ -2289,13 +1846,11 @@ class CapacitorCilindrico {
             this.canvas.height
         );
 
-
         // ====================================================
         // CILINDROS
         // ====================================================
 
         this.drawCylinders();
-
 
         // ====================================================
         // LINHAS DE CAMPO
@@ -2303,20 +1858,17 @@ class CapacitorCilindrico {
 
         this.drawFieldLines();
 
-
         // ====================================================
         // INDICADORES
         // ====================================================
 
         this.drawRadiusIndicators();
 
-
         // ====================================================
         // GRÁFICO
         // ====================================================
 
         this.drawGraph();
-
 
         // ====================================================
         // HUD
@@ -2340,22 +1892,17 @@ class CapacitorCilindrico {
                 timestamp;
         }
 
-
         const delta =
             timestamp -
             this.lastTime;
 
-
         this.lastTime =
             timestamp;
-
 
         this.animationTime +=
             delta;
 
-
         this.draw();
-
 
         requestAnimationFrame(
             (time) =>
@@ -2374,7 +1921,6 @@ class CapacitorCilindrico {
             ...this.params,
             ...newParams
         };
-
 
         this.solve();
 
