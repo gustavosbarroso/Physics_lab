@@ -41,16 +41,6 @@ class TwoBodySystem {
         this.UA_POR_ANO = 4.74047;
 
         // =====================================================
-        // CONTROLE DO RK4 ADAPTATIVO
-        // =====================================================
-
-        // Tolerância do erro local
-        this.rkTolerance = 1e-9;
-
-        // Passo mínimo
-        this.rkMinDt = 1e-8;
-
-        // =====================================================
         // ESTADO
         // =====================================================
 
@@ -279,6 +269,9 @@ class TwoBodySystem {
         const M =
             m1 + m2;
 
+        const e =
+            this.params.e;
+
         const rp =
             this.getPeriapsis();
 
@@ -431,7 +424,7 @@ class TwoBodySystem {
 
 
     // =========================================================
-    // RK4 — UM PASSO
+    // RK4
     // =========================================================
 
     rk4Step(state, t, dt) {
@@ -497,237 +490,12 @@ class TwoBodySystem {
 
 
     // =========================================================
-    // RK4 ADAPTATIVO
-    // =========================================================
-    //
-    // Compara:
-    //
-    //       RK4(dt)
-    //
-    // com:
-    //
-    //       RK4(dt/2) + RK4(dt/2)
-    //
-    // A diferença fornece uma estimativa do erro.
-    //
-    // =========================================================
-
-    rk4AdaptiveStep(state, t, dt) {
-
-        const tolerance =
-            this.rkTolerance;
-
-        const minDt =
-            this.rkMinDt;
-
-        while (true) {
-
-            // =================================================
-            // UM PASSO COMPLETO
-            // =================================================
-
-            const fullStep =
-                this.rk4Step(
-                    state,
-                    t,
-                    dt
-                );
-
-
-            // =================================================
-            // DOIS MEIOS PASSOS
-            // =================================================
-
-            const halfStep =
-                this.rk4Step(
-                    state,
-                    t,
-                    dt / 2
-                );
-
-            const twoHalfSteps =
-                this.rk4Step(
-                    halfStep,
-                    t + dt / 2,
-                    dt / 2
-                );
-
-
-            // =================================================
-            // ESTIMATIVA DO ERRO
-            // =================================================
-
-            let error = 0;
-
-            for (
-                let i = 0;
-                i < state.length;
-                i++
-            ) {
-
-                const scale =
-                    Math.max(
-                        1,
-                        Math.abs(state[i]),
-                        Math.abs(twoHalfSteps[i])
-                    );
-
-                const localError =
-                    Math.abs(
-                        twoHalfSteps[i] -
-                        fullStep[i]
-                    ) / scale;
-
-                error =
-                    Math.max(
-                        error,
-                        localError
-                    );
-            }
-
-
-            // =================================================
-            // PASSO ACEITO
-            // =================================================
-
-            if (
-                error <= tolerance ||
-                dt <= minDt
-            ) {
-
-                // -------------------------------------------------
-                // RICHARDSON EXTRAPOLATION
-                // -------------------------------------------------
-                //
-                // Para RK4:
-                //
-                // erro ~ dt^5
-                //
-                // Portanto:
-                //
-                // y ≈ y_half +
-                //     (y_half - y_full) / 15
-                //
-                // -------------------------------------------------
-
-                const correctedState =
-                    state.map(
-                        (value, i) =>
-                            twoHalfSteps[i] +
-                            (
-                                twoHalfSteps[i] -
-                                fullStep[i]
-                            ) / 15
-                    );
-
-
-                // -------------------------------------------------
-                // NOVO PASSO
-                // -------------------------------------------------
-
-                let newDt;
-
-                if (
-                    error === 0
-                ) {
-
-                    newDt =
-                        dt * 2;
-
-                } else {
-
-                    const safety =
-                        0.9;
-
-                    const factor =
-                        safety *
-                        Math.pow(
-                            tolerance / error,
-                            1 / 5
-                        );
-
-                    newDt =
-                        dt *
-                        Math.max(
-                            0.2,
-                            Math.min(
-                                2.0,
-                                factor
-                            )
-                        );
-                }
-
-
-                return {
-
-                    state:
-                        correctedState,
-
-                    dt:
-                        Math.max(
-                            minDt,
-                            newDt
-                        ),
-
-                    error:
-                        error
-                };
-            }
-
-
-            // =================================================
-            // PASSO REJEITADO
-            // =================================================
-
-            const safety =
-                0.9;
-
-            const factor =
-                safety *
-                Math.pow(
-                    tolerance / error,
-                    1 / 5
-                );
-
-            dt *=
-                Math.max(
-                    0.1,
-                    Math.min(
-                        0.5,
-                        factor
-                    )
-                );
-
-
-            if (
-                dt < minDt
-            ) {
-
-                dt = minDt;
-            }
-        }
-    }
-
-
-    // =========================================================
     // SOLVER
-    // =========================================================
-    //
-    // Primeiro produzimos uma solução com passos adaptativos.
-    //
-    // Depois reamostramos essa solução em tempos uniformes.
-    //
-    // Isso separa:
-    //
-    //     precisão física
-    //
-    // de:
-    //
-    //     velocidade da animação.
-    //
     // =========================================================
 
     solve() {
+
+        const N = 1200;
 
         const T =
             this.getKeplerPeriod();
@@ -735,151 +503,14 @@ class TwoBodySystem {
         const tMax =
             this.params.periods * T;
 
-
-        // =====================================================
-        // PASSO INICIAL
-        // =====================================================
-
-        let dt =
-            T / 300;
-
-
-        // =====================================================
-        // PASSO MÁXIMO
-        // =====================================================
-
-        const maxDt =
-            T / 30;
-
-
-        // =====================================================
-        // ESTADO INICIAL
-        // =====================================================
+        const dt =
+            tMax / (N - 1);
 
         let state =
             this.initialCondition();
 
-        let t = 0;
-
-
-        // =====================================================
-        // SOLUÇÃO ADAPTATIVA
-        // =====================================================
-
-        const adaptiveT = [];
-        const adaptiveSol = [];
-
-        adaptiveT.push(0);
-
-        adaptiveSol.push(
-            [...state]
-        );
-
-
-        // =====================================================
-        // INTEGRAÇÃO
-        // =====================================================
-
-        while (
-            t < tMax
-        ) {
-
-            // -----------------------------------------------
-            // Não ultrapassar tMax
-            // -----------------------------------------------
-
-            if (
-                t + dt > tMax
-            ) {
-
-                dt =
-                    tMax - t;
-            }
-
-
-            // -----------------------------------------------
-            // RK4 ADAPTATIVO
-            // -----------------------------------------------
-
-            const result =
-                this.rk4AdaptiveStep(
-                    state,
-                    t,
-                    dt
-                );
-
-
-            // -----------------------------------------------
-            // Atualiza estado
-            // -----------------------------------------------
-
-            state =
-                result.state;
-
-            t += dt;
-
-
-            // -----------------------------------------------
-            // Guarda ponto
-            // -----------------------------------------------
-
-            adaptiveT.push(t);
-
-            adaptiveSol.push(
-                [...state]
-            );
-
-
-            // -----------------------------------------------
-            // Atualiza dt
-            // -----------------------------------------------
-
-            dt =
-                Math.min(
-                    maxDt,
-                    Math.max(
-                        this.rkMinDt,
-                        result.dt
-                    )
-                );
-        }
-
-
-        // =====================================================
-        // REAMOSTRAGEM TEMPORAL
-        // =====================================================
-        //
-        // Aqui criamos exatamente os tempos que a animação
-        // vai utilizar.
-        //
-        // Todos possuem o mesmo Δt.
-        //
-        // =====================================================
-
-        const framesPerPeriod =
-            1200;
-
-        const N =
-            Math.max(
-                2,
-                Math.round(
-                    framesPerPeriod *
-                    this.params.periods
-                )
-            );
-
-        const uniformT = [];
-        const uniformSol = [];
-
-
-        // Índice do intervalo adaptativo
-
-        let j = 0;
-
-
-        // =====================================================
-        // INTERPOLAÇÃO
-        // =====================================================
+        this.t = [];
+        this.sol = [];
 
         for (
             let i = 0;
@@ -887,110 +518,32 @@ class TwoBodySystem {
             i++
         ) {
 
-            const targetT =
-                tMax *
-                i /
-                (N - 1);
+            const t =
+                i * dt;
 
+            this.t.push(t);
 
-            // -------------------------------------------------
-            // Encontra o intervalo que contém targetT
-            // -------------------------------------------------
-
-            while (
-                j < adaptiveT.length - 2 &&
-                adaptiveT[j + 1] < targetT
-            ) {
-
-                j++;
-            }
-
-
-            // -------------------------------------------------
-            // Pontos vizinhos
-            // -------------------------------------------------
-
-            const t0 =
-                adaptiveT[j];
-
-            const t1 =
-                adaptiveT[j + 1];
-
-            const y0 =
-                adaptiveSol[j];
-
-            const y1 =
-                adaptiveSol[j + 1];
-
-
-            // -------------------------------------------------
-            // Fator de interpolação
-            // -------------------------------------------------
-
-            let alpha;
+            this.sol.push(
+                [...state]
+            );
 
             if (
-                t1 === t0
+                i < N - 1
             ) {
 
-                alpha = 0;
-
-            } else {
-
-                alpha =
-                    (
-                        targetT - t0
-                    ) /
-                    (
-                        t1 - t0
+                state =
+                    this.rk4Step(
+                        state,
+                        t,
+                        dt
                     );
             }
-
-
-            // -------------------------------------------------
-            // Interpolação do estado inteiro
-            // -------------------------------------------------
-
-            const interpolatedState =
-                y0.map(
-                    (value, k) =>
-                        value +
-                        alpha *
-                        (
-                            y1[k] -
-                            value
-                        )
-                );
-
-
-            uniformT.push(
-                targetT
-            );
-
-            uniformSol.push(
-                interpolatedState
-            );
         }
-
-
-        // =====================================================
-        // SOLUÇÃO FINAL
-        // =====================================================
-
-        this.t =
-            uniformT;
-
-        this.sol =
-            uniformSol;
-
 
         return {
 
-            t:
-                this.t,
-
-            sol:
-                this.sol
+            t: this.t,
+            sol: this.sol
         };
     }
 
@@ -1056,20 +609,15 @@ class TwoBodySystem {
 
         return {
 
-            tipo:
-                tipo,
+            tipo: tipo,
 
-            e:
-                e,
+            e: e,
 
-            a:
-                a,
+            a: a,
 
-            rp:
-                rp,
+            rp: rp,
 
-            ra:
-                ra,
+            ra: ra,
 
             vPeriapsis:
                 vp,
@@ -1325,9 +873,7 @@ class TwoBodySystem {
                     trail[i].y
                 );
 
-            if (
-                i === 0
-            ) {
+            if (i === 0) {
 
                 ctx.moveTo(
                     p.x,
@@ -1488,10 +1034,9 @@ class TwoBodySystem {
         const y2 =
             state[5];
 
-
-        // =====================================================
+        // -----------------------------------------------------
         // TRAJETÓRIAS
-        // =====================================================
+        // -----------------------------------------------------
 
         this.drawTrail(
             this.trail1
@@ -1501,10 +1046,9 @@ class TwoBodySystem {
             this.trail2
         );
 
-
-        // =====================================================
+        // -----------------------------------------------------
         // m1
-        // =====================================================
+        // -----------------------------------------------------
 
         ctx.fillStyle =
             "#ff4444";
@@ -1516,10 +1060,9 @@ class TwoBodySystem {
             "m₁"
         );
 
-
-        // =====================================================
+        // -----------------------------------------------------
         // m2
-        // =====================================================
+        // -----------------------------------------------------
 
         ctx.fillStyle =
             "#4488ff";
@@ -1531,10 +1074,9 @@ class TwoBodySystem {
             "m₂"
         );
 
-
-        // =====================================================
+        // -----------------------------------------------------
         // HUD
-        // =====================================================
+        // -----------------------------------------------------
 
         this.drawHUD();
     }
@@ -1559,26 +1101,15 @@ class TwoBodySystem {
 
         this.trail1.push({
 
-            x:
-                state[0],
-
-            y:
-                state[1]
+            x: state[0],
+            y: state[1]
         });
 
         this.trail2.push({
 
-            x:
-                state[4],
-
-            y:
-                state[5]
+            x: state[4],
+            y: state[5]
         });
-
-
-        // -----------------------------------------------------
-        // Limite da trajetória
-        // -----------------------------------------------------
 
         if (
             this.trail1.length > 700
@@ -1594,24 +1125,9 @@ class TwoBodySystem {
             this.trail2.shift();
         }
 
-
-        // -----------------------------------------------------
-        // Desenha
-        // -----------------------------------------------------
-
         this.draw();
 
-
-        // -----------------------------------------------------
-        // Próximo frame
-        // -----------------------------------------------------
-
         this.frame++;
-
-
-        // -----------------------------------------------------
-        // Reinicia o ciclo
-        // -----------------------------------------------------
 
         if (
             this.frame >=
@@ -1623,7 +1139,6 @@ class TwoBodySystem {
             this.trail1 = [];
             this.trail2 = [];
         }
-
 
         this.animationId =
             requestAnimationFrame(
@@ -1638,9 +1153,7 @@ class TwoBodySystem {
 
     start() {
 
-        if (
-            this.running
-        )
+        if (this.running)
             return;
 
         this.running = true;
@@ -1692,4 +1205,5 @@ class TwoBodySystem {
         this.animate();
     }
 }
+
 
