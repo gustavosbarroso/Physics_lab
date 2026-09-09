@@ -44,7 +44,7 @@ class TwoBodySystem {
         // CONTROLE DO RK4 ADAPTATIVO
         // =====================================================
 
-        // Tolerância relativa/local do integrador
+        // Tolerância do erro local
         this.rkTolerance = 1e-9;
 
         // Passo mínimo
@@ -500,7 +500,7 @@ class TwoBodySystem {
     // RK4 ADAPTATIVO
     // =========================================================
     //
-    // Comparamos:
+    // Compara:
     //
     //       RK4(dt)
     //
@@ -523,7 +523,7 @@ class TwoBodySystem {
         while (true) {
 
             // =================================================
-            // PASSO ÚNICO
+            // UM PASSO COMPLETO
             // =================================================
 
             const fullStep =
@@ -597,6 +597,7 @@ class TwoBodySystem {
 
                 // -------------------------------------------------
                 // RICHARDSON EXTRAPOLATION
+                // -------------------------------------------------
                 //
                 // Para RK4:
                 //
@@ -605,7 +606,7 @@ class TwoBodySystem {
                 // Portanto:
                 //
                 // y ≈ y_half +
-                //     (y_half - y_full)/15
+                //     (y_half - y_full) / 15
                 //
                 // -------------------------------------------------
 
@@ -620,13 +621,15 @@ class TwoBodySystem {
                     );
 
 
-                // =================================================
-                // ESCOLHA DO PRÓXIMO DT
-                // =================================================
+                // -------------------------------------------------
+                // NOVO PASSO
+                // -------------------------------------------------
 
                 let newDt;
 
-                if (error === 0) {
+                if (
+                    error === 0
+                ) {
 
                     newDt =
                         dt * 2;
@@ -675,11 +678,6 @@ class TwoBodySystem {
             // =================================================
             // PASSO REJEITADO
             // =================================================
-            //
-            // O erro foi grande demais.
-            // Reduzimos dt e tentamos novamente.
-            //
-            // =================================================
 
             const safety =
                 0.9;
@@ -715,15 +713,17 @@ class TwoBodySystem {
     // SOLVER
     // =========================================================
     //
-    // Agora o tempo é integrado com passos adaptativos.
+    // Primeiro produzimos uma solução com passos adaptativos.
     //
-    // Perto do periastro:
+    // Depois reamostramos essa solução em tempos uniformes.
     //
-    //       dt ↓
+    // Isso separa:
     //
-    // Longe do periastro:
+    //     precisão física
     //
-    //       dt ↑
+    // de:
+    //
+    //     velocidade da animação.
     //
     // =========================================================
 
@@ -763,18 +763,15 @@ class TwoBodySystem {
 
 
         // =====================================================
-        // ARRAYS
+        // SOLUÇÃO ADAPTATIVA
         // =====================================================
 
-        this.t = [];
-        this.sol = [];
+        const adaptiveT = [];
+        const adaptiveSol = [];
 
+        adaptiveT.push(0);
 
-        // Primeiro ponto
-
-        this.t.push(t);
-
-        this.sol.push(
+        adaptiveSol.push(
             [...state]
         );
 
@@ -788,7 +785,7 @@ class TwoBodySystem {
         ) {
 
             // -----------------------------------------------
-            // Evita ultrapassar o tempo final
+            // Não ultrapassar tMax
             // -----------------------------------------------
 
             if (
@@ -823,12 +820,12 @@ class TwoBodySystem {
 
 
             // -----------------------------------------------
-            // Guarda solução
+            // Guarda ponto
             // -----------------------------------------------
 
-            this.t.push(t);
+            adaptiveT.push(t);
 
-            this.sol.push(
+            adaptiveSol.push(
                 [...state]
             );
 
@@ -848,10 +845,152 @@ class TwoBodySystem {
         }
 
 
+        // =====================================================
+        // REAMOSTRAGEM TEMPORAL
+        // =====================================================
+        //
+        // Aqui criamos exatamente os tempos que a animação
+        // vai utilizar.
+        //
+        // Todos possuem o mesmo Δt.
+        //
+        // =====================================================
+
+        const framesPerPeriod =
+            1200;
+
+        const N =
+            Math.max(
+                2,
+                Math.round(
+                    framesPerPeriod *
+                    this.params.periods
+                )
+            );
+
+        const uniformT = [];
+        const uniformSol = [];
+
+
+        // Índice do intervalo adaptativo
+
+        let j = 0;
+
+
+        // =====================================================
+        // INTERPOLAÇÃO
+        // =====================================================
+
+        for (
+            let i = 0;
+            i < N;
+            i++
+        ) {
+
+            const targetT =
+                tMax *
+                i /
+                (N - 1);
+
+
+            // -------------------------------------------------
+            // Encontra o intervalo que contém targetT
+            // -------------------------------------------------
+
+            while (
+                j < adaptiveT.length - 2 &&
+                adaptiveT[j + 1] < targetT
+            ) {
+
+                j++;
+            }
+
+
+            // -------------------------------------------------
+            // Pontos vizinhos
+            // -------------------------------------------------
+
+            const t0 =
+                adaptiveT[j];
+
+            const t1 =
+                adaptiveT[j + 1];
+
+            const y0 =
+                adaptiveSol[j];
+
+            const y1 =
+                adaptiveSol[j + 1];
+
+
+            // -------------------------------------------------
+            // Fator de interpolação
+            // -------------------------------------------------
+
+            let alpha;
+
+            if (
+                t1 === t0
+            ) {
+
+                alpha = 0;
+
+            } else {
+
+                alpha =
+                    (
+                        targetT - t0
+                    ) /
+                    (
+                        t1 - t0
+                    );
+            }
+
+
+            // -------------------------------------------------
+            // Interpolação do estado inteiro
+            // -------------------------------------------------
+
+            const interpolatedState =
+                y0.map(
+                    (value, k) =>
+                        value +
+                        alpha *
+                        (
+                            y1[k] -
+                            value
+                        )
+                );
+
+
+            uniformT.push(
+                targetT
+            );
+
+            uniformSol.push(
+                interpolatedState
+            );
+        }
+
+
+        // =====================================================
+        // SOLUÇÃO FINAL
+        // =====================================================
+
+        this.t =
+            uniformT;
+
+        this.sol =
+            uniformSol;
+
+
         return {
 
-            t: this.t,
-            sol: this.sol
+            t:
+                this.t,
+
+            sol:
+                this.sol
         };
     }
 
@@ -917,15 +1056,20 @@ class TwoBodySystem {
 
         return {
 
-            tipo: tipo,
+            tipo:
+                tipo,
 
-            e: e,
+            e:
+                e,
 
-            a: a,
+            a:
+                a,
 
-            rp: rp,
+            rp:
+                rp,
 
-            ra: ra,
+            ra:
+                ra,
 
             vPeriapsis:
                 vp,
@@ -1181,7 +1325,9 @@ class TwoBodySystem {
                     trail[i].y
                 );
 
-            if (i === 0) {
+            if (
+                i === 0
+            ) {
 
                 ctx.moveTo(
                     p.x,
@@ -1413,15 +1559,26 @@ class TwoBodySystem {
 
         this.trail1.push({
 
-            x: state[0],
-            y: state[1]
+            x:
+                state[0],
+
+            y:
+                state[1]
         });
 
         this.trail2.push({
 
-            x: state[4],
-            y: state[5]
+            x:
+                state[4],
+
+            y:
+                state[5]
         });
+
+
+        // -----------------------------------------------------
+        // Limite da trajetória
+        // -----------------------------------------------------
 
         if (
             this.trail1.length > 700
@@ -1437,9 +1594,24 @@ class TwoBodySystem {
             this.trail2.shift();
         }
 
+
+        // -----------------------------------------------------
+        // Desenha
+        // -----------------------------------------------------
+
         this.draw();
 
+
+        // -----------------------------------------------------
+        // Próximo frame
+        // -----------------------------------------------------
+
         this.frame++;
+
+
+        // -----------------------------------------------------
+        // Reinicia o ciclo
+        // -----------------------------------------------------
 
         if (
             this.frame >=
@@ -1451,6 +1623,7 @@ class TwoBodySystem {
             this.trail1 = [];
             this.trail2 = [];
         }
+
 
         this.animationId =
             requestAnimationFrame(
@@ -1465,7 +1638,9 @@ class TwoBodySystem {
 
     start() {
 
-        if (this.running)
+        if (
+            this.running
+        )
             return;
 
         this.running = true;
@@ -1517,3 +1692,4 @@ class TwoBodySystem {
         this.animate();
     }
 }
+
