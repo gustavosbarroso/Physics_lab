@@ -945,25 +945,25 @@ class TwoBodySystem {
 
         const lines = [
 
-            `t = ${t.toFixed(2)} anos`,
+            t = ${t.toFixed(2)} anos,
 
-            `M₁ = ${this.params.m1.toFixed(2)} M☉`,
+            M₁ = ${this.params.m1.toFixed(2)} M☉,
 
-            `M₂ = ${this.params.m2.toFixed(2)} M☉`,
+            M₂ = ${this.params.m2.toFixed(2)} M☉,
 
-            `e = ${info.e.toFixed(3)}`,
+            e = ${info.e.toFixed(3)},
 
-            `a = ${info.a.toFixed(2)} UA`,
+            a = ${info.a.toFixed(2)} UA,
 
-            `rₚ = ${info.rp.toFixed(2)} UA`,
+            rₚ = ${info.rp.toFixed(2)} UA,
 
-            `rₐ = ${info.ra.toFixed(2)} UA`,
+            rₐ = ${info.ra.toFixed(2)} UA,
 
-            `vₚ = ${info.vPeriapsisKmS.toFixed(2)} km/s`,
+            vₚ = ${info.vPeriapsisKmS.toFixed(2)} km/s,
 
-            `T = ${info.TKepler.toFixed(2)} anos`,
+            T = ${info.TKepler.toFixed(2)} anos,
 
-            `Órbita: ${info.tipo}`
+            Órbita: ${info.tipo}
 
         ];
 
@@ -1205,5 +1205,3 @@ class TwoBodySystem {
         this.animate();
     }
 }
-
-
