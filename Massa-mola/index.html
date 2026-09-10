@@ -1,20 +1,220 @@
-<canvas
- id="massSpringCanvas"
- width="1200"
- height="550"> </canvas>
+<!DOCTYPE html>
+
+<html lang="pt-BR">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0">
+
+<title>
+    Oscilador massa-mola amortecido
+</title>
+
+
+<style>
+
+    * {
+        box-sizing: border-box;
+    }
+
+
+    html,
+    body {
+
+        margin: 0;
+        padding: 0;
+
+        width: 100%;
+
+    }
+
+
+    body {
+
+        padding: 30px 0;
+
+        background: #f5f5f5;
+
+        font-family: Arial, sans-serif;
+
+        text-align: center;
+
+        overflow-x: hidden;
+
+    }
+
+
+    /* ==================================================
+       CONTAINER
+       ================================================== */
+
+    .simulation-container {
+
+        width:
+            min(
+                1200px,
+                calc(100vw - 40px)
+            );
+
+        margin:
+            0 auto;
+
+        background:
+            white;
+
+        padding:
+            20px;
+
+        border-radius:
+            8px;
+
+        overflow:
+            hidden;
+
+    }
+
+
+    /* ==================================================
+       CANVAS
+       ================================================== */
+
+    #massSpringCanvas {
+
+        display:
+            block;
+
+        width:
+            100%;
+
+        height:
+            auto;
+
+        aspect-ratio:
+            1200 / 550;
+
+        margin:
+            0 auto;
+
+        border:
+            1px solid #ddd;
+
+    }
+
+
+    /* ==================================================
+       CONTROLES
+       ================================================== */
+
+    #mass-spring-controls {
+
+        width:
+            100% !important;
+
+        max-width:
+            900px !important;
+
+        margin:
+            20px auto !important;
+
+    }
+
+
+    #mass-spring-controls input[type="range"] {
+
+        min-width:
+            0;
+
+    }
+
+
+    /* ==================================================
+       CELULAR
+       ================================================== */
+
+    @media (max-width: 600px) {
+
+        body {
+
+            padding:
+                10px 0;
+
+        }
+
+
+        .simulation-container {
+
+            width:
+                calc(100vw - 20px);
+
+            padding:
+                10px;
+
+            border-radius:
+                6px;
+
+        }
+
+
+        #mass-spring-controls {
+
+            font-size:
+                14px;
+
+        }
+
+
+        #mass-spring-controls h2 {
+
+            font-size:
+                20px;
+
+        }
+
+    }
+
+</style>
+```
+
+</head>
+
+<body>
+
+```
+<div class="simulation-container">
+
+
+    <canvas
+        id="massSpringCanvas"
+        width="1200"
+        height="550">
+    </canvas>
+
+
+</div>
+
 
 <script src="oscilador.js"></script>
 
+
 <script>
 
-const canvas =
-    document.getElementById(
-        "massSpringCanvas"
-    );
+    const canvas =
+        document.getElementById(
+            "massSpringCanvas"
+        );
 
-const oscillator =
-    new DampedMassSpring(
-        canvas
-    );
+
+    const oscillator =
+        new DampedMassSpring(
+            canvas
+        );
 
 </script>
+
+</body>
+
+</html>
