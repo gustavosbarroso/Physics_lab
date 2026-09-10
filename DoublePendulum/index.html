@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="pt-BR">
 
@@ -7,8 +8,7 @@
 
     <meta
         name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+        content="width=device-width, initial-scale=1.0">
 
     <title>Pêndulo Duplo</title>
 
@@ -19,139 +19,76 @@
         }
 
         body {
-
             margin: 0;
-
             padding: 0;
-
             background: white;
-
             font-family: Arial, sans-serif;
-
         }
 
         canvas {
-
             display: block;
-
+            width: 1200px;
+            height: 550px;
             margin: 20px auto;
-
             border: 1px solid #ccc;
-
             background: white;
-
-        }
-
-        h2 {
-
-            margin-top: 10px;
-
-            margin-bottom: 15px;
-
         }
 
         #double-pendulum-controls {
-
             width: 900px;
-
             margin: 20px auto;
-
             font-family: Arial, sans-serif;
+        }
 
+        h2 {
+            margin-top: 10px;
+            margin-bottom: 15px;
         }
 
     </style>
 
 </head>
 
-
 <body>
 
-
-    <!-- =====================================================
-         CANVAS
-         ===================================================== -->
-
     <canvas
-        id="canvas"
+        id="doublePendulumCanvas"
         width="1200"
         height="550">
     </canvas>
 
-
-    <!-- =====================================================
-         CLASSE DO PÊNDULO DUPLO
-         ===================================================== -->
-
     <script src="DoublePendulum.js"></script>
-
-
-    <!-- =====================================================
-         INICIALIZAÇÃO
-         ===================================================== -->
 
     <script>
 
         const canvas =
-            document.getElementById("canvas");
-
+            document.getElementById(
+                "doublePendulumCanvas"
+            );
 
         const pendulum =
             new DoublePendulum(
-
                 canvas,
-
                 {
-
-                    // =================================================
-                    // GRAVIDADE
-                    // =================================================
-
                     g: 9.81,
 
-
-                    // =================================================
-                    // COMPRIMENTOS
-                    // =================================================
-
                     L1: 1.0,
-
                     L2: 1.0,
 
-
-                    // =================================================
-                    // MASSAS
-                    // =================================================
-
                     m1: 1.0,
-
                     m2: 1.0,
 
-
-                    // =================================================
-                    // PÊNDULO 1
-                    // =================================================
-
                     theta10: 0.8,
-
                     omega10: 0.0,
 
-
-                    // =================================================
-                    // PÊNDULO 2
-                    // =================================================
-
                     theta20: 1.2,
-
                     omega20: 0.0
-
                 }
-
             );
 
     </script>
 
-
 </body>
 
 </html>
+```
