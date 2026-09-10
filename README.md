@@ -127,6 +127,15 @@ Simulação interativa de plano inclinado com diferentes sólidos.
 
 **[▶ Abrir simulação](https://gustavosbarroso.github.io/Physics_lab/plano_inclinado/)**
 
+### XIV. [Oscilador massa-mola](https://gustavosbarroso.github.io/Physics_lab/Massa-mola/)
+
+<img width="1179" height="529" alt="image" src="https://github.com/user-attachments/assets/a9e222a7-ab62-4678-a182-b17d43790b4f" />
+
+Sistema massa mola com e sem efeitos de amortecimento
+
+**[▶ Abrir simulação](https://gustavosbarroso.github.io/Physics_lab/Massa-mola/)**
+
+
 ---
 
 ## 📄 LICENÇA
