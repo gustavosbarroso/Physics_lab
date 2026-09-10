@@ -4,34 +4,32 @@
 
 <head>
 
+```
 <meta charset="UTF-8">
 
 <meta
     name="viewport"
     content="width=device-width, initial-scale=1.0">
 
-<title>
-    Oscilador massa-mola amortecido
-</title>
+<title>Oscilador massa-mola amortecido</title>
 
 
 <style>
+
+    /* ==================================================
+       CONFIGURAÇÃO GERAL
+       ================================================== */
 
     * {
         box-sizing: border-box;
     }
 
-
     html,
     body {
-
         margin: 0;
         padding: 0;
-
         width: 100%;
-
     }
-
 
     body {
 
@@ -44,12 +42,11 @@
         text-align: center;
 
         overflow-x: hidden;
-
     }
 
 
     /* ==================================================
-       CONTAINER
+       CONTAINER DA SIMULAÇÃO
        ================================================== */
 
     .simulation-container {
@@ -60,21 +57,15 @@
                 calc(100vw - 40px)
             );
 
-        margin:
-            0 auto;
+        margin: 0 auto;
 
-        background:
-            white;
+        padding: 20px;
 
-        padding:
-            20px;
+        background: white;
 
-        border-radius:
-            8px;
+        border-radius: 8px;
 
-        overflow:
-            hidden;
-
+        overflow: hidden;
     }
 
 
@@ -84,24 +75,22 @@
 
     #massSpringCanvas {
 
-        display:
-            block;
+        display: block;
 
-        width:
-            100%;
+        width: 100%;
 
-        height:
-            auto;
+        height: auto;
 
-        aspect-ratio:
-            1200 / 550;
+        /*
+         * Mantém exatamente a proporção
+         * interna de 1200 × 550.
+         */
 
-        margin:
-            0 auto;
+        aspect-ratio: 1200 / 550;
 
-        border:
-            1px solid #ddd;
+        margin: 0 auto;
 
+        border: 1px solid #ddd;
     }
 
 
@@ -111,23 +100,21 @@
 
     #mass-spring-controls {
 
-        width:
-            100% !important;
+        width: 100% !important;
 
-        max-width:
-            900px !important;
+        max-width: 900px !important;
 
-        margin:
-            20px auto !important;
+        margin: 20px auto !important;
 
+        overflow: hidden;
     }
 
 
     #mass-spring-controls input[type="range"] {
 
-        min-width:
-            0;
+        min-width: 0;
 
+        max-width: 100%;
     }
 
 
@@ -139,9 +126,7 @@
 
         body {
 
-            padding:
-                10px 0;
-
+            padding: 10px 0;
         }
 
 
@@ -150,40 +135,43 @@
             width:
                 calc(100vw - 20px);
 
-            padding:
-                10px;
+            padding: 10px;
 
-            border-radius:
-                6px;
-
+            border-radius: 6px;
         }
 
 
         #mass-spring-controls {
 
-            font-size:
-                14px;
+            width: 100% !important;
 
+            max-width: 100% !important;
+
+            padding: 0;
         }
 
 
         #mass-spring-controls h2 {
 
-            font-size:
-                20px;
+            font-size: 20px;
 
+            margin-top: 20px;
         }
-
     }
 
 </style>
+```
 
 </head>
 
 <body>
 
-<div class="simulation-container">
+```
+<!-- ==================================================
+     SIMULAÇÃO
+     ================================================== -->
 
+<div class="simulation-container">
 
     <canvas
         id="massSpringCanvas"
@@ -191,9 +179,12 @@
         height="550">
     </canvas>
 
-
 </div>
 
+
+<!-- ==================================================
+     JAVASCRIPT DA SIMULAÇÃO
+     ================================================== -->
 
 <script src="oscilador.js"></script>
 
@@ -212,6 +203,7 @@
         );
 
 </script>
+```
 
 </body>
 
