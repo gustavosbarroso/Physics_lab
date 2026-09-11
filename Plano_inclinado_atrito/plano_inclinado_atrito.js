@@ -74,10 +74,26 @@ class InclinedPlaneFriction {
 
 
     // =========================================================
-    // CONDIÇÃO DE DESLIZAMENTO
+    // ÂNGULO CRÍTICO
     // =========================================================
 
-    isSliding() {
+    criticalAngle() {
+
+        return (
+            Math.atan(
+                this.params.muS
+            ) *
+            180 /
+            Math.PI
+        );
+    }
+
+
+    // =========================================================
+    // VERIFICA SE O ATRITO ESTÁTICO FOI VENCIDO
+    // =========================================================
+
+    isStaticOvercome() {
 
         const theta =
             this.params.theta *
@@ -92,7 +108,7 @@ class InclinedPlaneFriction {
 
 
     // =========================================================
-    // ACELERAÇÃO
+    // ACELERAÇÃO CINÉTICA
     // =========================================================
 
     acceleration() {
@@ -113,21 +129,40 @@ class InclinedPlaneFriction {
 
 
     // =========================================================
+    // VERIFICAÇÃO DEFINITIVA DO MOVIMENTO
+    // =========================================================
+    /*
+     * O bloco só começa a deslizar se:
+     *
+     * 1) o atrito estático for vencido;
+     *
+     * 2) a aceleração cinética for positiva.
+     *
+     * Se a aceleração for zero ou negativa, o bloco
+     * permanece parado, pois ele parte do repouso.
+     */
+
+    canSlide() {
+
+        return (
+            this.isStaticOvercome() &&
+            this.acceleration() > 0
+        );
+    }
+
+
+    // =========================================================
     // TEMPO DE CHEGADA AO FINAL DO PLANO
     // =========================================================
 
     calculateArrivalTime() {
 
-        if (!this.isSliding()) {
+        if (!this.canSlide()) {
             return Infinity;
         }
 
         const a =
             this.acceleration();
-
-        if (a <= 0) {
-            return Infinity;
-        }
 
         return Math.sqrt(
             2 *
@@ -170,14 +205,26 @@ class InclinedPlaneFriction {
 
         this.calculateSimulationTime();
 
-        const sliding =
-            this.isSliding();
+        const canSlide =
+            this.canSlide();
 
         // =====================================================
         // BLOCO PARADO
         // =====================================================
+        /*
+         * Este bloco é importante.
+         *
+         * Se não pode deslizar, não criamos uma trajetória
+         * artificial. A simulação inteira é exatamente:
+         *
+         * t = 0
+         * s = 0
+         * v = 0
+         *
+         * e não existe avanço temporal.
+         */
 
-        if (!sliding) {
+        if (!canSlide) {
 
             this.data.t = [0];
             this.data.x = [0];
@@ -214,6 +261,10 @@ class InclinedPlaneFriction {
         const arrivalTime =
             this.calculateArrivalTime();
 
+        // =====================================================
+        // INTEGRAÇÃO
+        // =====================================================
+
         for (
             let i = 0;
             i < steps;
@@ -230,19 +281,13 @@ class InclinedPlaneFriction {
             let v;
 
             // =================================================
-            // MOVIMENTO
+            // MOVIMENTO UNIFORMEMENTE ACELERADO
             // =================================================
 
-            if (t < arrivalTime) {
-
-                /*
-                 * Movimento uniformemente acelerado.
-                 *
-                 * O bloco parte do repouso:
-                 *
-                 * x = 1/2 a t²
-                 * v = a t
-                 */
+            if (
+                t <
+                arrivalTime
+            ) {
 
                 x =
                     0.5 *
@@ -256,7 +301,7 @@ class InclinedPlaneFriction {
             }
 
             // =================================================
-            // CHEGOU AO FINAL
+            // CHEGOU AO FINAL DO PLANO
             // =================================================
 
             else {
@@ -273,7 +318,7 @@ class InclinedPlaneFriction {
             }
 
             // =================================================
-            // LIMITA AO FINAL DO PLANO
+            // LIMITES
             // =================================================
 
             x =
@@ -449,6 +494,10 @@ class InclinedPlaneFriction {
                             config.decimals
                         );
 
+                    // =========================================
+                    // RECALCULA TODA A SIMULAÇÃO
+                    // =========================================
+
                     this.solve();
 
                     this.draw();
@@ -552,11 +601,6 @@ class InclinedPlaneFriction {
         const theta =
             this.getPlaneGeometry().theta;
 
-        /*
-         * Tangente apontando para baixo
-         * ao longo do plano.
-         */
-
         const tangent = {
 
             x:
@@ -565,11 +609,6 @@ class InclinedPlaneFriction {
             y:
                 Math.sin(theta)
         };
-
-        /*
-         * Normal apontando para fora
-         * do plano.
-         */
 
         const normal = {
 
@@ -692,10 +731,12 @@ class InclinedPlaneFriction {
 
         ctx.stroke();
 
+        // =====================================================
+        // NÃO DESENHAR ÂNGULO
+        // =====================================================
         /*
-         * A indicação gráfica do ângulo foi removida.
-         * O theta continua sendo usado normalmente
-         * nos cálculos e na geometria do plano.
+         * Nenhum arco, linha ou texto representando
+         * geometricamente o ângulo é desenhado aqui.
          */
 
         ctx.restore();
@@ -726,11 +767,6 @@ class InclinedPlaneFriction {
             x,
             y
         );
-
-        /*
-         * O bloco acompanha a inclinação
-         * da hipotenusa.
-         */
 
         ctx.rotate(theta);
 
@@ -871,7 +907,7 @@ class InclinedPlaneFriction {
 
 
     // =========================================================
-    // BLOCO
+    // ESTADO DO BLOCO
     // =========================================================
 
     drawBlockState(ctx) {
@@ -888,6 +924,10 @@ class InclinedPlaneFriction {
         if (index < 0) {
             return;
         }
+
+        // =====================================================
+        // POSIÇÃO FÍSICA
+        // =====================================================
 
         const physicalX =
             Math.max(
@@ -907,15 +947,11 @@ class InclinedPlaneFriction {
             this.getPlaneGeometry().theta;
 
         // =====================================================
-        // RAIO VISUAL
+        // POSIÇÃO VISUAL
         // =====================================================
 
         const radius =
             18;
-
-        // =====================================================
-        // POSIÇÃO ACIMA DO PLANO
-        // =====================================================
 
         const x =
             pos.x +
@@ -971,6 +1007,10 @@ class InclinedPlaneFriction {
         y,
         velocity
     ) {
+
+        // =====================================================
+        // SE ESTÁ PARADO, NÃO DESENHA NADA
+        // =====================================================
 
         if (
             Math.abs(velocity) <
@@ -1460,12 +1500,11 @@ class InclinedPlaneFriction {
     drawHUD(ctx) {
 
         // =====================================================
-        // VERIFICA SE ESTÁ DESLIZANDO
+        // CONDIÇÃO DEFINITIVA
         // =====================================================
 
-        const sliding =
-            this.isSliding() &&
-            this.acceleration() > 0;
+        const canSlide =
+            this.canSlide();
 
         // =====================================================
         // DADOS
@@ -1476,7 +1515,12 @@ class InclinedPlaneFriction {
         let v = 0;
         let a = 0;
 
-        if (sliding) {
+        /*
+         * Se não pode deslizar, os quatro valores
+         * permanecem explicitamente zerados.
+         */
+
+        if (canSlide) {
 
             const index =
                 Math.min(
@@ -1502,11 +1546,7 @@ class InclinedPlaneFriction {
         // =====================================================
 
         const thetaCrit =
-            Math.atan(
-                this.params.muS
-            ) *
-            180 /
-            Math.PI;
+            this.criticalAngle();
 
         const x = 20;
         const y = 55;
@@ -1610,7 +1650,7 @@ class InclinedPlaneFriction {
         // =====================================================
 
         ctx.fillStyle =
-            sliding ?
+            canSlide ?
             this.block.color :
             "#388e3c";
 
@@ -1618,7 +1658,7 @@ class InclinedPlaneFriction {
             "bold 12px Arial";
 
         ctx.fillText(
-            sliding ?
+            canSlide ?
             "Estado: Deslizando" :
             "Estado: Em repouso",
 
@@ -1754,20 +1794,17 @@ class InclinedPlaneFriction {
             this.draw();
 
             // =================================================
-            // SÓ AVANÇA SE ESTIVER DESLIZANDO
+            // SÓ AVANÇA SE REALMENTE HOUVER MOVIMENTO
             // =================================================
 
-            if (
-                this.isSliding() &&
-                this.acceleration() > 0
-            ) {
+            if (this.canSlide()) {
 
                 this.frame +=
                     this.animationSpeed;
 
-                // =================================================
+                // =============================================
                 // RECOMEÇA AO CHEGAR AO FINAL
-                // =================================================
+                // =============================================
 
                 if (
                     this.frame >=
