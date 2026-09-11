@@ -135,6 +135,14 @@ Sistema massa mola com e sem efeitos de amortecimento
 
 **[▶ Abrir simulação](https://gustavosbarroso.github.io/Physics_lab/Massa-mola/)**
 
+### XV. [Plano Inclinado com atrito](https://gustavosbarroso.github.io/Physics_lab/Plano_inclinado_atrito/)
+
+<img width="1171" height="540" alt="image" src="https://github.com/user-attachments/assets/638a125a-b6e5-4dc9-aed3-96da8b357586" />
+
+Bloco em plano inclinado com atrito estático e dinâmico
+
+**[▶ Abrir simulação](https://gustavosbarroso.github.io/Physics_lab/Plano_inclinado_atrito/)**
+
 
 ---
 
