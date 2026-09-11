@@ -101,8 +101,7 @@ class InclinedPlaneFriction {
 
         return (
             Math.sin(theta) >
-            this.params.muS *
-            Math.cos(theta)
+            this.params.muS * Math.cos(theta)
         );
     }
 
@@ -131,6 +130,7 @@ class InclinedPlaneFriction {
     // =========================================================
     // VERIFICAÇÃO DEFINITIVA DO MOVIMENTO
     // =========================================================
+
     /*
      * O bloco só começa a deslizar se:
      *
@@ -211,17 +211,14 @@ class InclinedPlaneFriction {
         // =====================================================
         // BLOCO PARADO
         // =====================================================
+
         /*
-         * Este bloco é importante.
-         *
          * Se não pode deslizar, não criamos uma trajetória
          * artificial. A simulação inteira é exatamente:
          *
          * t = 0
          * s = 0
          * v = 0
-         *
-         * e não existe avanço temporal.
          */
 
         if (!canSlide) {
@@ -373,6 +370,7 @@ class InclinedPlaneFriction {
         container.innerHTML = "";
 
         this.sliders = {};
+        this.controlValues = {};
 
         const configs = [
 
@@ -398,7 +396,7 @@ class InclinedPlaneFriction {
                 name: "muK",
                 label: "Atrito cinético μₖ",
                 min: 0,
-                max: 1,
+                max: this.params.muS,
                 step: 0.01,
                 decimals: 2
             }
@@ -487,6 +485,43 @@ class InclinedPlaneFriction {
                             slider.value
                         );
 
+                    // =========================================
+                    // CONSISTÊNCIA DO MODELO
+                    //
+                    // μₖ não pode ser maior que μₛ.
+                    // =========================================
+
+                    if (
+                        config.name === "muS"
+                    ) {
+
+                        // O limite superior de μₖ
+                        // acompanha μₛ.
+                        this.sliders.muK.max =
+                            this.params.muS;
+
+                        // Caso μₖ tenha ficado maior
+                        // que o novo μₛ, ajusta automaticamente.
+                        if (
+                            this.params.muK >
+                            this.params.muS
+                        ) {
+
+                            this.params.muK =
+                                this.params.muS;
+
+                            this.sliders.muK.value =
+                                this.params.muK;
+
+                            this.controlValues.muK.textContent =
+                                this.params.muK.toFixed(2);
+                        }
+                    }
+
+                    // =========================================
+                    // ATUALIZA VALOR MOSTRADO
+                    // =========================================
+
                     value.textContent =
                         this.params[
                             config.name
@@ -512,6 +547,10 @@ class InclinedPlaneFriction {
             this.sliders[
                 config.name
             ] = slider;
+
+            this.controlValues[
+                config.name
+            ] = value;
         });
     }
 
@@ -734,10 +773,6 @@ class InclinedPlaneFriction {
         // =====================================================
         // NÃO DESENHAR ÂNGULO
         // =====================================================
-        /*
-         * Nenhum arco, linha ou texto representando
-         * geometricamente o ângulo é desenhado aqui.
-         */
 
         ctx.restore();
     }
@@ -1847,6 +1882,23 @@ class InclinedPlaneFriction {
             ...newParams
         };
 
+        // =====================================================
+        // GARANTE CONSISTÊNCIA
+        // =====================================================
+
+        if (
+            this.params.muK >
+            this.params.muS
+        ) {
+
+            this.params.muK =
+                this.params.muS;
+        }
+
+        // =====================================================
+        // ATUALIZA SLIDERS
+        // =====================================================
+
         Object.keys(newParams)
             .forEach(key => {
 
@@ -1856,10 +1908,63 @@ class InclinedPlaneFriction {
                 ) {
 
                     this.sliders[key].value =
-                        newParams[key];
+                        this.params[key];
                 }
 
             });
+
+        // =====================================================
+        // ATUALIZA LIMITE DE μₖ
+        // =====================================================
+
+        if (
+            this.sliders &&
+            this.sliders.muK
+        ) {
+
+            this.sliders.muK.max =
+                this.params.muS;
+
+            this.sliders.muK.value =
+                this.params.muK;
+        }
+
+        // =====================================================
+        // ATUALIZA TEXTO DOS VALORES
+        // =====================================================
+
+        if (
+            this.controlValues
+        ) {
+
+            if (
+                this.controlValues.muS
+            ) {
+
+                this.controlValues.muS.textContent =
+                    this.params.muS.toFixed(2);
+            }
+
+            if (
+                this.controlValues.muK
+            ) {
+
+                this.controlValues.muK.textContent =
+                    this.params.muK.toFixed(2);
+            }
+
+            if (
+                this.controlValues.theta
+            ) {
+
+                this.controlValues.theta.textContent =
+                    this.params.theta.toFixed(0);
+            }
+        }
+
+        // =====================================================
+        // RECALCULA
+        // =====================================================
 
         this.solve();
 
