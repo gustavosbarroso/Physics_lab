@@ -170,6 +170,31 @@ class InclinedPlaneFriction {
 
         this.calculateSimulationTime();
 
+        const sliding =
+            this.isSliding();
+
+        // =====================================================
+        // BLOCO PARADO
+        // =====================================================
+
+        if (!sliding) {
+
+            this.data.t = [0];
+            this.data.x = [0];
+            this.data.v = [0];
+
+            this.totalFrames = 1;
+            this.frame = 0;
+
+            this.calculateScale();
+
+            return;
+        }
+
+        // =====================================================
+        // BLOCO DESLIZANDO
+        // =====================================================
+
         const steps =
             Math.ceil(
                 this.tMax /
@@ -183,20 +208,11 @@ class InclinedPlaneFriction {
         this.data.x = [];
         this.data.v = [];
 
-        const sliding =
-            this.isSliding();
-
         const a =
-            sliding ?
-            this.acceleration() :
-            0;
+            this.acceleration();
 
         const arrivalTime =
             this.calculateArrivalTime();
-
-        // =====================================================
-        // MESMA IDEIA DA SOLUÇÃO DOS SÓLIDOS
-        // =====================================================
 
         for (
             let i = 0;
@@ -214,22 +230,10 @@ class InclinedPlaneFriction {
             let v;
 
             // =================================================
-            // BLOCO EM REPOUSO
+            // MOVIMENTO
             // =================================================
 
-            if (!sliding) {
-
-                x = 0;
-                v = 0;
-            }
-
-            // =================================================
-            // BLOCO DESLIZANDO
-            // =================================================
-
-            else if (
-                t < arrivalTime
-            ) {
+            if (t < arrivalTime) {
 
                 /*
                  * Movimento uniformemente acelerado.
@@ -273,9 +277,12 @@ class InclinedPlaneFriction {
             // =================================================
 
             x =
-                Math.min(
-                    x,
-                    this.planeLength
+                Math.max(
+                    0,
+                    Math.min(
+                        x,
+                        this.planeLength
+                    )
                 );
 
             this.data.t.push(t);
@@ -441,16 +448,6 @@ class InclinedPlaneFriction {
                         ].toFixed(
                             config.decimals
                         );
-
-                    /*
-                     * Mesma lógica da simulação
-                     * dos sólidos:
-                     *
-                     * recalcula e desenha.
-                     *
-                     * Como a animação continua rodando,
-                     * o frame volta para zero dentro de solve().
-                     */
 
                     this.solve();
 
@@ -697,8 +694,8 @@ class InclinedPlaneFriction {
 
         /*
          * A indicação gráfica do ângulo foi removida.
-         * O parâmetro theta continua sendo utilizado
-         * normalmente na geometria e na física.
+         * O theta continua sendo usado normalmente
+         * nos cálculos e na geometria do plano.
          */
 
         ctx.restore();
@@ -825,20 +822,18 @@ class InclinedPlaneFriction {
         ) {
 
             const physicalX =
-                Math.min(
-                    this.data.x[i],
-                    this.planeLength
+                Math.max(
+                    0,
+                    Math.min(
+                        this.data.x[i],
+                        this.planeLength
+                    )
                 );
 
             const pos =
                 this.positionOnPlane(
                     physicalX
                 );
-
-            /*
-             * Mesmo deslocamento normal
-             * utilizado na simulação dos sólidos.
-             */
 
             const px =
                 pos.x +
@@ -895,9 +890,12 @@ class InclinedPlaneFriction {
         }
 
         const physicalX =
-            Math.min(
-                data.x[index],
-                this.planeLength
+            Math.max(
+                0,
+                Math.min(
+                    data.x[index],
+                    this.planeLength
+                )
             );
 
         const pos =
@@ -918,11 +916,6 @@ class InclinedPlaneFriction {
         // =====================================================
         // POSIÇÃO ACIMA DO PLANO
         // =====================================================
-
-        /*
-         * EXATAMENTE a mesma lógica usada
-         * em InclinedPlaneSolids.
-         */
 
         const x =
             pos.x +
@@ -988,10 +981,6 @@ class InclinedPlaneFriction {
 
         const theta =
             this.getPlaneGeometry().theta;
-
-        /*
-         * Escala visual.
-         */
 
         const scale =
             12;
@@ -1470,29 +1459,43 @@ class InclinedPlaneFriction {
 
     drawHUD(ctx) {
 
-        const index =
-            Math.min(
-                Math.floor(this.frame),
-                this.data.x.length - 1
-            );
-
-        const t =
-            this.data.t[index] || 0;
-
-        const s =
-            this.data.x[index] || 0;
-
-        const v =
-            this.data.v[index] || 0;
+        // =====================================================
+        // VERIFICA SE ESTÁ DESLIZANDO
+        // =====================================================
 
         const sliding =
             this.isSliding() &&
             this.acceleration() > 0;
 
-        const a =
-            sliding ?
-            this.acceleration() :
-            0;
+        // =====================================================
+        // DADOS
+        // =====================================================
+
+        let t = 0;
+        let s = 0;
+        let v = 0;
+        let a = 0;
+
+        if (sliding) {
+
+            const index =
+                Math.min(
+                    Math.floor(this.frame),
+                    this.data.x.length - 1
+                );
+
+            t =
+                this.data.t[index] || 0;
+
+            s =
+                this.data.x[index] || 0;
+
+            v =
+                this.data.v[index] || 0;
+
+            a =
+                this.acceleration();
+        }
 
         // =====================================================
         // ÂNGULO CRÍTICO
@@ -1750,24 +1753,29 @@ class InclinedPlaneFriction {
 
             this.draw();
 
-            /*
-             * Mesma lógica da simulação
-             * de InclinedPlaneSolids.
-             */
-
-            this.frame +=
-                this.animationSpeed;
-
             // =================================================
-            // RECOMEÇA AO CHEGAR AO FINAL
+            // SÓ AVANÇA SE ESTIVER DESLIZANDO
             // =================================================
 
             if (
-                this.frame >=
-                this.totalFrames
+                this.isSliding() &&
+                this.acceleration() > 0
             ) {
 
-                this.frame = 0;
+                this.frame +=
+                    this.animationSpeed;
+
+                // =================================================
+                // RECOMEÇA AO CHEGAR AO FINAL
+                // =================================================
+
+                if (
+                    this.frame >=
+                    this.totalFrames
+                ) {
+
+                    this.frame = 0;
+                }
             }
 
             requestAnimationFrame(
