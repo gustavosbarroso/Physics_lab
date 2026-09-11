@@ -1,22 +1,3 @@
-// ============================================================
-// PLANO INCLINADO COM ATRITO
-//
-// Adaptação da implementação Python para o padrão
-// visual/estrutural da simulação "Plano Inclinado com
-// Sólidos" do LAVINA.
-//
-// Modelo:
-//
-//   repouso:
-//   sin(theta) <= mu_s cos(theta)
-//
-//   deslizamento:
-//   a = g (sin(theta) - mu_k cos(theta))
-//
-// A coordenada s é medida ao longo do plano.
-// ============================================================
-
-
 class InclinedPlaneFriction {
 
     constructor(canvas, options = {}) {
@@ -29,31 +10,32 @@ class InclinedPlaneFriction {
         // =====================================================
 
         this.params = {
-
-            g: options.g ?? 9.81,
-
-            theta: options.theta ?? 20,
-
-            muS: options.muS ?? 0.30,
-
-            muK: options.muK ?? 0.20,
-
-            L: options.L ?? 10
+            g: 9.81,
+            theta: 20,
+            muS: 0.30,
+            muK: 0.20,
+            ...options
         };
 
+        // Comprimento físico do plano
+        this.planeLength = 10;
 
         // =====================================================
-        // GEOMETRIA VISUAL
+        // GEOMETRIA DO PLANO
+        // Mesma lógica do plano inclinado com sólidos
         // =====================================================
+
+        this.planeBottomX = 580;
+        this.planeBottomY = 470;
 
         this.planePixelLength = 400;
 
-        this.planeBottomX = 500;
+        // =====================================================
+        // BLOCO
+        // =====================================================
 
-        this.planeBottomY = 430;
-
-        this.blockHalfSize = 18;
-
+        this.blockSize = 34;
+        this.blockHalf = this.blockSize / 2;
 
         // =====================================================
         // SIMULAÇÃO
@@ -61,42 +43,42 @@ class InclinedPlaneFriction {
 
         this.dt = 0.02;
 
-        this.t = [];
-
-        this.s = [];
-
-        this.v = [];
-
-        this.sliding = false;
-
-        this.acceleration = 0;
-
-        this.arrivalTime = null;
-
         this.tMax = 5;
 
+        this.data = {
+            t: [],
+            s: [],
+            v: [],
+            a: []
+        };
 
-        // =====================================================
-        // ANIMAÇÃO
-        // =====================================================
+        this.totalFrames = 1;
 
-        this.animationId = null;
+        this.frame = 0;
+
+        this.animationSpeed = 1;
 
         this.running = false;
 
+        // =====================================================
+        // GRÁFICO
+        // =====================================================
+
+        this.graphX = 650;
+        this.graphY = 80;
+        this.graphW = 480;
+        this.graphH = 360;
 
         // =====================================================
-        // CONTROLES
+        // INTERFACE
         // =====================================================
-
-        this.controls = {};
-
 
         this.createControls();
 
         this.solve();
 
-        this.draw();
+        // Começa automaticamente
+        this.iniciar();
     }
 
 
@@ -104,178 +86,213 @@ class InclinedPlaneFriction {
     // FÍSICA
     // =========================================================
 
-    solve() {
+    isSliding() {
 
         const theta =
             this.params.theta *
             Math.PI / 180;
 
-        const {
-            g,
-            muS,
-            muK,
-            L
-        } = this.params;
-
-
-        // -----------------------------------------------------
-        // ATRITO ESTÁTICO
-        // -----------------------------------------------------
-
-        this.sliding =
+        return (
             Math.sin(theta) >
-            muS * Math.cos(theta);
+            this.params.muS *
+            Math.cos(theta)
+        );
+    }
 
 
-        let a = 0;
+    // =========================================================
+    // ACELERAÇÃO
+    // =========================================================
 
+    acceleration() {
 
-        // -----------------------------------------------------
-        // ATRITO CINÉTICO
-        // -----------------------------------------------------
+        const theta =
+            this.params.theta *
+            Math.PI / 180;
 
-        if (this.sliding) {
-
-            a = g * (
+        return (
+            this.params.g *
+            (
                 Math.sin(theta) -
-                muK * Math.cos(theta)
-            );
+                this.params.muK *
+                Math.cos(theta)
+            )
+        );
+    }
 
 
-            // Evita uma situação inconsistente:
-            // o bloco não deve começar a deslizar se a
-            // aceleração resultante for negativa.
-            if (a <= 0) {
+    // =========================================================
+    // TEMPO DE CHEGADA
+    // =========================================================
 
-                this.sliding = false;
+    calculateArrivalTime() {
 
-                a = 0;
-            }
+        if (!this.isSliding()) {
+            return Infinity;
         }
 
+        const a =
+            this.acceleration();
 
-        this.acceleration = a;
+        if (a <= 0) {
+            return Infinity;
+        }
+
+        return Math.sqrt(
+            2 *
+            this.planeLength /
+            a
+        );
+    }
 
 
-        // -----------------------------------------------------
-        // TEMPO DE CHEGADA
-        // -----------------------------------------------------
+    // =========================================================
+    // SOLUÇÃO NUMÉRICA
+    // =========================================================
 
-        if (this.sliding) {
+    solve() {
 
-            this.arrivalTime =
-                Math.sqrt(
-                    2 * L / a
-                );
+        const sliding =
+            this.isSliding();
+
+        const a =
+            sliding ?
+            this.acceleration() :
+            0;
+
+        const arrivalTime =
+            this.calculateArrivalTime();
+
+        // =====================================================
+        // TEMPO DA SIMULAÇÃO
+        // =====================================================
+
+        if (Number.isFinite(arrivalTime)) {
 
             this.tMax =
-                this.arrivalTime + 0.5;
+                Math.max(
+                    arrivalTime + 0.5,
+                    this.dt
+                );
 
-        } else {
-
-            this.arrivalTime = null;
+        }
+        else {
 
             this.tMax = 5;
         }
 
-
-        // -----------------------------------------------------
-        // VETORES TEMPORAIS
-        // -----------------------------------------------------
-
-        const n =
+        const steps =
             Math.ceil(
-                this.tMax / this.dt
+                this.tMax /
+                this.dt
             ) + 1;
 
+        this.totalFrames = steps;
 
-        this.t =
-            new Array(n);
+        // =====================================================
+        // LIMPA OS DADOS
+        // =====================================================
 
-        this.s =
-            new Array(n);
+        this.data.t = [];
+        this.data.s = [];
+        this.data.v = [];
+        this.data.a = [];
 
-        this.v =
-            new Array(n);
+        let s = 0;
+        let v = 0;
 
-
-        this.t[0] = 0;
-
-        this.s[0] = 0;
-
-        this.v[0] = 0;
-
-
-        // -----------------------------------------------------
-        // INTEGRAÇÃO NUMÉRICA
-        // -----------------------------------------------------
+        // =====================================================
+        // INTEGRAÇÃO
+        // =====================================================
 
         for (
-            let i = 1;
-            i < n;
+            let i = 0;
+            i < steps;
             i++
         ) {
 
-            this.t[i] =
-                this.t[i - 1] +
-                this.dt;
+            const t =
+                Math.min(
+                    i * this.dt,
+                    this.tMax
+                );
 
+            // =================================================
+            // BLOCO EM REPOUSO
+            // =================================================
 
-            if (!this.sliding) {
+            if (!sliding) {
 
-                this.s[i] = 0;
+                s = 0;
+                v = 0;
+            }
 
-                this.v[i] = 0;
+            // =================================================
+            // BLOCO DESLIZANDO
+            // =================================================
 
-            } else {
+            else if (
+                s < this.planeLength
+            ) {
 
-                this.v[i] =
-                    this.v[i - 1] +
+                /*
+                 * Mesmo esquema do código Python:
+                 *
+                 * v = v + a dt
+                 * s = s + v dt
+                 */
+
+                v =
+                    v +
                     a * this.dt;
 
+                s =
+                    s +
+                    v * this.dt;
 
-                this.s[i] =
-                    this.s[i - 1] +
-                    this.v[i] * this.dt;
-
-
-                // -------------------------------------------------
-                // CHEGADA AO FINAL DO PLANO
-                // -------------------------------------------------
-
+                // Chegou ao final
                 if (
-                    this.s[i] >= L
+                    s >=
+                    this.planeLength
                 ) {
 
-                    this.s[i] = L;
+                    s =
+                        this.planeLength;
 
-
-                    this.v[i] =
+                    v =
                         Math.sqrt(
-                            2 * a * L
+                            2 *
+                            a *
+                            this.planeLength
                         );
-
-
-                    for (
-                        let j = i + 1;
-                        j < n;
-                        j++
-                    ) {
-
-                        this.t[j] =
-                            this.t[j - 1] +
-                            this.dt;
-
-                        this.s[j] = L;
-
-                        this.v[j] =
-                            this.v[i];
-                    }
-
-                    break;
                 }
             }
+
+            // =================================================
+            // JÁ CHEGOU AO FINAL
+            // =================================================
+
+            else {
+
+                s =
+                    this.planeLength;
+            }
+
+            this.data.t.push(t);
+
+            this.data.s.push(s);
+
+            this.data.v.push(v);
+
+            this.data.a.push(
+                sliding ?
+                a :
+                0
+            );
         }
+
+        // Reinicia a animação
+        this.frame = 0;
     }
 
 
@@ -290,200 +307,175 @@ class InclinedPlaneFriction {
                 "inclinedPlaneFrictionControls"
             );
 
-
         if (!container) {
             return;
         }
 
-
         container.innerHTML = "";
 
-
-        // -----------------------------------------------------
-        // ÂNGULO
-        // -----------------------------------------------------
-
-        this.addSlider(
-            container,
-
-            "theta",
-
-            "Ângulo θ",
-
-            5,
-
-            60,
-
-            1,
-
-            this.params.theta,
-
-            "°"
-        );
-
-
-        // -----------------------------------------------------
-        // ATRITO ESTÁTICO
-        // -----------------------------------------------------
-
-        this.addSlider(
-            container,
-
-            "muS",
-
-            "Atrito estático μₛ",
-
-            0,
-
-            1,
-
-            0.01,
-
-            this.params.muS,
-
-            ""
-        );
-
-
-        // -----------------------------------------------------
-        // ATRITO CINÉTICO
-        // -----------------------------------------------------
-
-        this.addSlider(
-            container,
-
-            "muK",
-
-            "Atrito cinético μₖ",
-
-            0,
-
-            1,
-
-            0.01,
-
-            this.params.muK,
-
-            ""
-        );
-    }
-
-
-    // =========================================================
-    // CRIA SLIDER
-    // =========================================================
-
-    addSlider(
-        container,
-        key,
-        label,
-        min,
-        max,
-        step,
-        value,
-        unit
-    ) {
-
-        const wrapper =
-            document.createElement("div");
-
-
-        wrapper.className =
-            "control-group";
-
-
-        const title =
-            document.createElement("div");
-
-
-        title.className =
-            "control-title";
-
-
-        const valueText =
-            document.createElement("span");
-
-
-        valueText.className =
-            "control-value";
-
-
-        const updateText = () => {
-
-            const decimals =
-                step < 0.1
-                    ? 2
-                    : 0;
-
-
-            valueText.textContent =
-                `${Number(
-                    this.params[key]
-                ).toFixed(decimals)}${unit}`;
-        };
-
-
-        title.innerHTML =
-            `<span>${label}</span>`;
-
-
-        title.appendChild(
-            valueText
-        );
-
-
-        const slider =
-            document.createElement("input");
-
-
-        slider.type = "range";
-
-        slider.min = min;
-
-        slider.max = max;
-
-        slider.step = step;
-
-        slider.value = value;
-
-
-        slider.addEventListener(
-            "input",
-            () => {
-
-                this.params[key] =
-                    Number(
-                        slider.value
-                    );
-
-
-                updateText();
-
-
-                this.solve();
-
-                this.reset();
-
-                this.draw();
+        this.sliders = {};
+
+        const configs = [
+
+            {
+                name: "theta",
+                label: "Ângulo θ (°)",
+                min: 5,
+                max: 60,
+                step: 1,
+                decimals: 0
+            },
+
+            {
+                name: "muS",
+                label: "Atrito estático μₛ",
+                min: 0,
+                max: 1,
+                step: 0.01,
+                decimals: 2
+            },
+
+            {
+                name: "muK",
+                label: "Atrito cinético μₖ",
+                min: 0,
+                max: 1,
+                step: 0.01,
+                decimals: 2
             }
-        );
+        ];
 
 
-        wrapper.appendChild(title);
+        configs.forEach(config => {
 
-        wrapper.appendChild(slider);
+            const group =
+                document.createElement(
+                    "div"
+                );
 
-
-        container.appendChild(
-            wrapper
-        );
-
-
-        this.controls[key] =
-            slider;
+            group.className =
+                "control-group";
 
 
-        updateText();
+            // =================================================
+            // TÍTULO DO CONTROLE
+            // =================================================
+
+            const title =
+                document.createElement(
+                    "div"
+                );
+
+            title.className =
+                "control-title";
+
+
+            const label =
+                document.createElement(
+                    "span"
+                );
+
+            label.textContent =
+                config.label;
+
+
+            const value =
+                document.createElement(
+                    "span"
+                );
+
+            value.className =
+                "control-value";
+
+
+            value.textContent =
+                Number(
+                    this.params[
+                        config.name
+                    ]
+                ).toFixed(
+                    config.decimals
+                );
+
+
+            title.appendChild(label);
+
+            title.appendChild(value);
+
+
+            // =================================================
+            // SLIDER
+            // =================================================
+
+            const slider =
+                document.createElement(
+                    "input"
+                );
+
+            slider.type = "range";
+
+            slider.min =
+                config.min;
+
+            slider.max =
+                config.max;
+
+            slider.step =
+                config.step;
+
+            slider.value =
+                this.params[
+                    config.name
+                ];
+
+
+            // =================================================
+            // ALTERAÇÃO DO SLIDER
+            // =================================================
+
+            slider.addEventListener(
+                "input",
+                () => {
+
+                    this.params[
+                        config.name
+                    ] =
+                        Number(
+                            slider.value
+                        );
+
+
+                    value.textContent =
+                        this.params[
+                            config.name
+                        ].toFixed(
+                            config.decimals
+                        );
+
+
+                    // Para a animação atual
+                    this.parar();
+
+                    // Recalcula a física
+                    this.solve();
+
+                    // Reinicia
+                    this.iniciar();
+                }
+            );
+
+
+            group.appendChild(title);
+
+            group.appendChild(slider);
+
+            container.appendChild(group);
+
+
+            this.sliders[
+                config.name
+            ] = slider;
+        });
     }
 
 
@@ -498,35 +490,39 @@ class InclinedPlaneFriction {
             Math.PI / 180;
 
 
-        const x0 =
+        const x2 =
             this.planeBottomX;
 
-
-        const y0 =
+        const y2 =
             this.planeBottomY;
 
 
+        /*
+         * Ponto superior da hipotenusa.
+         *
+         * A distância entre os dois pontos
+         * é planePixelLength.
+         */
+
         const x1 =
-            x0 -
+            x2 -
             this.planePixelLength *
             Math.cos(theta);
 
 
         const y1 =
-            y0 -
+            y2 -
             this.planePixelLength *
             Math.sin(theta);
 
 
         return {
 
-            xTop: x1,
+            x1,
+            y1,
 
-            yTop: y1,
-
-            xBottom: x0,
-
-            yBottom: y0,
+            x2,
+            y2,
 
             theta
         };
@@ -534,12 +530,12 @@ class InclinedPlaneFriction {
 
 
     // =========================================================
-    // POSIÇÃO SOBRE O PLANO
+    // POSIÇÃO AO LONGO DO PLANO
     // =========================================================
 
     positionOnPlane(s) {
 
-        const geometry =
+        const plane =
             this.getPlaneGeometry();
 
 
@@ -547,8 +543,9 @@ class InclinedPlaneFriction {
             Math.max(
                 0,
                 Math.min(
-                    1,
-                    s / this.params.L
+                    s /
+                    this.planeLength,
+                    1
                 )
             );
 
@@ -556,20 +553,19 @@ class InclinedPlaneFriction {
         return {
 
             x:
-                geometry.xTop +
+                plane.x1 +
                 fraction *
                 (
-                    geometry.xBottom -
-                    geometry.xTop
+                    plane.x2 -
+                    plane.x1
                 ),
 
-
             y:
-                geometry.yTop +
+                plane.y1 +
                 fraction *
                 (
-                    geometry.yBottom -
-                    geometry.yTop
+                    plane.y2 -
+                    plane.y1
                 )
         };
     }
@@ -586,413 +582,345 @@ class InclinedPlaneFriction {
             Math.PI / 180;
 
 
-        // Direção de descida
+        /*
+         * Tangente apontando para baixo
+         * ao longo da hipotenusa.
+         */
+
         const tangent = {
 
-            x: Math.cos(theta),
+            x:
+                Math.cos(theta),
 
-            y: Math.sin(theta)
+            y:
+                Math.sin(theta)
         };
 
 
-        // Normal para fora do plano
+        /*
+         * Normal apontando para FORA
+         * do plano.
+         *
+         * Em coordenadas de canvas:
+         *
+         * x positivo
+         * y negativo
+         */
+
         const normal = {
 
-            x: -Math.sin(theta),
+            x:
+                Math.sin(theta),
 
-            y: Math.cos(theta)
+            y:
+                -Math.cos(theta)
         };
 
 
         return {
 
             tangent,
-
             normal
         };
     }
 
 
     // =========================================================
-    // DESENHA O PLANO
+    // DESENHO DO PLANO
     // =========================================================
 
-    drawPlane() {
+    drawPlane(ctx) {
 
-        const ctx =
-            this.ctx;
-
-
-        const g =
+        const plane =
             this.getPlaneGeometry();
 
 
-        const baseY =
-            g.yBottom;
+        ctx.save();
 
 
-        // -----------------------------------------------------
-        // ÁREA TRIANGULAR
-        // -----------------------------------------------------
+        // =====================================================
+        // TRIÂNGULO
+        // =====================================================
+
+        ctx.fillStyle =
+            "rgba(220,220,220,0.30)";
+
 
         ctx.beginPath();
 
 
         ctx.moveTo(
-            g.xTop,
-            g.yTop
+            plane.x1,
+            plane.y1
         );
 
 
         ctx.lineTo(
-            g.xBottom,
-            g.yBottom
+            plane.x1,
+            plane.y2
         );
 
 
         ctx.lineTo(
-            g.xTop,
-            baseY
+            plane.x2,
+            plane.y2
         );
 
 
         ctx.closePath();
-
-
-        ctx.fillStyle =
-            "#f3f3f3";
-
 
         ctx.fill();
 
 
-        // -----------------------------------------------------
-        // CONTORNO
-        // -----------------------------------------------------
+        // =====================================================
+        // CATETO VERTICAL
+        // =====================================================
 
         ctx.strokeStyle =
-            "#333";
+            "#555";
 
-
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 3;
 
 
         ctx.beginPath();
 
-
         ctx.moveTo(
-            g.xTop,
-            g.yTop
+            plane.x1,
+            plane.y1
         );
-
 
         ctx.lineTo(
-            g.xBottom,
-            g.yBottom
+            plane.x1,
+            plane.y2
         );
-
-
-        ctx.lineTo(
-            g.xTop,
-            baseY
-        );
-
-
-        ctx.closePath();
-
 
         ctx.stroke();
 
 
-        // -----------------------------------------------------
-        // HIPOTENUSA
-        // -----------------------------------------------------
+        // =====================================================
+        // CATETO HORIZONTAL
+        // =====================================================
 
         ctx.beginPath();
 
-
         ctx.moveTo(
-            g.xTop,
-            g.yTop
+            plane.x1,
+            plane.y2
         );
-
 
         ctx.lineTo(
-            g.xBottom,
-            g.yBottom
+            plane.x2,
+            plane.y2
         );
 
+        ctx.stroke();
+
+
+        // =====================================================
+        // HIPOTENUSA
+        // =====================================================
 
         ctx.strokeStyle =
             "#222";
 
-
-        ctx.lineWidth = 4;
-
-
-        ctx.stroke();
-
-
-        // -----------------------------------------------------
-        // ÂNGULO
-        // -----------------------------------------------------
-
-        this.drawAngleMarker(
-            g.xTop,
-            g.yTop,
-            this.params.theta
-        );
-    }
-
-
-    // =========================================================
-    // MARCADOR DO ÂNGULO
-    // =========================================================
-
-    drawAngleMarker(
-        x,
-        y,
-        thetaDeg
-    ) {
-
-        const ctx =
-            this.ctx;
-
-
-        const r = 35;
-
-
-        const theta =
-            thetaDeg *
-            Math.PI / 180;
-
-
-        ctx.strokeStyle =
-            "#777";
-
-
-        ctx.lineWidth = 1.5;
+        ctx.lineWidth = 5;
 
 
         ctx.beginPath();
 
+        ctx.moveTo(
+            plane.x1,
+            plane.y1
+        );
+
+        ctx.lineTo(
+            plane.x2,
+            plane.y2
+        );
+
+        ctx.stroke();
+
+
+        // Ângulo
+        this.drawAngleMarker(
+            ctx,
+            plane
+        );
+
+
+        ctx.restore();
+    }
+
+
+    // =========================================================
+    // ÂNGULO
+    // =========================================================
+
+    drawAngleMarker(ctx, plane) {
+
+        const theta =
+            plane.theta;
+
+
+        /*
+         * O ângulo está no vértice inferior
+         * direito, entre a horizontal e a
+         * hipotenusa.
+         */
+
+        const x =
+            plane.x2;
+
+        const y =
+            plane.y2;
+
+
+        const radius = 42;
+
+
+        ctx.save();
+
+
+        ctx.strokeStyle =
+            "#555";
+
+        ctx.lineWidth = 2;
+
+
+        /*
+         * Como o eixo y do canvas cresce
+         * para baixo, o arco é construído
+         * diretamente no quadrante correspondente.
+         */
+
+        ctx.beginPath();
 
         ctx.arc(
             x,
             y,
-            r,
-            0,
-            theta
+            radius,
+            Math.PI,
+            Math.PI + theta,
+            false
         );
 
-
         ctx.stroke();
+
+
+        // =====================================================
+        // TEXTO DO ÂNGULO
+        // =====================================================
+
+        const textAngle =
+            Math.PI +
+            theta / 2;
+
+
+        const tx =
+            x +
+            (radius + 15) *
+            Math.cos(textAngle);
+
+
+        const ty =
+            y +
+            (radius + 15) *
+            Math.sin(textAngle);
 
 
         ctx.fillStyle =
             "#555";
 
-
         ctx.font =
-            "13px Arial";
+            "14px Arial";
+
+        ctx.textAlign =
+            "center";
+
+        ctx.textBaseline =
+            "middle";
 
 
         ctx.fillText(
-            `θ = ${thetaDeg.toFixed(1)}°`,
-            x + 8,
-            y + 20
+            `θ = ${this.params.theta.toFixed(0)}°`,
+            tx,
+            ty
         );
+
+
+        ctx.restore();
     }
 
 
     // =========================================================
-    // BLOCO
+    // DESENHO DO BLOCO
     // =========================================================
 
-    drawBlock(s) {
+    drawBlock(
+        ctx,
+        x,
+        y,
+        theta,
+        color
+    ) {
 
-        const ctx =
-            this.ctx;
-
-
-        const p =
-            this.positionOnPlane(s);
-
-
-        const {
-            tangent,
-            normal
-        } =
-            this.getPlaneVectors();
+        ctx.save();
 
 
-        const half =
-            this.blockHalfSize;
-
-
-        // Centro do bloco
-        const center = {
-
-            x:
-                p.x +
-                normal.x *
-                half,
-
-            y:
-                p.y +
-                normal.y *
-                half
-        };
-
-
-        // -----------------------------------------------------
-        // EIXO TANGENTE
-        // -----------------------------------------------------
-
-        const tx =
-            tangent.x *
-            half;
-
-
-        const ty =
-            tangent.y *
-            half;
-
-
-        // -----------------------------------------------------
-        // EIXO NORMAL
-        // -----------------------------------------------------
-
-        const nx =
-            normal.x *
-            half;
-
-
-        const ny =
-            normal.y *
-            half;
-
-
-        // -----------------------------------------------------
-        // VÉRTICES
-        // -----------------------------------------------------
-
-        const vertices = [
-
-            {
-                x:
-                    center.x -
-                    tx -
-                    nx,
-
-                y:
-                    center.y -
-                    ty -
-                    ny
-            },
-
-            {
-                x:
-                    center.x +
-                    tx -
-                    nx,
-
-                y:
-                    center.y +
-                    ty -
-                    ny
-            },
-
-            {
-                x:
-                    center.x +
-                    tx +
-                    nx,
-
-                y:
-                    center.y +
-                    ty +
-                    ny
-            },
-
-            {
-                x:
-                    center.x -
-                    tx +
-                    nx,
-
-                y:
-                    center.y -
-                    ty +
-                    ny
-            }
-        ];
-
-
-        // -----------------------------------------------------
-        // DESENHO
-        // -----------------------------------------------------
-
-        ctx.beginPath();
-
-
-        ctx.moveTo(
-            vertices[0].x,
-            vertices[0].y
+        ctx.translate(
+            x,
+            y
         );
 
 
-        for (
-            let i = 1;
-            i < vertices.length;
-            i++
-        ) {
+        /*
+         * A hipotenusa desce para a direita.
+         * Portanto o bloco gira +theta.
+         */
 
-            ctx.lineTo(
-                vertices[i].x,
-                vertices[i].y
-            );
-        }
+        ctx.rotate(theta);
 
 
-        ctx.closePath();
-
+        // =====================================================
+        // PREENCHIMENTO
+        // =====================================================
 
         ctx.fillStyle =
-            "#ffffff";
+            color;
+
+        ctx.globalAlpha =
+            0.16;
 
 
-        ctx.fill();
+        ctx.fillRect(
+            -this.blockSize / 2,
+            -this.blockSize / 2,
+            this.blockSize,
+            this.blockSize
+        );
 
+
+        // =====================================================
+        // BORDA
+        // =====================================================
+
+        ctx.globalAlpha = 1;
 
         ctx.strokeStyle =
-            "#7b1fa2";
-
+            color;
 
         ctx.lineWidth = 3;
 
 
-        ctx.stroke();
-
-
-        // Centro
-        ctx.beginPath();
-
-
-        ctx.arc(
-            center.x,
-            center.y,
-            3,
-            0,
-            2 * Math.PI
+        ctx.strokeRect(
+            -this.blockSize / 2,
+            -this.blockSize / 2,
+            this.blockSize,
+            this.blockSize
         );
 
 
-        ctx.fillStyle =
-            "#7b1fa2";
-
-
-        ctx.fill();
+        ctx.restore();
     }
 
 
@@ -1000,215 +928,357 @@ class InclinedPlaneFriction {
     // RASTRO
     // =========================================================
 
-    drawTrail(currentIndex) {
+    drawTrail(
+        ctx,
+        frame
+    ) {
 
-        if (currentIndex <= 0) {
+        if (frame < 1) {
             return;
         }
 
 
-        const ctx =
-            this.ctx;
+        const vectors =
+            this.getPlaneVectors();
+
+
+        const maxIndex =
+            Math.min(
+                Math.floor(frame),
+                this.data.s.length - 1
+            );
+
+
+        ctx.save();
+
+
+        ctx.strokeStyle =
+            "#7b1fa2";
+
+        ctx.globalAlpha =
+            0.25;
+
+        ctx.lineWidth = 2;
+
+
+        ctx.setLineDash([
+            4,
+            4
+        ]);
 
 
         ctx.beginPath();
 
 
-        const start =
-            this.positionOnPlane(
-                this.s[0]
-            );
-
-
-        ctx.moveTo(
-            start.x,
-            start.y
-        );
-
-
         for (
-            let i = 1;
-            i <= currentIndex;
+            let i = 0;
+            i <= maxIndex;
             i++
         ) {
 
-            const p =
+            const pos =
                 this.positionOnPlane(
-                    this.s[i]
+                    this.data.s[i]
                 );
 
 
-            ctx.lineTo(
-                p.x,
-                p.y
-            );
+            /*
+             * O rastro acompanha o centro
+             * do bloco.
+             */
+
+            const x =
+                pos.x +
+                this.blockHalf *
+                vectors.normal.x;
+
+
+            const y =
+                pos.y +
+                this.blockHalf *
+                vectors.normal.y;
+
+
+            if (i === 0) {
+
+                ctx.moveTo(
+                    x,
+                    y
+                );
+
+            }
+            else {
+
+                ctx.lineTo(
+                    x,
+                    y
+                );
+            }
         }
 
 
-        ctx.strokeStyle =
-            "rgba(123, 31, 162, 0.40)";
-
-
-        ctx.lineWidth = 3;
-
-
         ctx.stroke();
+
+
+        ctx.setLineDash([]);
+
+
+        ctx.restore();
     }
 
 
     // =========================================================
-    // VETOR VELOCIDADE
+    // VELOCIDADE
     // =========================================================
 
     drawVelocity(
-        s,
+        ctx,
+        x,
+        y,
         v
     ) {
 
         if (
-            !this.sliding ||
-            v <= 0 ||
-            s >= this.params.L
+            Math.abs(v) <
+            0.001
         ) {
             return;
         }
 
 
-        const ctx =
-            this.ctx;
-
-
-        const p =
-            this.positionOnPlane(s);
-
-
-        const {
-            tangent
-        } =
+        const vectors =
             this.getPlaneVectors();
 
 
-        const scale = 18;
+        /*
+         * Escala visual da velocidade.
+         */
+
+        const scale = 12;
+
+
+        const dx =
+            vectors.tangent.x *
+            v *
+            scale;
+
+
+        const dy =
+            vectors.tangent.y *
+            v *
+            scale;
 
 
         const length =
-            Math.min(
-                110,
-                Math.max(
-                    20,
-                    v * scale
-                )
+            Math.sqrt(
+                dx * dx +
+                dy * dy
             );
 
 
-        const x2 =
-            p.x +
-            tangent.x *
-            length;
+        if (length < 5) {
+            return;
+        }
 
 
-        const y2 =
-            p.y +
-            tangent.y *
-            length;
+        const head = 10;
+
+
+        ctx.save();
 
 
         ctx.strokeStyle =
             "#1565c0";
 
-
         ctx.fillStyle =
             "#1565c0";
 
+        ctx.lineWidth = 2;
 
-        ctx.lineWidth = 3;
 
-
-        // -----------------------------------------------------
+        // =====================================================
         // LINHA
-        // -----------------------------------------------------
+        // =====================================================
 
         ctx.beginPath();
 
-
         ctx.moveTo(
-            p.x,
-            p.y
+            x,
+            y
         );
-
 
         ctx.lineTo(
-            x2,
-            y2
+            x + dx,
+            y + dy
         );
-
 
         ctx.stroke();
 
 
-        // -----------------------------------------------------
-        // PONTA
-        // -----------------------------------------------------
+        // =====================================================
+        // PONTA DA SETA
+        // =====================================================
 
-        const head = 9;
+        const ux =
+            dx / length;
+
+        const uy =
+            dy / length;
 
 
-        const angle =
-            Math.atan2(
-                y2 - p.y,
-                x2 - p.x
-            );
+        const px =
+            -uy;
+
+        const py =
+            ux;
 
 
         ctx.beginPath();
 
 
         ctx.moveTo(
-            x2,
-            y2
+            x + dx,
+            y + dy
         );
 
 
         ctx.lineTo(
+            x +
+            dx -
+            head * ux +
+            head * 0.45 * px,
 
-            x2 -
-            head *
-            Math.cos(
-                angle -
-                Math.PI / 6
-            ),
-
-            y2 -
-            head *
-            Math.sin(
-                angle -
-                Math.PI / 6
-            )
+            y +
+            dy -
+            head * uy +
+            head * 0.45 * py
         );
 
 
         ctx.lineTo(
+            x +
+            dx -
+            head * ux -
+            head * 0.45 * px,
 
-            x2 -
-            head *
-            Math.cos(
-                angle +
-                Math.PI / 6
-            ),
-
-            y2 -
-            head *
-            Math.sin(
-                angle +
-                Math.PI / 6
-            )
+            y +
+            dy -
+            head * uy -
+            head * 0.45 * py
         );
 
 
         ctx.closePath();
 
-
         ctx.fill();
+
+
+        ctx.restore();
+    }
+
+
+    // =========================================================
+    // ESTADO DO BLOCO
+    // =========================================================
+
+    drawBlockState(ctx) {
+
+        const index =
+            Math.min(
+                Math.floor(this.frame),
+                this.data.s.length - 1
+            );
+
+
+        if (index < 0) {
+            return;
+        }
+
+
+        const s =
+            this.data.s[index];
+
+
+        const v =
+            this.data.v[index];
+
+
+        const plane =
+            this.getPlaneGeometry();
+
+
+        const pos =
+            this.positionOnPlane(s);
+
+
+        const vectors =
+            this.getPlaneVectors();
+
+
+        // =====================================================
+        // PONTO DE CONTATO
+        // =====================================================
+
+        const contactX =
+            pos.x;
+
+        const contactY =
+            pos.y;
+
+
+        // =====================================================
+        // CENTRO DO BLOCO
+        // =====================================================
+        //
+        // O bloco é deslocado pela normal
+        // para ficar acima da hipotenusa.
+        //
+
+        const centerX =
+            contactX +
+            this.blockHalf *
+            vectors.normal.x;
+
+
+        const centerY =
+            contactY +
+            this.blockHalf *
+            vectors.normal.y;
+
+
+        // =====================================================
+        // RASTRO
+        // =====================================================
+
+        this.drawTrail(
+            ctx,
+            this.frame
+        );
+
+
+        // =====================================================
+        // BLOCO
+        // =====================================================
+
+        this.drawBlock(
+            ctx,
+            centerX,
+            centerY,
+            plane.theta,
+            "#7b1fa2"
+        );
+
+
+        // =====================================================
+        // VELOCIDADE
+        // =====================================================
+
+        this.drawVelocity(
+            ctx,
+            centerX,
+            centerY,
+            v
+        );
     }
 
 
@@ -1216,438 +1286,365 @@ class InclinedPlaneFriction {
     // GRÁFICO
     // =========================================================
 
-    drawGraph(
-        currentIndex
-    ) {
+    drawGraph(ctx) {
 
-        const ctx =
-            this.ctx;
+        const x =
+            this.graphX;
 
+        const y =
+            this.graphY;
 
-        const graphX = 690;
+        const w =
+            this.graphW;
 
-        const graphY = 80;
-
-        const graphW = 450;
-
-        const graphH = 320;
-
-
-        const left = graphX;
-
-        const right =
-            graphX +
-            graphW;
-
-        const top = graphY;
-
-        const bottom =
-            graphY +
-            graphH;
-
-
-        const tMax =
-            this.t[
-                this.t.length - 1
-            ] || 1;
+        const h =
+            this.graphH;
 
 
         const xMax =
             Math.max(
-                this.params.L,
+                this.tMax,
                 1
             );
 
 
-        // -----------------------------------------------------
-        // FUNDO
-        // -----------------------------------------------------
+        const yMax =
+            this.planeLength;
+
+
+        // =====================================================
+        // TÍTULO
+        // =====================================================
 
         ctx.fillStyle =
-            "#ffffff";
+            "black";
+
+        ctx.font =
+            "bold 18px Arial";
+
+        ctx.textAlign =
+            "center";
 
 
-        ctx.fillRect(
-            graphX,
-            graphY,
-            graphW,
-            graphH
+        ctx.fillText(
+            "Posição × Tempo",
+            x + w / 2,
+            y - 25
         );
 
 
-        // -----------------------------------------------------
+        const xTicks = 5;
+        const yTicks = 5;
+
+
+        ctx.font =
+            "11px Arial";
+
+
+        // =====================================================
+        // EIXO X
+        // =====================================================
+
+        for (
+            let i = 0;
+            i <= xTicks;
+            i++
+        ) {
+
+            const value =
+                xMax *
+                i /
+                xTicks;
+
+
+            const px =
+                x +
+                (
+                    value /
+                    xMax
+                ) *
+                w;
+
+
+            ctx.strokeStyle =
+                "#eeeeee";
+
+            ctx.lineWidth = 1;
+
+
+            ctx.beginPath();
+
+            ctx.moveTo(
+                px,
+                y
+            );
+
+            ctx.lineTo(
+                px,
+                y + h
+            );
+
+            ctx.stroke();
+
+
+            ctx.fillStyle =
+                "black";
+
+            ctx.textAlign =
+                "center";
+
+
+            ctx.fillText(
+                value.toFixed(1),
+                px,
+                y + h + 20
+            );
+        }
+
+
+        // =====================================================
+        // EIXO Y
+        // =====================================================
+
+        for (
+            let i = 0;
+            i <= yTicks;
+            i++
+        ) {
+
+            const value =
+                yMax *
+                i /
+                yTicks;
+
+
+            const py =
+                y +
+                h -
+                (
+                    value /
+                    yMax
+                ) *
+                h;
+
+
+            ctx.strokeStyle =
+                "#eeeeee";
+
+
+            ctx.beginPath();
+
+            ctx.moveTo(
+                x,
+                py
+            );
+
+            ctx.lineTo(
+                x + w,
+                py
+            );
+
+            ctx.stroke();
+
+
+            ctx.fillStyle =
+                "black";
+
+            ctx.textAlign =
+                "right";
+
+
+            ctx.fillText(
+                value.toFixed(1),
+                x - 10,
+                py + 4
+            );
+        }
+
+
+        // =====================================================
+        // CURVA
+        // =====================================================
+
+        const n =
+            Math.min(
+                Math.floor(
+                    this.frame
+                ) + 1,
+
+                this.data.t.length
+            );
+
+
+        if (n > 0) {
+
+            ctx.save();
+
+
+            ctx.beginPath();
+
+            ctx.rect(
+                x + 1,
+                y + 1,
+                w - 2,
+                h - 2
+            );
+
+            ctx.clip();
+
+
+            ctx.strokeStyle =
+                "#7b1fa2";
+
+            ctx.lineWidth = 2;
+
+
+            ctx.beginPath();
+
+
+            for (
+                let i = 0;
+                i < n;
+                i++
+            ) {
+
+                const px =
+                    x +
+                    (
+                        this.data.t[i] /
+                        xMax
+                    ) *
+                    w;
+
+
+                const py =
+                    y +
+                    h -
+                    (
+                        this.data.s[i] /
+                        yMax
+                    ) *
+                    h;
+
+
+                if (i === 0) {
+
+                    ctx.moveTo(
+                        px,
+                        py
+                    );
+
+                }
+                else {
+
+                    ctx.lineTo(
+                        px,
+                        py
+                    );
+                }
+            }
+
+
+            ctx.stroke();
+
+
+            // =================================================
+            // PONTO ATUAL
+            // =================================================
+
+            const current =
+                n - 1;
+
+
+            const px =
+                x +
+                (
+                    this.data.t[current] /
+                    xMax
+                ) *
+                w;
+
+
+            const py =
+                y +
+                h -
+                (
+                    this.data.s[current] /
+                    yMax
+                ) *
+                h;
+
+
+            ctx.fillStyle =
+                "#7b1fa2";
+
+
+            ctx.beginPath();
+
+            ctx.arc(
+                px,
+                py,
+                4,
+                0,
+                2 * Math.PI
+            );
+
+            ctx.fill();
+
+
+            ctx.restore();
+        }
+
+
+        // =====================================================
         // BORDA
-        // -----------------------------------------------------
+        // =====================================================
 
         ctx.strokeStyle =
-            "#aaa";
-
+            "#777";
 
         ctx.lineWidth = 1;
 
 
         ctx.strokeRect(
-            graphX,
-            graphY,
-            graphW,
-            graphH
+            x,
+            y,
+            w,
+            h
         );
 
 
-        // -----------------------------------------------------
-        // GRADE HORIZONTAL
-        // -----------------------------------------------------
-
-        ctx.strokeStyle =
-            "rgba(0,0,0,0.10)";
-
-
-        for (
-            let i = 0;
-            i <= 5;
-            i++
-        ) {
-
-            const y =
-                bottom -
-                (i / 5) *
-                graphH;
-
-
-            ctx.beginPath();
-
-
-            ctx.moveTo(
-                left,
-                y
-            );
-
-
-            ctx.lineTo(
-                right,
-                y
-            );
-
-
-            ctx.stroke();
-        }
-
-
-        // -----------------------------------------------------
-        // GRADE VERTICAL
-        // -----------------------------------------------------
-
-        for (
-            let i = 0;
-            i <= 5;
-            i++
-        ) {
-
-            const x =
-                left +
-                (i / 5) *
-                graphW;
-
-
-            ctx.beginPath();
-
-
-            ctx.moveTo(
-                x,
-                top
-            );
-
-
-            ctx.lineTo(
-                x,
-                bottom
-            );
-
-
-            ctx.stroke();
-        }
-
-
-        // -----------------------------------------------------
-        // CURVA COMPLETA
-        // -----------------------------------------------------
-
-        ctx.beginPath();
-
-
-        for (
-            let i = 0;
-            i < this.t.length;
-            i++
-        ) {
-
-            const x =
-                left +
-                (
-                    this.t[i] /
-                    tMax
-                ) *
-                graphW;
-
-
-            const y =
-                bottom -
-                (
-                    this.s[i] /
-                    xMax
-                ) *
-                graphH;
-
-
-            if (i === 0) {
-
-                ctx.moveTo(
-                    x,
-                    y
-                );
-
-            } else {
-
-                ctx.lineTo(
-                    x,
-                    y
-                );
-            }
-        }
-
-
-        ctx.strokeStyle =
-            "rgba(123,31,162,0.25)";
-
-
-        ctx.lineWidth = 2;
-
-
-        ctx.stroke();
-
-
-        // -----------------------------------------------------
-        // CURVA PERCORRIDA
-        // -----------------------------------------------------
-
-        ctx.beginPath();
-
-
-        const last =
-            Math.min(
-                currentIndex,
-                this.t.length - 1
-            );
-
-
-        for (
-            let i = 0;
-            i <= last;
-            i++
-        ) {
-
-            const x =
-                left +
-                (
-                    this.t[i] /
-                    tMax
-                ) *
-                graphW;
-
-
-            const y =
-                bottom -
-                (
-                    this.s[i] /
-                    xMax
-                ) *
-                graphH;
-
-
-            if (i === 0) {
-
-                ctx.moveTo(
-                    x,
-                    y
-                );
-
-            } else {
-
-                ctx.lineTo(
-                    x,
-                    y
-                );
-            }
-        }
-
-
-        ctx.strokeStyle =
-            "#7b1fa2";
-
-
-        ctx.lineWidth = 3;
-
-
-        ctx.stroke();
-
-
-        // -----------------------------------------------------
-        // PONTO ATUAL
-        // -----------------------------------------------------
-
-        const currentT =
-            this.t[last] || 0;
-
-
-        const currentS =
-            this.s[last] || 0;
-
-
-        const pointX =
-            left +
-            (
-                currentT /
-                tMax
-            ) *
-            graphW;
-
-
-        const pointY =
-            bottom -
-            (
-                currentS /
-                xMax
-            ) *
-            graphH;
-
-
-        ctx.beginPath();
-
-
-        ctx.arc(
-            pointX,
-            pointY,
-            5,
-            0,
-            2 * Math.PI
-        );
-
+        // =====================================================
+        // EIXO X — TEXTO
+        // =====================================================
 
         ctx.fillStyle =
-            "#7b1fa2";
-
-
-        ctx.fill();
-
-
-        // -----------------------------------------------------
-        // ESCALA X
-        // -----------------------------------------------------
-
-        ctx.fillStyle =
-            "#444";
-
+            "black";
 
         ctx.font =
-            "12px Arial";
-
+            "14px Arial";
 
         ctx.textAlign =
             "center";
-
-
-        for (
-            let i = 0;
-            i <= 5;
-            i++
-        ) {
-
-            const value =
-                (
-                    i / 5
-                ) *
-                tMax;
-
-
-            const x =
-                left +
-                (
-                    i / 5
-                ) *
-                graphW;
-
-
-            ctx.fillText(
-                value.toFixed(1),
-                x,
-                bottom + 20
-            );
-        }
-
-
-        // -----------------------------------------------------
-        // ESCALA Y
-        // -----------------------------------------------------
-
-        ctx.textAlign =
-            "right";
-
-
-        for (
-            let i = 0;
-            i <= 5;
-            i++
-        ) {
-
-            const value =
-                (
-                    i / 5
-                ) *
-                xMax;
-
-
-            const y =
-                bottom -
-                (
-                    i / 5
-                ) *
-                graphH;
-
-
-            ctx.fillText(
-                value.toFixed(1),
-                left - 8,
-                y + 4
-            );
-        }
-
-
-        // -----------------------------------------------------
-        // TÍTULOS DOS EIXOS
-        // -----------------------------------------------------
-
-        ctx.textAlign =
-            "center";
-
-
-        ctx.font =
-            "13px Arial";
 
 
         ctx.fillText(
-            "Tempo (s)",
-            left +
-            graphW / 2,
-            bottom + 43
+            "Tempo [s]",
+            x + w / 2,
+            y + h + 45
         );
 
+
+        // =====================================================
+        // EIXO Y — TEXTO
+        // =====================================================
 
         ctx.save();
 
 
         ctx.translate(
-            left - 48,
-            top + graphH / 2
+            x - 48,
+            y + h / 2
         );
 
 
@@ -1657,33 +1654,13 @@ class InclinedPlaneFriction {
 
 
         ctx.fillText(
-            "Posição ao longo do plano (m)",
+            "Posição [m]",
             0,
             0
         );
 
 
         ctx.restore();
-
-
-        // -----------------------------------------------------
-        // TÍTULO DO GRÁFICO
-        // -----------------------------------------------------
-
-        ctx.font =
-            "bold 15px Arial";
-
-
-        ctx.fillStyle =
-            "#222";
-
-
-        ctx.fillText(
-            "Posição × Tempo",
-            left +
-            graphW / 2,
-            top - 18
-        );
     }
 
 
@@ -1691,89 +1668,85 @@ class InclinedPlaneFriction {
     // HUD
     // =========================================================
 
-    drawHUD(
-        currentIndex
-    ) {
+    drawHUD(ctx) {
 
-        const ctx =
-            this.ctx;
-
-
-        const i =
+        const index =
             Math.min(
-                currentIndex,
-                this.t.length - 1
+                Math.floor(
+                    this.frame
+                ),
+                this.data.s.length - 1
             );
 
 
-        const currentT =
-            this.t[i] || 0;
+        const t =
+            index >= 0 ?
+            this.data.t[index] :
+            0;
 
 
-        const currentS =
-            this.s[i] || 0;
+        const s =
+            index >= 0 ?
+            this.data.s[index] :
+            0;
 
 
-        const currentV =
-            this.v[i] || 0;
+        const v =
+            index >= 0 ?
+            this.data.v[index] :
+            0;
 
 
-        let state;
+        const a =
+            index >= 0 ?
+            this.data.a[index] :
+            0;
 
 
-        if (!this.sliding) {
-
-            state =
-                "Em repouso";
-
-        } else if (
-            currentS >=
-            this.params.L
-        ) {
-
-            state =
-                "Chegou ao final";
-
-        } else {
-
-            state =
-                "Deslizando";
-        }
+        const sliding =
+            this.isSliding() &&
+            this.acceleration() > 0;
 
 
-        // -----------------------------------------------------
-        // CAIXA
-        // -----------------------------------------------------
+        const thetaCrit =
+            Math.atan(
+                this.params.muS
+            ) *
+            180 /
+            Math.PI;
+
 
         const x = 20;
-
         const y = 55;
 
-        const w = 305;
+        const width = 300;
+        const height = 225;
 
-        const h = 225;
 
+        ctx.save();
+
+
+        // =====================================================
+        // CAIXA
+        // =====================================================
 
         ctx.fillStyle =
-            "rgba(255,255,255,0.92)";
-
+            "rgba(255,255,255,0.96)";
 
         ctx.strokeStyle =
-            "#bbb";
-
+            "#777";
 
         ctx.lineWidth = 1;
 
 
         ctx.beginPath();
 
-
         ctx.roundRect(
             x,
             y,
-            w,
-            h,
-            10
+            width,
+            height,
+            8
         );
 
 
@@ -1782,67 +1755,130 @@ class InclinedPlaneFriction {
         ctx.stroke();
 
 
-        // -----------------------------------------------------
+        // =====================================================
         // TÍTULO
-        // -----------------------------------------------------
+        // =====================================================
 
         ctx.fillStyle =
-            "#222";
-
+            "black";
 
         ctx.font =
-            "bold 15px Arial";
+            "bold 14px Arial";
+
+        ctx.textAlign =
+            "left";
 
 
         ctx.fillText(
-            "Plano inclinado com atrito",
-            x + 15,
-            y + 25
+            "Parâmetros da simulação",
+            x + 12,
+            y + 20
         );
 
 
-        // -----------------------------------------------------
-        // INFORMAÇÕES
-        // -----------------------------------------------------
+        // =====================================================
+        // PARÂMETROS
+        // =====================================================
 
         ctx.font =
-            "13px Arial";
+            "12px Arial";
 
 
-        const lines = [
-
-            `θ = ${this.params.theta.toFixed(1)}°`,
-
-            `μₛ = ${this.params.muS.toFixed(2)}`,
-
-            `μₖ = ${this.params.muK.toFixed(2)}`,
-
-            `L = ${this.params.L.toFixed(1)} m`,
-
-            "",
-
-            `Estado: ${state}`,
-
-            `s = ${currentS.toFixed(2)} m`,
-
-            `v = ${currentV.toFixed(2)} m/s`,
-
-            `a = ${this.acceleration.toFixed(2)} m/s²`
-        ];
-
-
-        lines.forEach(
-            (line, index) => {
-
-                ctx.fillText(
-                    line,
-                    x + 15,
-                    y +
-                    49 +
-                    index * 18
-                );
-            }
+        ctx.fillText(
+            `θ = ${this.params.theta.toFixed(0)}°`,
+            x + 12,
+            y + 42
         );
+
+
+        ctx.fillText(
+            `μₛ = ${this.params.muS.toFixed(2)}`,
+            x + 12,
+            y + 60
+        );
+
+
+        ctx.fillText(
+            `μₖ = ${this.params.muK.toFixed(2)}`,
+            x + 12,
+            y + 78
+        );
+
+
+        ctx.fillText(
+            `g = ${this.params.g.toFixed(2)} m/s²`,
+            x + 12,
+            y + 96
+        );
+
+
+        ctx.fillText(
+            `L = ${this.planeLength.toFixed(1)} m`,
+            x + 12,
+            y + 114
+        );
+
+
+        ctx.fillText(
+            `θ crítico ≈ ${thetaCrit.toFixed(1)}°`,
+            x + 12,
+            y + 132
+        );
+
+
+        ctx.fillText(
+            `t = ${t.toFixed(2)} s`,
+            x + 12,
+            y + 150
+        );
+
+
+        ctx.fillText(
+            `s = ${s.toFixed(2)} m`,
+            x + 12,
+            y + 168
+        );
+
+
+        ctx.fillText(
+            `v = ${v.toFixed(2)} m/s`,
+            x + 12,
+            y + 186
+        );
+
+
+        ctx.fillText(
+            `a = ${a.toFixed(2)} m/s²`,
+            x + 12,
+            y + 204
+        );
+
+
+        // =====================================================
+        // ESTADO
+        // =====================================================
+
+        ctx.font =
+            "bold 12px Arial";
+
+
+        ctx.fillStyle =
+            sliding ?
+            "#7b1fa2" :
+            "#2e7d32";
+
+
+        ctx.fillText(
+            sliding ?
+            "Estado: Deslizando" :
+            "Estado: Em repouso",
+
+            x + 12,
+            y + 222
+        );
+
+
+        ctx.restore();
     }
 
 
@@ -1850,17 +1886,15 @@ class InclinedPlaneFriction {
     // DESENHO PRINCIPAL
     // =========================================================
 
-    draw(
-        currentIndex = 0
-    ) {
+    draw() {
 
         const ctx =
             this.ctx;
 
 
-        // -----------------------------------------------------
-        // LIMPA CANVAS
-        // -----------------------------------------------------
+        // =====================================================
+        // LIMPA
+        // =====================================================
 
         ctx.clearRect(
             0,
@@ -1871,7 +1905,7 @@ class InclinedPlaneFriction {
 
 
         ctx.fillStyle =
-            "#ffffff";
+            "white";
 
 
         ctx.fillRect(
@@ -1882,129 +1916,89 @@ class InclinedPlaneFriction {
         );
 
 
-        // -----------------------------------------------------
-        // TÍTULO GERAL
-        // -----------------------------------------------------
+        // =====================================================
+        // TÍTULO
+        // =====================================================
 
         ctx.fillStyle =
-            "#222";
-
+            "black";
 
         ctx.font =
-            "bold 18px Arial";
-
+            "bold 20px Arial";
 
         ctx.textAlign =
-            "left";
+            "center";
 
 
         ctx.fillText(
             "Plano inclinado com atrito",
-            20,
+            330,
             30
         );
 
 
-        // -----------------------------------------------------
-        // SIMULAÇÃO
-        // -----------------------------------------------------
+        // =====================================================
+        // ELEMENTOS
+        // =====================================================
 
-        this.drawPlane();
+        this.drawPlane(ctx);
 
+        this.drawBlockState(ctx);
 
-        this.drawTrail(
-            currentIndex
-        );
+        this.drawGraph(ctx);
 
-
-        const i =
-            Math.min(
-                currentIndex,
-                this.s.length - 1
-            );
-
-
-        this.drawBlock(
-            this.s[i] || 0
-        );
-
-
-        this.drawVelocity(
-            this.s[i] || 0,
-            this.v[i] || 0
-        );
-
-
-        // -----------------------------------------------------
-        // GRÁFICO
-        // -----------------------------------------------------
-
-        this.drawGraph(
-            currentIndex
-        );
-
-
-        // -----------------------------------------------------
-        // HUD
-        // -----------------------------------------------------
-
-        this.drawHUD(
-            currentIndex
-        );
+        this.drawHUD(ctx);
     }
 
 
     // =========================================================
-    // INICIAR
+    // INICIAR ANIMAÇÃO
     // =========================================================
 
     iniciar() {
 
-        this.parar();
+        if (this.running) {
+            return;
+        }
 
 
-        this.running =
-            true;
+        this.running = true;
 
 
-        let frame = 0;
-
-
-        const animate = () => {
+        const loop = () => {
 
             if (!this.running) {
                 return;
             }
 
 
-            this.draw(
-                frame
-            );
+            this.draw();
 
 
-            frame++;
+            this.frame +=
+                this.animationSpeed;
 
+
+            // =================================================
+            // VOLTA PARA O INÍCIO
+            // =================================================
 
             if (
-                frame >=
-                this.t.length
+                this.frame >=
+                this.totalFrames
             ) {
 
-                this.running =
-                    false;
-
-                return;
+                this.frame = 0;
             }
 
 
-            this.animationId =
-                requestAnimationFrame(
-                    animate
-                );
+            requestAnimationFrame(
+                loop
+            );
         };
 
 
-        animate();
+        loop();
     }
 
 
@@ -2014,22 +2008,7 @@ class InclinedPlaneFriction {
 
     parar() {
 
-        this.running =
-            false;
-
-
-        if (
-            this.animationId !== null
-        ) {
-
-            cancelAnimationFrame(
-                this.animationId
-            );
-
-
-            this.animationId =
-                null;
-        }
+        this.running = false;
     }
 
 
@@ -2041,7 +2020,11 @@ class InclinedPlaneFriction {
 
         this.parar();
 
-        this.draw(0);
+        this.solve();
+
+        this.draw();
+
+        this.iniciar();
     }
 
 
@@ -2049,36 +2032,53 @@ class InclinedPlaneFriction {
     // ATUALIZAR PARÂMETROS
     // =========================================================
 
-    atualizarParametros() {
+    atualizarParametros(
+        newParams
+    ) {
 
-        this.params.theta =
-            Number(
-                this.controls.theta.value
-            );
-
-
-        this.params.muS =
-            Number(
-                this.controls.muS.value
-            );
+        this.parar();
 
 
-        this.params.muK =
-            Number(
-                this.controls.muK.value
-            );
+        this.params = {
+
+            ...this.params,
+            ...newParams
+        };
+
+
+        if (this.sliders) {
+
+            Object.keys(
+                newParams
+            ).forEach(key => {
+
+                if (
+                    this.sliders[key]
+                ) {
+
+                    this.sliders[key].value =
+                        newParams[key];
+
+                    const event =
+                        new Event("input");
+
+                    this.sliders[key]
+                        .dispatchEvent(event);
+                }
+            });
+        }
 
 
         this.solve();
 
-        this.reset();
+        this.iniciar();
     }
 }
 
 
-// ============================================================
+// =============================================================
 // INICIALIZAÇÃO
-// ============================================================
+// =============================================================
 
 document.addEventListener(
     "DOMContentLoaded",
@@ -2091,6 +2091,11 @@ document.addEventListener(
 
 
         if (!canvas) {
+
+            console.error(
+                "Canvas inclinedPlaneFrictionCanvas não encontrado."
+            );
+
             return;
         }
 
