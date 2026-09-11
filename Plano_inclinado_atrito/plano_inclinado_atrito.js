@@ -5,10 +5,6 @@ class InclinedPlaneFriction {
         this.canvas = canvas;
         this.ctx = canvas.getContext("2d");
 
-        // =====================================================
-        // PARÂMETROS
-        // =====================================================
-
         this.params = {
             g: 9.81,
             theta: 20,
@@ -17,25 +13,26 @@ class InclinedPlaneFriction {
             ...options
         };
 
-        // Comprimento físico do plano
-        this.planeLength = 10;
+        // =====================================================
+        // BLOCO
+        // =====================================================
+
+        this.block = {
+            name: "Bloco",
+            color: "#7b1fa2",
+            type: "block"
+        };
 
         // =====================================================
-        // GEOMETRIA DO PLANO
-        // Mesma lógica do plano inclinado com sólidos
+        // PLANO
         // =====================================================
+
+        this.planeLength = 10;
 
         this.planeBottomX = 580;
         this.planeBottomY = 470;
 
         this.planePixelLength = 400;
-
-        // =====================================================
-        // BLOCO
-        // =====================================================
-
-        this.blockSize = 34;
-        this.blockHalf = this.blockSize / 2;
 
         // =====================================================
         // SIMULAÇÃO
@@ -47,18 +44,13 @@ class InclinedPlaneFriction {
 
         this.data = {
             t: [],
-            s: [],
-            v: [],
-            a: []
+            x: [],
+            v: []
         };
 
-        this.totalFrames = 1;
-
-        this.frame = 0;
-
-        this.animationSpeed = 1;
-
         this.running = false;
+        this.frame = 0;
+        this.animationSpeed = 1;
 
         // =====================================================
         // GRÁFICO
@@ -77,13 +69,12 @@ class InclinedPlaneFriction {
 
         this.solve();
 
-        // Começa automaticamente
         this.iniciar();
     }
 
 
     // =========================================================
-    // FÍSICA
+    // CONDIÇÃO DE DESLIZAMENTO
     // =========================================================
 
     isSliding() {
@@ -122,7 +113,7 @@ class InclinedPlaneFriction {
 
 
     // =========================================================
-    // TEMPO DE CHEGADA
+    // TEMPO DE CHEGADA AO FINAL DO PLANO
     // =========================================================
 
     calculateArrivalTime() {
@@ -147,25 +138,13 @@ class InclinedPlaneFriction {
 
 
     // =========================================================
-    // SOLUÇÃO NUMÉRICA
+    // TEMPO MÁXIMO DA SIMULAÇÃO
     // =========================================================
 
-    solve() {
-
-        const sliding =
-            this.isSliding();
-
-        const a =
-            sliding ?
-            this.acceleration() :
-            0;
+    calculateSimulationTime() {
 
         const arrivalTime =
             this.calculateArrivalTime();
-
-        // =====================================================
-        // TEMPO DA SIMULAÇÃO
-        // =====================================================
 
         if (Number.isFinite(arrivalTime)) {
 
@@ -180,6 +159,17 @@ class InclinedPlaneFriction {
 
             this.tMax = 5;
         }
+    }
+
+
+    // =========================================================
+    // SOLUÇÃO
+    // =========================================================
+
+    solve() {
+
+        this.calculateSimulationTime();
+
 
         const steps =
             Math.ceil(
@@ -187,22 +177,32 @@ class InclinedPlaneFriction {
                 this.dt
             ) + 1;
 
-        this.totalFrames = steps;
 
-        // =====================================================
-        // LIMPA OS DADOS
-        // =====================================================
+        this.totalFrames =
+            steps;
+
 
         this.data.t = [];
-        this.data.s = [];
+        this.data.x = [];
         this.data.v = [];
-        this.data.a = [];
 
-        let s = 0;
-        let v = 0;
+
+        const sliding =
+            this.isSliding();
+
+
+        const a =
+            sliding ?
+            this.acceleration() :
+            0;
+
+
+        const arrivalTime =
+            this.calculateArrivalTime();
+
 
         // =====================================================
-        // INTEGRAÇÃO
+        // MESMA IDEIA DA SOLUÇÃO DOS SÓLIDOS
         // =====================================================
 
         for (
@@ -217,82 +217,103 @@ class InclinedPlaneFriction {
                     this.tMax
                 );
 
+
+            let x;
+            let v;
+
+
             // =================================================
             // BLOCO EM REPOUSO
             // =================================================
 
             if (!sliding) {
 
-                s = 0;
+                x = 0;
                 v = 0;
             }
+
 
             // =================================================
             // BLOCO DESLIZANDO
             // =================================================
 
             else if (
-                s < this.planeLength
+                t < arrivalTime
             ) {
 
                 /*
-                 * Mesmo esquema do código Python:
+                 * Movimento uniformemente acelerado.
                  *
-                 * v = v + a dt
-                 * s = s + v dt
+                 * O bloco parte do repouso:
+                 *
+                 * x = 1/2 a t²
+                 * v = a t
                  */
 
+                x =
+                    0.5 *
+                    a *
+                    t *
+                    t;
+
                 v =
-                    v +
-                    a * this.dt;
-
-                s =
-                    s +
-                    v * this.dt;
-
-                // Chegou ao final
-                if (
-                    s >=
-                    this.planeLength
-                ) {
-
-                    s =
-                        this.planeLength;
-
-                    v =
-                        Math.sqrt(
-                            2 *
-                            a *
-                            this.planeLength
-                        );
-                }
+                    a *
+                    t;
             }
 
+
             // =================================================
-            // JÁ CHEGOU AO FINAL
+            // CHEGOU AO FINAL
             // =================================================
 
             else {
 
-                s =
+                x =
                     this.planeLength;
+
+                v =
+                    Math.sqrt(
+                        2 *
+                        a *
+                        this.planeLength
+                    );
             }
 
+
+            // =================================================
+            // LIMITA AO FINAL DO PLANO
+            // =================================================
+
+            x =
+                Math.min(
+                    x,
+                    this.planeLength
+                );
+
+
             this.data.t.push(t);
-
-            this.data.s.push(s);
-
+            this.data.x.push(x);
             this.data.v.push(v);
-
-            this.data.a.push(
-                sliding ?
-                a :
-                0
-            );
         }
 
-        // Reinicia a animação
+
+        this.calculateScale();
+
         this.frame = 0;
+    }
+
+
+    // =========================================================
+    // ESCALA DO GRÁFICO
+    // =========================================================
+
+    calculateScale() {
+
+        this.xMax =
+            Math.max(
+                this.planeLength,
+                1
+            );
     }
 
 
@@ -311,15 +332,18 @@ class InclinedPlaneFriction {
             return;
         }
 
+
         container.innerHTML = "";
 
+
         this.sliders = {};
+
 
         const configs = [
 
             {
                 name: "theta",
-                label: "Ângulo θ (°)",
+                label: "θ (°)",
                 min: 5,
                 max: 60,
                 step: 1,
@@ -358,7 +382,7 @@ class InclinedPlaneFriction {
 
 
             // =================================================
-            // TÍTULO DO CONTROLE
+            // TÍTULO
             // =================================================
 
             const title =
@@ -390,16 +414,13 @@ class InclinedPlaneFriction {
 
             value.textContent =
                 Number(
-                    this.params[
-                        config.name
-                    ]
+                    this.params[config.name]
                 ).toFixed(
                     config.decimals
                 );
 
 
             title.appendChild(label);
-
             title.appendChild(value);
 
 
@@ -412,7 +433,8 @@ class InclinedPlaneFriction {
                     "input"
                 );
 
-            slider.type = "range";
+            slider.type =
+                "range";
 
             slider.min =
                 config.min;
@@ -424,14 +446,8 @@ class InclinedPlaneFriction {
                 config.step;
 
             slider.value =
-                this.params[
-                    config.name
-                ];
+                this.params[config.name];
 
-
-            // =================================================
-            // ALTERAÇÃO DO SLIDER
-            // =================================================
 
             slider.addEventListener(
                 "input",
@@ -453,20 +469,24 @@ class InclinedPlaneFriction {
                         );
 
 
-                    // Para a animação atual
-                    this.parar();
+                    /*
+                     * Mesma lógica da simulação
+                     * dos sólidos:
+                     *
+                     * recalcula e desenha.
+                     *
+                     * Como a animação continua rodando,
+                     * o frame volta para zero dentro de solve().
+                     */
 
-                    // Recalcula a física
                     this.solve();
 
-                    // Reinicia
-                    this.iniciar();
+                    this.draw();
                 }
             );
 
 
             group.appendChild(title);
-
             group.appendChild(slider);
 
             container.appendChild(group);
@@ -497,13 +517,6 @@ class InclinedPlaneFriction {
             this.planeBottomY;
 
 
-        /*
-         * Ponto superior da hipotenusa.
-         *
-         * A distância entre os dois pontos
-         * é planePixelLength.
-         */
-
         const x1 =
             x2 -
             this.planePixelLength *
@@ -517,23 +530,20 @@ class InclinedPlaneFriction {
 
 
         return {
-
             x1,
             y1,
-
             x2,
             y2,
-
             theta
         };
     }
 
 
     // =========================================================
-    // POSIÇÃO AO LONGO DO PLANO
+    // POSIÇÃO SOBRE O PLANO
     // =========================================================
 
-    positionOnPlane(s) {
+    positionOnPlane(distance) {
 
         const plane =
             this.getPlaneGeometry();
@@ -543,7 +553,7 @@ class InclinedPlaneFriction {
             Math.max(
                 0,
                 Math.min(
-                    s /
+                    distance /
                     this.planeLength,
                     1
                 )
@@ -578,13 +588,12 @@ class InclinedPlaneFriction {
     getPlaneVectors() {
 
         const theta =
-            this.params.theta *
-            Math.PI / 180;
+            this.getPlaneGeometry().theta;
 
 
         /*
          * Tangente apontando para baixo
-         * ao longo da hipotenusa.
+         * ao longo do plano.
          */
 
         const tangent = {
@@ -598,13 +607,8 @@ class InclinedPlaneFriction {
 
 
         /*
-         * Normal apontando para FORA
+         * Normal apontando para fora
          * do plano.
-         *
-         * Em coordenadas de canvas:
-         *
-         * x positivo
-         * y negativo
          */
 
         const normal = {
@@ -618,7 +622,6 @@ class InclinedPlaneFriction {
 
 
         return {
-
             tangent,
             normal
         };
@@ -639,11 +642,11 @@ class InclinedPlaneFriction {
 
 
         // =====================================================
-        // TRIÂNGULO
+        // PREENCHIMENTO
         // =====================================================
 
         ctx.fillStyle =
-            "rgba(220,220,220,0.30)";
+            "rgba(220, 220, 220, 0.30)";
 
 
         ctx.beginPath();
@@ -679,7 +682,8 @@ class InclinedPlaneFriction {
         ctx.strokeStyle =
             "#555";
 
-        ctx.lineWidth = 3;
+        ctx.lineWidth =
+            3;
 
 
         ctx.beginPath();
@@ -723,7 +727,8 @@ class InclinedPlaneFriction {
         ctx.strokeStyle =
             "#222";
 
-        ctx.lineWidth = 5;
+        ctx.lineWidth =
+            5;
 
 
         ctx.beginPath();
@@ -741,8 +746,11 @@ class InclinedPlaneFriction {
         ctx.stroke();
 
 
-        // Ângulo
-        this.drawAngleMarker(
+        // =====================================================
+        // ÂNGULO
+        // =====================================================
+
+        this.drawAngle(
             ctx,
             plane
         );
@@ -753,19 +761,24 @@ class InclinedPlaneFriction {
 
 
     // =========================================================
-    // ÂNGULO
+    // ÂNGULO θ
     // =========================================================
 
-    drawAngleMarker(ctx, plane) {
+    drawAngle(ctx, plane) {
 
         const theta =
             plane.theta;
 
 
         /*
-         * O ângulo está no vértice inferior
-         * direito, entre a horizontal e a
-         * hipotenusa.
+         * O ângulo de inclinação está no
+         * vértice inferior direito.
+         *
+         * A horizontal aponta para a esquerda:
+         * direção π.
+         *
+         * A hipotenusa aponta para cima/esquerda:
+         * direção π - θ.
          */
 
         const x =
@@ -775,7 +788,8 @@ class InclinedPlaneFriction {
             plane.y2;
 
 
-        const radius = 42;
+        const radius =
+            42;
 
 
         ctx.save();
@@ -784,48 +798,52 @@ class InclinedPlaneFriction {
         ctx.strokeStyle =
             "#555";
 
-        ctx.lineWidth = 2;
+        ctx.lineWidth =
+            2;
 
-
-        /*
-         * Como o eixo y do canvas cresce
-         * para baixo, o arco é construído
-         * diretamente no quadrante correspondente.
-         */
 
         ctx.beginPath();
+
 
         ctx.arc(
             x,
             y,
             radius,
-            Math.PI,
-            Math.PI + theta,
-            false
+            Math.PI - theta,
+            Math.PI
         );
+
 
         ctx.stroke();
 
 
         // =====================================================
-        // TEXTO DO ÂNGULO
+        // TEXTO
         // =====================================================
 
-        const textAngle =
-            Math.PI +
+        const middleAngle =
+            Math.PI -
             theta / 2;
+
+
+        const textRadius =
+            radius + 17;
 
 
         const tx =
             x +
-            (radius + 15) *
-            Math.cos(textAngle);
+            textRadius *
+            Math.cos(
+                middleAngle
+            );
 
 
         const ty =
             y +
-            (radius + 15) *
-            Math.sin(textAngle);
+            textRadius *
+            Math.sin(
+                middleAngle
+            );
 
 
         ctx.fillStyle =
@@ -853,7 +871,7 @@ class InclinedPlaneFriction {
 
 
     // =========================================================
-    // DESENHO DO BLOCO
+    // BLOCO
     // =========================================================
 
     drawBlock(
@@ -863,6 +881,13 @@ class InclinedPlaneFriction {
         theta,
         color
     ) {
+
+        const width =
+            32;
+
+        const height =
+            32;
+
 
         ctx.save();
 
@@ -874,8 +899,8 @@ class InclinedPlaneFriction {
 
 
         /*
-         * A hipotenusa desce para a direita.
-         * Portanto o bloco gira +theta.
+         * O bloco acompanha a inclinação
+         * da hipotenusa.
          */
 
         ctx.rotate(theta);
@@ -889,14 +914,14 @@ class InclinedPlaneFriction {
             color;
 
         ctx.globalAlpha =
-            0.16;
+            0.18;
 
 
         ctx.fillRect(
-            -this.blockSize / 2,
-            -this.blockSize / 2,
-            this.blockSize,
-            this.blockSize
+            -width / 2,
+            -height / 2,
+            width,
+            height
         );
 
 
@@ -904,19 +929,22 @@ class InclinedPlaneFriction {
         // BORDA
         // =====================================================
 
-        ctx.globalAlpha = 1;
+        ctx.globalAlpha =
+            1;
+
 
         ctx.strokeStyle =
             color;
 
-        ctx.lineWidth = 3;
+        ctx.lineWidth =
+            3;
 
 
         ctx.strokeRect(
-            -this.blockSize / 2,
-            -this.blockSize / 2,
-            this.blockSize,
-            this.blockSize
+            -width / 2,
+            -height / 2,
+            width,
+            height
         );
 
 
@@ -938,14 +966,14 @@ class InclinedPlaneFriction {
         }
 
 
-        const vectors =
-            this.getPlaneVectors();
+        const theta =
+            this.getPlaneGeometry().theta;
 
 
         const maxIndex =
             Math.min(
                 Math.floor(frame),
-                this.data.s.length - 1
+                this.data.x.length - 1
             );
 
 
@@ -953,12 +981,13 @@ class InclinedPlaneFriction {
 
 
         ctx.strokeStyle =
-            "#7b1fa2";
+            this.block.color;
 
         ctx.globalAlpha =
             0.25;
 
-        ctx.lineWidth = 2;
+        ctx.lineWidth =
+            2;
 
 
         ctx.setLineDash([
@@ -976,42 +1005,49 @@ class InclinedPlaneFriction {
             i++
         ) {
 
+            const physicalX =
+                Math.min(
+                    this.data.x[i],
+                    this.planeLength
+                );
+
+
             const pos =
                 this.positionOnPlane(
-                    this.data.s[i]
+                    physicalX
                 );
 
 
             /*
-             * O rastro acompanha o centro
-             * do bloco.
+             * Mesmo deslocamento normal
+             * utilizado na simulação dos sólidos.
              */
 
-            const x =
+            const px =
                 pos.x +
-                this.blockHalf *
-                vectors.normal.x;
+                18 *
+                Math.sin(theta);
 
 
-            const y =
-                pos.y +
-                this.blockHalf *
-                vectors.normal.y;
+            const py =
+                pos.y -
+                18 *
+                Math.cos(theta);
 
 
             if (i === 0) {
 
                 ctx.moveTo(
-                    x,
-                    y
+                    px,
+                    py
                 );
 
             }
             else {
 
                 ctx.lineTo(
-                    x,
-                    y
+                    px,
+                    py
                 );
             }
         }
@@ -1028,6 +1064,110 @@ class InclinedPlaneFriction {
 
 
     // =========================================================
+    // BLOCO
+    // =========================================================
+
+    drawBlockState(ctx) {
+
+        const data =
+            this.data;
+
+
+        const index =
+            Math.min(
+                Math.floor(this.frame),
+                data.x.length - 1
+            );
+
+
+        if (index < 0) {
+            return;
+        }
+
+
+        const physicalX =
+            Math.min(
+                data.x[index],
+                this.planeLength
+            );
+
+
+        const pos =
+            this.positionOnPlane(
+                physicalX
+            );
+
+
+        const theta =
+            this.getPlaneGeometry().theta;
+
+
+        // =====================================================
+        // RAIO VISUAL
+        // =====================================================
+
+        const radius =
+            18;
+
+
+        // =====================================================
+        // POSIÇÃO ACIMA DO PLANO
+        // =====================================================
+
+        /*
+         * EXATAMENTE a mesma lógica usada
+         * em InclinedPlaneSolids.
+         */
+
+        const x =
+            pos.x +
+            radius *
+            Math.sin(theta);
+
+
+        const y =
+            pos.y -
+            radius *
+            Math.cos(theta);
+
+
+        // =====================================================
+        // RASTRO
+        // =====================================================
+
+        this.drawTrail(
+            ctx,
+            this.frame
+        );
+
+
+        // =====================================================
+        // BLOCO
+        // =====================================================
+
+        this.drawBlock(
+            ctx,
+            x,
+            y,
+            theta,
+            this.block.color
+        );
+
+
+        // =====================================================
+        // VELOCIDADE
+        // =====================================================
+
+        this.drawVelocity(
+            ctx,
+            x,
+            y,
+            data.v[index]
+        );
+    }
+
+
+    // =========================================================
     // VELOCIDADE
     // =========================================================
 
@@ -1035,38 +1175,39 @@ class InclinedPlaneFriction {
         ctx,
         x,
         y,
-        v
+        velocity
     ) {
 
         if (
-            Math.abs(v) <
+            Math.abs(velocity) <
             0.001
         ) {
             return;
         }
 
 
-        const vectors =
-            this.getPlaneVectors();
+        const theta =
+            this.getPlaneGeometry().theta;
 
 
         /*
-         * Escala visual da velocidade.
+         * Escala visual.
          */
 
-        const scale = 12;
+        const scale =
+            12;
 
 
         const dx =
-            vectors.tangent.x *
-            v *
-            scale;
+            scale *
+            velocity *
+            Math.cos(theta);
 
 
         const dy =
-            vectors.tangent.y *
-            v *
-            scale;
+            scale *
+            velocity *
+            Math.sin(theta);
 
 
         const length =
@@ -1081,7 +1222,22 @@ class InclinedPlaneFriction {
         }
 
 
-        const head = 10;
+        const headLength =
+            10;
+
+
+        const ux =
+            dx / length;
+
+        const uy =
+            dy / length;
+
+
+        const px =
+            -uy;
+
+        const py =
+            ux;
 
 
         ctx.save();
@@ -1093,7 +1249,8 @@ class InclinedPlaneFriction {
         ctx.fillStyle =
             "#1565c0";
 
-        ctx.lineWidth = 2;
+        ctx.lineWidth =
+            2;
 
 
         // =====================================================
@@ -1116,22 +1273,8 @@ class InclinedPlaneFriction {
 
 
         // =====================================================
-        // PONTA DA SETA
+        // PONTA
         // =====================================================
-
-        const ux =
-            dx / length;
-
-        const uy =
-            dy / length;
-
-
-        const px =
-            -uy;
-
-        const py =
-            ux;
-
 
         ctx.beginPath();
 
@@ -1145,26 +1288,34 @@ class InclinedPlaneFriction {
         ctx.lineTo(
             x +
             dx -
-            head * ux +
-            head * 0.45 * px,
+            headLength * ux +
+            0.45 *
+            headLength *
+            px,
 
             y +
             dy -
-            head * uy +
-            head * 0.45 * py
+            headLength * uy +
+            0.45 *
+            headLength *
+            py
         );
 
 
         ctx.lineTo(
             x +
             dx -
-            head * ux -
-            head * 0.45 * px,
+            headLength * ux -
+            0.45 *
+            headLength *
+            px,
 
             y +
             dy -
-            head * uy -
-            head * 0.45 * py
+            headLength * uy -
+            0.45 *
+            headLength *
+            py
         );
 
 
@@ -1174,111 +1325,6 @@ class InclinedPlaneFriction {
 
 
         ctx.restore();
-    }
-
-
-    // =========================================================
-    // ESTADO DO BLOCO
-    // =========================================================
-
-    drawBlockState(ctx) {
-
-        const index =
-            Math.min(
-                Math.floor(this.frame),
-                this.data.s.length - 1
-            );
-
-
-        if (index < 0) {
-            return;
-        }
-
-
-        const s =
-            this.data.s[index];
-
-
-        const v =
-            this.data.v[index];
-
-
-        const plane =
-            this.getPlaneGeometry();
-
-
-        const pos =
-            this.positionOnPlane(s);
-
-
-        const vectors =
-            this.getPlaneVectors();
-
-
-        // =====================================================
-        // PONTO DE CONTATO
-        // =====================================================
-
-        const contactX =
-            pos.x;
-
-        const contactY =
-            pos.y;
-
-
-        // =====================================================
-        // CENTRO DO BLOCO
-        // =====================================================
-        //
-        // O bloco é deslocado pela normal
-        // para ficar acima da hipotenusa.
-        //
-
-        const centerX =
-            contactX +
-            this.blockHalf *
-            vectors.normal.x;
-
-
-        const centerY =
-            contactY +
-            this.blockHalf *
-            vectors.normal.y;
-
-
-        // =====================================================
-        // RASTRO
-        // =====================================================
-
-        this.drawTrail(
-            ctx,
-            this.frame
-        );
-
-
-        // =====================================================
-        // BLOCO
-        // =====================================================
-
-        this.drawBlock(
-            ctx,
-            centerX,
-            centerY,
-            plane.theta,
-            "#7b1fa2"
-        );
-
-
-        // =====================================================
-        // VELOCIDADE
-        // =====================================================
-
-        this.drawVelocity(
-            ctx,
-            centerX,
-            centerY,
-            v
-        );
     }
 
 
@@ -1299,17 +1345,6 @@ class InclinedPlaneFriction {
 
         const h =
             this.graphH;
-
-
-        const xMax =
-            Math.max(
-                this.tMax,
-                1
-            );
-
-
-        const yMax =
-            this.planeLength;
 
 
         // =====================================================
@@ -1333,8 +1368,11 @@ class InclinedPlaneFriction {
         );
 
 
-        const xTicks = 5;
-        const yTicks = 5;
+        const xTicks =
+            5;
+
+        const yTicks =
+            5;
 
 
         ctx.font =
@@ -1352,7 +1390,7 @@ class InclinedPlaneFriction {
         ) {
 
             const value =
-                xMax *
+                this.tMax *
                 i /
                 xTicks;
 
@@ -1361,7 +1399,7 @@ class InclinedPlaneFriction {
                 x +
                 (
                     value /
-                    xMax
+                    this.tMax
                 ) *
                 w;
 
@@ -1369,7 +1407,8 @@ class InclinedPlaneFriction {
             ctx.strokeStyle =
                 "#eeeeee";
 
-            ctx.lineWidth = 1;
+            ctx.lineWidth =
+                1;
 
 
             ctx.beginPath();
@@ -1395,7 +1434,7 @@ class InclinedPlaneFriction {
 
 
             ctx.fillText(
-                value.toFixed(1),
+                value.toFixed(2),
                 px,
                 y + h + 20
             );
@@ -1413,7 +1452,7 @@ class InclinedPlaneFriction {
         ) {
 
             const value =
-                yMax *
+                this.xMax *
                 i /
                 yTicks;
 
@@ -1423,7 +1462,7 @@ class InclinedPlaneFriction {
                 h -
                 (
                     value /
-                    yMax
+                    this.xMax
                 ) *
                 h;
 
@@ -1468,10 +1507,7 @@ class InclinedPlaneFriction {
 
         const n =
             Math.min(
-                Math.floor(
-                    this.frame
-                ) + 1,
-
+                Math.floor(this.frame) + 1,
                 this.data.t.length
             );
 
@@ -1494,9 +1530,10 @@ class InclinedPlaneFriction {
 
 
             ctx.strokeStyle =
-                "#7b1fa2";
+                this.block.color;
 
-            ctx.lineWidth = 2;
+            ctx.lineWidth =
+                2;
 
 
             ctx.beginPath();
@@ -1512,7 +1549,7 @@ class InclinedPlaneFriction {
                     x +
                     (
                         this.data.t[i] /
-                        xMax
+                        this.tMax
                     ) *
                     w;
 
@@ -1521,8 +1558,8 @@ class InclinedPlaneFriction {
                     y +
                     h -
                     (
-                        this.data.s[i] /
-                        yMax
+                        this.data.x[i] /
+                        this.xMax
                     ) *
                     h;
 
@@ -1560,7 +1597,7 @@ class InclinedPlaneFriction {
                 x +
                 (
                     this.data.t[current] /
-                    xMax
+                    this.tMax
                 ) *
                 w;
 
@@ -1569,14 +1606,14 @@ class InclinedPlaneFriction {
                 y +
                 h -
                 (
-                    this.data.s[current] /
-                    yMax
+                    this.data.x[current] /
+                    this.xMax
                 ) *
                 h;
 
 
             ctx.fillStyle =
-                "#7b1fa2";
+                this.block.color;
 
 
             ctx.beginPath();
@@ -1603,7 +1640,8 @@ class InclinedPlaneFriction {
         ctx.strokeStyle =
             "#777";
 
-        ctx.lineWidth = 1;
+        ctx.lineWidth =
+            1;
 
 
         ctx.strokeRect(
@@ -1615,7 +1653,7 @@ class InclinedPlaneFriction {
 
 
         // =====================================================
-        // EIXO X — TEXTO
+        // EIXO X
         // =====================================================
 
         ctx.fillStyle =
@@ -1636,7 +1674,7 @@ class InclinedPlaneFriction {
 
 
         // =====================================================
-        // EIXO Y — TEXTO
+        // EIXO Y
         // =====================================================
 
         ctx.save();
@@ -1661,6 +1699,27 @@ class InclinedPlaneFriction {
 
 
         ctx.restore();
+
+
+        // =====================================================
+        // LEGENDA
+        // =====================================================
+
+        ctx.fillStyle =
+            this.block.color;
+
+        ctx.font =
+            "12px Arial";
+
+        ctx.textAlign =
+            "left";
+
+
+        ctx.fillText(
+            "Bloco",
+            x + w - 55,
+            y + 20
+        );
     }
 
 
@@ -1672,41 +1731,37 @@ class InclinedPlaneFriction {
 
         const index =
             Math.min(
-                Math.floor(
-                    this.frame
-                ),
-                this.data.s.length - 1
+                Math.floor(this.frame),
+                this.data.x.length - 1
             );
 
 
         const t =
-            index >= 0 ?
-            this.data.t[index] :
-            0;
+            this.data.t[index] || 0;
 
 
         const s =
-            index >= 0 ?
-            this.data.s[index] :
-            0;
+            this.data.x[index] || 0;
 
 
         const v =
-            index >= 0 ?
-            this.data.v[index] :
-            0;
-
-
-        const a =
-            index >= 0 ?
-            this.data.a[index] :
-            0;
+            this.data.v[index] || 0;
 
 
         const sliding =
             this.isSliding() &&
             this.acceleration() > 0;
 
+
+        const a =
+            sliding ?
+            this.acceleration() :
+            0;
+
+
+        // =====================================================
+        // ÂNGULO CRÍTICO
+        // =====================================================
 
         const thetaCrit =
             Math.atan(
@@ -1736,10 +1791,12 @@ class InclinedPlaneFriction {
         ctx.strokeStyle =
             "#777";
 
-        ctx.lineWidth = 1;
+        ctx.lineWidth =
+            1;
 
 
         ctx.beginPath();
+
 
         ctx.roundRect(
             x,
@@ -1826,46 +1883,18 @@ class InclinedPlaneFriction {
         );
 
 
-        ctx.fillText(
-            `t = ${t.toFixed(2)} s`,
-            x + 12,
-            y + 150
-        );
-
-
-        ctx.fillText(
-            `s = ${s.toFixed(2)} m`,
-            x + 12,
-            y + 168
-        );
-
-
-        ctx.fillText(
-            `v = ${v.toFixed(2)} m/s`,
-            x + 12,
-            y + 186
-        );
-
-
-        ctx.fillText(
-            `a = ${a.toFixed(2)} m/s²`,
-            x + 12,
-            y + 204
-        );
-
-
         // =====================================================
         // ESTADO
         // =====================================================
 
-        ctx.font =
-            "bold 12px Arial";
-
-
         ctx.fillStyle =
             sliding ?
-            "#7b1fa2" :
-            "#2e7d32";
+            this.block.color :
+            "#388e3c";
+
+
+        ctx.font =
+            "bold 12px Arial";
 
 
         ctx.fillText(
@@ -1874,7 +1903,46 @@ class InclinedPlaneFriction {
             "Estado: Em repouso",
 
             x + 12,
-            y + 222
+            y + 154
+        );
+
+
+        // =====================================================
+        // DADOS DO MOVIMENTO
+        // =====================================================
+
+        ctx.fillStyle =
+            "black";
+
+        ctx.font =
+            "12px Arial";
+
+
+        ctx.fillText(
+            `t = ${t.toFixed(2)} s`,
+            x + 12,
+            y + 174
+        );
+
+
+        ctx.fillText(
+            `s = ${s.toFixed(2)} m`,
+            x + 12,
+            y + 192
+        );
+
+
+        ctx.fillText(
+            `v = ${v.toFixed(2)} m/s`,
+            x + 12,
+            y + 210
+        );
+
+
+        ctx.fillText(
+            `a = ${a.toFixed(2)} m/s²`,
+            x + 12,
+            y + 228
         );
 
 
@@ -1892,6 +1960,13 @@ class InclinedPlaneFriction {
             this.ctx;
 
 
+        const w =
+            this.canvas.width;
+
+        const h =
+            this.canvas.height;
+
+
         // =====================================================
         // LIMPA
         // =====================================================
@@ -1899,8 +1974,8 @@ class InclinedPlaneFriction {
         ctx.clearRect(
             0,
             0,
-            this.canvas.width,
-            this.canvas.height
+            w,
+            h
         );
 
 
@@ -1911,8 +1986,8 @@ class InclinedPlaneFriction {
         ctx.fillRect(
             0,
             0,
-            this.canvas.width,
-            this.canvas.height
+            w,
+            h
         );
 
 
@@ -1975,12 +2050,17 @@ class InclinedPlaneFriction {
             this.draw();
 
 
+            /*
+             * Mesma lógica da simulação
+             * de InclinedPlaneSolids.
+             */
+
             this.frame +=
                 this.animationSpeed;
 
 
             // =================================================
-            // VOLTA PARA O INÍCIO
+            // RECOMEÇA AO CHEGAR AO FINAL
             // =================================================
 
             if (
@@ -2013,22 +2093,6 @@ class InclinedPlaneFriction {
 
 
     // =========================================================
-    // RESET
-    // =========================================================
-
-    reset() {
-
-        this.parar();
-
-        this.solve();
-
-        this.draw();
-
-        this.iniciar();
-    }
-
-
-    // =========================================================
     // ATUALIZAR PARÂMETROS
     // =========================================================
 
@@ -2036,42 +2100,31 @@ class InclinedPlaneFriction {
         newParams
     ) {
 
-        this.parar();
-
-
         this.params = {
-
             ...this.params,
             ...newParams
         };
 
 
-        if (this.sliders) {
-
-            Object.keys(
-                newParams
-            ).forEach(key => {
+        Object.keys(newParams)
+            .forEach(key => {
 
                 if (
+                    this.sliders &&
                     this.sliders[key]
                 ) {
 
                     this.sliders[key].value =
                         newParams[key];
 
-                    const event =
-                        new Event("input");
-
-                    this.sliders[key]
-                        .dispatchEvent(event);
                 }
+
             });
-        }
 
 
         this.solve();
 
-        this.iniciar();
+        this.draw();
     }
 }
 
