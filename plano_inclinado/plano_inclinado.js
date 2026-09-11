@@ -1,52 +1,29 @@
-class InclinedPlaneSolids {
+class InclinedPlaneFriction {
 
     constructor(canvas, options = {}) {
 
         this.canvas = canvas;
         this.ctx = canvas.getContext("2d");
 
+        // =====================================================
+        // PARÂMETROS
+        // =====================================================
+
         this.params = {
             g: 9.81,
             theta: 20,
+            muS: 0.30,
+            muK: 0.20,
             ...options
         };
 
-        // =====================================================
-        // SÓLIDOS
-        // =====================================================
-
-        this.solids = [
-            {
-                name: "Bloco",
-                k: 0,
-                color: "#7b1fa2",
-                type: "block"
-            },
-            {
-                name: "Esfera",
-                k: 2 / 5,
-                color: "#1976d2",
-                type: "sphere"
-            },
-            {
-                name: "Cilindro",
-                k: 1 / 2,
-                color: "#388e3c",
-                type: "cylinder"
-            },
-            {
-                name: "Anel",
-                k: 1,
-                color: "#d32f2f",
-                type: "ring"
-            }
-        ];
-
-        // =====================================================
-        // PLANO
-        // =====================================================
-
+        // Comprimento físico do plano
         this.planeLength = 10;
+
+        // =====================================================
+        // GEOMETRIA DO PLANO
+        // Mesma lógica do plano inclinado com sólidos
+        // =====================================================
 
         this.planeBottomX = 580;
         this.planeBottomY = 470;
@@ -54,28 +31,34 @@ class InclinedPlaneSolids {
         this.planePixelLength = 400;
 
         // =====================================================
+        // BLOCO
+        // =====================================================
+
+        this.blockSize = 34;
+        this.blockHalf = this.blockSize / 2;
+
+        // =====================================================
         // SIMULAÇÃO
         // =====================================================
 
         this.dt = 0.02;
 
-        this.tMax = 1;
+        this.tMax = 5;
 
-        this.data = {};
+        this.data = {
+            t: [],
+            s: [],
+            v: [],
+            a: []
+        };
 
-        this.solids.forEach(solid => {
+        this.totalFrames = 1;
 
-            this.data[solid.name] = {
-                t: [],
-                x: [],
-                v: []
-            };
+        this.frame = 0;
 
-        });
+        this.animationSpeed = 1;
 
         this.running = false;
-        this.frame = 0;
-        this.animationSpeed = 1;
 
         // =====================================================
         // GRÁFICO
@@ -94,7 +77,26 @@ class InclinedPlaneSolids {
 
         this.solve();
 
+        // Começa automaticamente
         this.iniciar();
+    }
+
+
+    // =========================================================
+    // FÍSICA
+    // =========================================================
+
+    isSliding() {
+
+        const theta =
+            this.params.theta *
+            Math.PI / 180;
+
+        return (
+            Math.sin(theta) >
+            this.params.muS *
+            Math.cos(theta)
+        );
     }
 
 
@@ -102,7 +104,7 @@ class InclinedPlaneSolids {
     // ACELERAÇÃO
     // =========================================================
 
-    acceleration(k) {
+    acceleration() {
 
         const theta =
             this.params.theta *
@@ -110,20 +112,27 @@ class InclinedPlaneSolids {
 
         return (
             this.params.g *
-            Math.sin(theta) /
-            (1 + k)
+            (
+                Math.sin(theta) -
+                this.params.muK *
+                Math.cos(theta)
+            )
         );
     }
 
 
     // =========================================================
-    // TEMPO DE CHEGADA AO FINAL DO PLANO
+    // TEMPO DE CHEGADA
     // =========================================================
 
-    calculateArrivalTime(k) {
+    calculateArrivalTime() {
+
+        if (!this.isSliding()) {
+            return Infinity;
+        }
 
         const a =
-            this.acceleration(k);
+            this.acceleration();
 
         if (a <= 0) {
             return Infinity;
@@ -138,42 +147,39 @@ class InclinedPlaneSolids {
 
 
     // =========================================================
-    // TEMPO MÁXIMO DA SIMULAÇÃO
-    // =========================================================
-
-    calculateSimulationTime() {
-
-        let maxTime = 0;
-
-        this.solids.forEach(solid => {
-
-            const arrivalTime =
-                this.calculateArrivalTime(
-                    solid.k
-                );
-
-            maxTime =
-                Math.max(
-                    maxTime,
-                    arrivalTime
-                );
-        });
-
-        this.tMax =
-            Math.max(
-                maxTime,
-                this.dt
-            );
-    }
-
-
-    // =========================================================
-    // SOLUÇÃO
+    // SOLUÇÃO NUMÉRICA
     // =========================================================
 
     solve() {
 
-        this.calculateSimulationTime();
+        const sliding =
+            this.isSliding();
+
+        const a =
+            sliding ?
+            this.acceleration() :
+            0;
+
+        const arrivalTime =
+            this.calculateArrivalTime();
+
+        // =====================================================
+        // TEMPO DA SIMULAÇÃO
+        // =====================================================
+
+        if (Number.isFinite(arrivalTime)) {
+
+            this.tMax =
+                Math.max(
+                    arrivalTime + 0.5,
+                    this.dt
+                );
+
+        }
+        else {
+
+            this.tMax = 5;
+        }
 
         const steps =
             Math.ceil(
@@ -181,68 +187,76 @@ class InclinedPlaneSolids {
                 this.dt
             ) + 1;
 
-        this.totalFrames =
-            steps;
+        this.totalFrames = steps;
 
+        // =====================================================
+        // LIMPA OS DADOS
+        // =====================================================
 
-        this.solids.forEach(solid => {
+        this.data.t = [];
+        this.data.s = [];
+        this.data.v = [];
+        this.data.a = [];
 
-            const data =
-                this.data[solid.name];
+        let s = 0;
+        let v = 0;
 
-            data.t = [];
-            data.x = [];
-            data.v = [];
+        // =====================================================
+        // INTEGRAÇÃO
+        // =====================================================
 
+        for (
+            let i = 0;
+            i < steps;
+            i++
+        ) {
 
-            const a =
-                this.acceleration(
-                    solid.k
+            const t =
+                Math.min(
+                    i * this.dt,
+                    this.tMax
                 );
 
+            // =================================================
+            // BLOCO EM REPOUSO
+            // =================================================
 
-            const arrivalTime =
-                this.calculateArrivalTime(
-                    solid.k
-                );
+            if (!sliding) {
 
+                s = 0;
+                v = 0;
+            }
 
-            for (
-                let i = 0;
-                i < steps;
-                i++
+            // =================================================
+            // BLOCO DESLIZANDO
+            // =================================================
+
+            else if (
+                s < this.planeLength
             ) {
 
-                const t =
-                    Math.min(
-                        i * this.dt,
-                        this.tMax
-                    );
+                /*
+                 * Mesmo esquema do código Python:
+                 *
+                 * v = v + a dt
+                 * s = s + v dt
+                 */
 
+                v =
+                    v +
+                    a * this.dt;
 
-                let x;
-                let v;
+                s =
+                    s +
+                    v * this.dt;
 
-
+                // Chegou ao final
                 if (
-                    t <
-                    arrivalTime
+                    s >=
+                    this.planeLength
                 ) {
 
-                    x =
-                        0.5 *
-                        a *
-                        t *
-                        t;
-
-                    v =
-                        a *
-                        t;
-                }
-
-                else {
-
-                    x =
+                    s =
                         this.planeLength;
 
                     v =
@@ -252,40 +266,33 @@ class InclinedPlaneSolids {
                             this.planeLength
                         );
                 }
-
-
-                x =
-                    Math.min(
-                        x,
-                        this.planeLength
-                    );
-
-
-                data.t.push(t);
-                data.x.push(x);
-                data.v.push(v);
             }
 
-        });
+            // =================================================
+            // JÁ CHEGOU AO FINAL
+            // =================================================
 
+            else {
 
-        this.calculateScale();
+                s =
+                    this.planeLength;
+            }
 
-        this.frame = 0;
-    }
+            this.data.t.push(t);
 
+            this.data.s.push(s);
 
-    // =========================================================
-    // ESCALA DO GRÁFICO
-    // =========================================================
+            this.data.v.push(v);
 
-    calculateScale() {
-
-        this.xMax =
-            Math.max(
-                this.planeLength,
-                1
+            this.data.a.push(
+                sliding ?
+                a :
+                0
             );
+        }
+
+        // Reinicia a animação
+        this.frame = 0;
     }
 
 
@@ -295,98 +302,117 @@ class InclinedPlaneSolids {
 
     createControls() {
 
-        const old =
+        const container =
             document.getElementById(
-                "inclined-plane-controls"
+                "inclinedPlaneFrictionControls"
             );
 
-        if (old) {
-            old.remove();
+        if (!container) {
+            return;
         }
 
-
-        const container =
-            document.createElement("div");
-
-        container.id =
-            "inclined-plane-controls";
-
-        container.style.width =
-            "900px";
-
-        container.style.maxWidth =
-            "90%";
-
-        container.style.margin =
-            "20px auto";
-
-        container.style.fontFamily =
-            "Arial";
-
-
-        const title =
-            document.createElement("h2");
-
-        title.innerText =
-            "Parâmetros do plano inclinado";
-
-        container.appendChild(title);
-
+        container.innerHTML = "";
 
         this.sliders = {};
-
 
         const configs = [
 
             {
                 name: "theta",
-                label: "θ (°)",
+                label: "Ângulo θ (°)",
                 min: 5,
                 max: 60,
-                step: 1
+                step: 1,
+                decimals: 0
             },
 
             {
-                name: "g",
-                label: "g (m/s²)",
-                min: 1,
-                max: 20,
-                step: 0.01
-            }
+                name: "muS",
+                label: "Atrito estático μₛ",
+                min: 0,
+                max: 1,
+                step: 0.01,
+                decimals: 2
+            },
 
+            {
+                name: "muK",
+                label: "Atrito cinético μₖ",
+                min: 0,
+                max: 1,
+                step: 0.01,
+                decimals: 2
+            }
         ];
 
 
         configs.forEach(config => {
 
-            const row =
-                document.createElement("div");
+            const group =
+                document.createElement(
+                    "div"
+                );
 
-            row.style.display =
-                "flex";
+            group.className =
+                "control-group";
 
-            row.style.alignItems =
-                "center";
 
-            row.style.marginBottom =
-                "8px";
+            // =================================================
+            // TÍTULO DO CONTROLE
+            // =================================================
+
+            const title =
+                document.createElement(
+                    "div"
+                );
+
+            title.className =
+                "control-title";
 
 
             const label =
-                document.createElement("label");
+                document.createElement(
+                    "span"
+                );
 
-            label.style.width =
-                "110px";
-
-            label.innerText =
+            label.textContent =
                 config.label;
 
 
-            const slider =
-                document.createElement("input");
+            const value =
+                document.createElement(
+                    "span"
+                );
 
-            slider.type =
-                "range";
+            value.className =
+                "control-value";
+
+
+            value.textContent =
+                Number(
+                    this.params[
+                        config.name
+                    ]
+                ).toFixed(
+                    config.decimals
+                );
+
+
+            title.appendChild(label);
+
+            title.appendChild(value);
+
+
+            // =================================================
+            // SLIDER
+            // =================================================
+
+            const slider =
+                document.createElement(
+                    "input"
+                );
+
+            slider.type = "range";
 
             slider.min =
                 config.min;
@@ -398,78 +424,58 @@ class InclinedPlaneSolids {
                 config.step;
 
             slider.value =
-                this.params[config.name];
+                this.params[
+                    config.name
+                ];
 
-            slider.style.flex =
-                "1";
 
-
-            const value =
-                document.createElement("span");
-
-            value.style.width =
-                "70px";
-
-            value.style.marginLeft =
-                "10px";
-
-            value.innerText =
-                Number(
-                    this.params[config.name]
-                ).toFixed(
-                    config.name === "theta"
-                        ? 0
-                        : 2
-                );
-
+            // =================================================
+            // ALTERAÇÃO DO SLIDER
+            // =================================================
 
             slider.addEventListener(
                 "input",
                 () => {
 
-                    const v =
+                    this.params[
+                        config.name
+                    ] =
                         Number(
                             slider.value
                         );
 
 
-                    this.params[
-                        config.name
-                    ] = v;
-
-
-                    value.innerText =
-                        v.toFixed(
-                            config.name === "theta"
-                                ? 0
-                                : 2
+                    value.textContent =
+                        this.params[
+                            config.name
+                        ].toFixed(
+                            config.decimals
                         );
 
 
+                    // Para a animação atual
+                    this.parar();
+
+                    // Recalcula a física
                     this.solve();
 
-                    this.draw();
+                    // Reinicia
+                    this.iniciar();
                 }
             );
 
 
-            row.appendChild(label);
-            row.appendChild(slider);
-            row.appendChild(value);
+            group.appendChild(title);
 
-            container.appendChild(row);
+            group.appendChild(slider);
+
+            container.appendChild(group);
 
 
             this.sliders[
                 config.name
             ] = slider;
         });
-
-
-        this.canvas.parentNode.insertBefore(
-            container,
-            this.canvas.nextSibling
-        );
     }
 
 
@@ -491,6 +497,13 @@ class InclinedPlaneSolids {
             this.planeBottomY;
 
 
+        /*
+         * Ponto superior da hipotenusa.
+         *
+         * A distância entre os dois pontos
+         * é planePixelLength.
+         */
+
         const x1 =
             x2 -
             this.planePixelLength *
@@ -504,20 +517,23 @@ class InclinedPlaneSolids {
 
 
         return {
+
             x1,
             y1,
+
             x2,
             y2,
+
             theta
         };
     }
 
 
     // =========================================================
-    // POSIÇÃO SOBRE O PLANO
+    // POSIÇÃO AO LONGO DO PLANO
     // =========================================================
 
-    positionOnPlane(distance) {
+    positionOnPlane(s) {
 
         const plane =
             this.getPlaneGeometry();
@@ -527,7 +543,7 @@ class InclinedPlaneSolids {
             Math.max(
                 0,
                 Math.min(
-                    distance /
+                    s /
                     this.planeLength,
                     1
                 )
@@ -556,6 +572,60 @@ class InclinedPlaneSolids {
 
 
     // =========================================================
+    // VETORES DO PLANO
+    // =========================================================
+
+    getPlaneVectors() {
+
+        const theta =
+            this.params.theta *
+            Math.PI / 180;
+
+
+        /*
+         * Tangente apontando para baixo
+         * ao longo da hipotenusa.
+         */
+
+        const tangent = {
+
+            x:
+                Math.cos(theta),
+
+            y:
+                Math.sin(theta)
+        };
+
+
+        /*
+         * Normal apontando para FORA
+         * do plano.
+         *
+         * Em coordenadas de canvas:
+         *
+         * x positivo
+         * y negativo
+         */
+
+        const normal = {
+
+            x:
+                Math.sin(theta),
+
+            y:
+                -Math.cos(theta)
+        };
+
+
+        return {
+
+            tangent,
+            normal
+        };
+    }
+
+
+    // =========================================================
     // DESENHO DO PLANO
     // =========================================================
 
@@ -569,11 +639,11 @@ class InclinedPlaneSolids {
 
 
         // =====================================================
-        // PREENCHIMENTO
+        // TRIÂNGULO
         // =====================================================
 
         ctx.fillStyle =
-            "rgba(220, 220, 220, 0.30)";
+            "rgba(220,220,220,0.30)";
 
 
         ctx.beginPath();
@@ -609,24 +679,20 @@ class InclinedPlaneSolids {
         ctx.strokeStyle =
             "#555";
 
-        ctx.lineWidth =
-            3;
+        ctx.lineWidth = 3;
 
 
         ctx.beginPath();
-
 
         ctx.moveTo(
             plane.x1,
             plane.y1
         );
 
-
         ctx.lineTo(
             plane.x1,
             plane.y2
         );
-
 
         ctx.stroke();
 
@@ -637,18 +703,15 @@ class InclinedPlaneSolids {
 
         ctx.beginPath();
 
-
         ctx.moveTo(
             plane.x1,
             plane.y2
         );
 
-
         ctx.lineTo(
             plane.x2,
             plane.y2
         );
-
 
         ctx.stroke();
 
@@ -660,26 +723,29 @@ class InclinedPlaneSolids {
         ctx.strokeStyle =
             "#222";
 
-        ctx.lineWidth =
-            5;
+        ctx.lineWidth = 5;
 
 
         ctx.beginPath();
-
 
         ctx.moveTo(
             plane.x1,
             plane.y1
         );
 
-
         ctx.lineTo(
             plane.x2,
             plane.y2
         );
 
-
         ctx.stroke();
+
+
+        // Ângulo
+        this.drawAngleMarker(
+            ctx,
+            plane
+        );
 
 
         ctx.restore();
@@ -687,7 +753,107 @@ class InclinedPlaneSolids {
 
 
     // =========================================================
-    // BLOCO
+    // ÂNGULO
+    // =========================================================
+
+    drawAngleMarker(ctx, plane) {
+
+        const theta =
+            plane.theta;
+
+
+        /*
+         * O ângulo está no vértice inferior
+         * direito, entre a horizontal e a
+         * hipotenusa.
+         */
+
+        const x =
+            plane.x2;
+
+        const y =
+            plane.y2;
+
+
+        const radius = 42;
+
+
+        ctx.save();
+
+
+        ctx.strokeStyle =
+            "#555";
+
+        ctx.lineWidth = 2;
+
+
+        /*
+         * Como o eixo y do canvas cresce
+         * para baixo, o arco é construído
+         * diretamente no quadrante correspondente.
+         */
+
+        ctx.beginPath();
+
+        ctx.arc(
+            x,
+            y,
+            radius,
+            Math.PI,
+            Math.PI + theta,
+            false
+        );
+
+        ctx.stroke();
+
+
+        // =====================================================
+        // TEXTO DO ÂNGULO
+        // =====================================================
+
+        const textAngle =
+            Math.PI +
+            theta / 2;
+
+
+        const tx =
+            x +
+            (radius + 15) *
+            Math.cos(textAngle);
+
+
+        const ty =
+            y +
+            (radius + 15) *
+            Math.sin(textAngle);
+
+
+        ctx.fillStyle =
+            "#555";
+
+        ctx.font =
+            "14px Arial";
+
+        ctx.textAlign =
+            "center";
+
+        ctx.textBaseline =
+            "middle";
+
+
+        ctx.fillText(
+            `θ = ${this.params.theta.toFixed(0)}°`,
+            tx,
+            ty
+        );
+
+
+        ctx.restore();
+    }
+
+
+    // =========================================================
+    // DESENHO DO BLOCO
     // =========================================================
 
     drawBlock(
@@ -698,10 +864,6 @@ class InclinedPlaneSolids {
         color
     ) {
 
-        const width = 32;
-        const height = 32;
-
-
         ctx.save();
 
 
@@ -711,420 +873,51 @@ class InclinedPlaneSolids {
         );
 
 
+        /*
+         * A hipotenusa desce para a direita.
+         * Portanto o bloco gira +theta.
+         */
+
         ctx.rotate(theta);
 
+
+        // =====================================================
+        // PREENCHIMENTO
+        // =====================================================
 
         ctx.fillStyle =
             color;
 
         ctx.globalAlpha =
-            0.18;
+            0.16;
 
 
         ctx.fillRect(
-            -width / 2,
-            -height / 2,
-            width,
-            height
+            -this.blockSize / 2,
+            -this.blockSize / 2,
+            this.blockSize,
+            this.blockSize
         );
 
 
-        ctx.globalAlpha =
-            1;
+        // =====================================================
+        // BORDA
+        // =====================================================
 
+        ctx.globalAlpha = 1;
 
         ctx.strokeStyle =
             color;
 
-        ctx.lineWidth =
-            3;
+        ctx.lineWidth = 3;
 
 
         ctx.strokeRect(
-            -width / 2,
-            -height / 2,
-            width,
-            height
+            -this.blockSize / 2,
+            -this.blockSize / 2,
+            this.blockSize,
+            this.blockSize
         );
-
-
-        ctx.restore();
-    }
-
-
-    // =========================================================
-    // ESFERA
-    // =========================================================
-
-    drawSphere(
-        ctx,
-        x,
-        y,
-        radius,
-        rotation,
-        color
-    ) {
-
-        ctx.save();
-
-
-        ctx.translate(
-            x,
-            y
-        );
-
-
-        ctx.fillStyle =
-            color;
-
-        ctx.globalAlpha =
-            0.12;
-
-
-        ctx.beginPath();
-
-
-        ctx.arc(
-            0,
-            0,
-            radius,
-            0,
-            2 * Math.PI
-        );
-
-
-        ctx.fill();
-
-
-        ctx.globalAlpha =
-            1;
-
-
-        ctx.strokeStyle =
-            color;
-
-        ctx.lineWidth =
-            3;
-
-
-        ctx.beginPath();
-
-
-        ctx.arc(
-            0,
-            0,
-            radius,
-            0,
-            2 * Math.PI
-        );
-
-
-        ctx.stroke();
-
-
-        // Indicador de rotação
-
-        ctx.rotate(rotation);
-
-
-        ctx.beginPath();
-
-
-        ctx.ellipse(
-            0,
-            0,
-            radius * 0.38,
-            radius,
-            0,
-            0,
-            2 * Math.PI
-        );
-
-
-        ctx.stroke();
-
-
-        ctx.restore();
-    }
-
-
-    // =========================================================
-    // CILINDRO
-    //
-    // DESENHO IDÊNTICO AO ANEL.
-    //
-    // A única diferença visual é a cor recebida:
-    // #388e3c (verde).
-    //
-    // NÃO HÁ CORPO RETANGULAR.
-    // NÃO HÁ FACES LATERAIS.
-    // NÃO HÁ ELIPSES.
-    // =========================================================
-
-    drawCylinder(
-        ctx,
-        x,
-        y,
-        radius,
-        rotation,
-        theta,
-        color
-    ) {
-
-        ctx.save();
-
-
-        ctx.translate(
-            x,
-            y
-        );
-
-
-        ctx.rotate(theta);
-
-
-        // =====================================================
-        // PARTE EXTERNA
-        // =====================================================
-
-        ctx.strokeStyle =
-            color;
-
-        ctx.lineWidth =
-            5;
-
-
-        ctx.beginPath();
-
-
-        ctx.arc(
-            0,
-            0,
-            radius,
-            0,
-            2 * Math.PI
-        );
-
-
-        ctx.stroke();
-
-
-        // =====================================================
-        // INTERIOR
-        // =====================================================
-
-        ctx.strokeStyle =
-            "white";
-
-        ctx.lineWidth =
-            8;
-
-
-        ctx.beginPath();
-
-
-        ctx.arc(
-            0,
-            0,
-            radius * 0.48,
-            0,
-            2 * Math.PI
-        );
-
-
-        ctx.stroke();
-
-
-        // =====================================================
-        // BORDA INTERNA
-        // =====================================================
-
-        ctx.strokeStyle =
-            color;
-
-        ctx.lineWidth =
-            2;
-
-
-        ctx.beginPath();
-
-
-        ctx.arc(
-            0,
-            0,
-            radius * 0.48,
-            0,
-            2 * Math.PI
-        );
-
-
-        ctx.stroke();
-
-
-        // =====================================================
-        // INDICADOR DE ROTAÇÃO
-        // =====================================================
-
-        ctx.rotate(rotation);
-
-
-        ctx.lineWidth =
-            2;
-
-
-        ctx.beginPath();
-
-
-        ctx.moveTo(
-            0,
-            -radius * 0.8
-        );
-
-
-        ctx.lineTo(
-            0,
-            radius * 0.8
-        );
-
-
-        ctx.stroke();
-
-
-        ctx.restore();
-    }
-
-
-    // =========================================================
-    // ANEL
-    // =========================================================
-
-    drawRing(
-        ctx,
-        x,
-        y,
-        radius,
-        rotation,
-        theta,
-        color
-    ) {
-
-        ctx.save();
-
-
-        ctx.translate(
-            x,
-            y
-        );
-
-
-        ctx.rotate(theta);
-
-
-        // =====================================================
-        // PARTE EXTERNA
-        // =====================================================
-
-        ctx.strokeStyle =
-            color;
-
-        ctx.lineWidth =
-            5;
-
-
-        ctx.beginPath();
-
-
-        ctx.arc(
-            0,
-            0,
-            radius,
-            0,
-            2 * Math.PI
-        );
-
-
-        ctx.stroke();
-
-
-        // =====================================================
-        // INTERIOR
-        // =====================================================
-
-        ctx.strokeStyle =
-            "white";
-
-        ctx.lineWidth =
-            8;
-
-
-        ctx.beginPath();
-
-
-        ctx.arc(
-            0,
-            0,
-            radius * 0.48,
-            0,
-            2 * Math.PI
-        );
-
-
-        ctx.stroke();
-
-
-        // =====================================================
-        // BORDA INTERNA
-        // =====================================================
-
-        ctx.strokeStyle =
-            color;
-
-        ctx.lineWidth =
-            2;
-
-
-        ctx.beginPath();
-
-
-        ctx.arc(
-            0,
-            0,
-            radius * 0.48,
-            0,
-            2 * Math.PI
-        );
-
-
-        ctx.stroke();
-
-
-        // =====================================================
-        // INDICADOR DE ROTAÇÃO
-        // =====================================================
-
-        ctx.rotate(rotation);
-
-
-        ctx.lineWidth =
-            2;
-
-
-        ctx.beginPath();
-
-
-        ctx.moveTo(
-            0,
-            -radius * 0.8
-        );
-
-
-        ctx.lineTo(
-            0,
-            radius * 0.8
-        );
-
-
-        ctx.stroke();
 
 
         ctx.restore();
@@ -1137,7 +930,6 @@ class InclinedPlaneSolids {
 
     drawTrail(
         ctx,
-        solid,
         frame
     ) {
 
@@ -1146,25 +938,27 @@ class InclinedPlaneSolids {
         }
 
 
-        const data =
-            this.data[solid.name];
+        const vectors =
+            this.getPlaneVectors();
 
 
-        const theta =
-            this.getPlaneGeometry().theta;
+        const maxIndex =
+            Math.min(
+                Math.floor(frame),
+                this.data.s.length - 1
+            );
 
 
         ctx.save();
 
 
         ctx.strokeStyle =
-            solid.color;
+            "#7b1fa2";
 
         ctx.globalAlpha =
             0.25;
 
-        ctx.lineWidth =
-            2;
+        ctx.lineWidth = 2;
 
 
         ctx.setLineDash([
@@ -1178,52 +972,47 @@ class InclinedPlaneSolids {
 
         for (
             let i = 0;
-            i <= frame &&
-            i < data.x.length;
+            i <= maxIndex;
             i++
         ) {
 
-            const physicalX =
-                Math.min(
-                    data.x[i],
-                    this.planeLength
-                );
-
-
             const pos =
                 this.positionOnPlane(
-                    physicalX
+                    this.data.s[i]
                 );
 
 
-            const px =
+            /*
+             * O rastro acompanha o centro
+             * do bloco.
+             */
+
+            const x =
                 pos.x +
-                18 *
-                Math.sin(theta);
+                this.blockHalf *
+                vectors.normal.x;
 
 
-            const py =
-                pos.y -
-                18 *
-                Math.cos(theta);
+            const y =
+                pos.y +
+                this.blockHalf *
+                vectors.normal.y;
 
 
             if (i === 0) {
 
                 ctx.moveTo(
-                    px,
-                    py
+                    x,
+                    y
                 );
 
             }
-
             else {
 
                 ctx.lineTo(
-                    px,
-                    py
+                    x,
+                    y
                 );
-
             }
         }
 
@@ -1239,171 +1028,257 @@ class InclinedPlaneSolids {
 
 
     // =========================================================
-    // SÓLIDOS
+    // VELOCIDADE
     // =========================================================
 
-    drawSolids(ctx) {
+    drawVelocity(
+        ctx,
+        x,
+        y,
+        v
+    ) {
+
+        if (
+            Math.abs(v) <
+            0.001
+        ) {
+            return;
+        }
+
+
+        const vectors =
+            this.getPlaneVectors();
+
+
+        /*
+         * Escala visual da velocidade.
+         */
+
+        const scale = 12;
+
+
+        const dx =
+            vectors.tangent.x *
+            v *
+            scale;
+
+
+        const dy =
+            vectors.tangent.y *
+            v *
+            scale;
+
+
+        const length =
+            Math.sqrt(
+                dx * dx +
+                dy * dy
+            );
+
+
+        if (length < 5) {
+            return;
+        }
+
+
+        const head = 10;
+
+
+        ctx.save();
+
+
+        ctx.strokeStyle =
+            "#1565c0";
+
+        ctx.fillStyle =
+            "#1565c0";
+
+        ctx.lineWidth = 2;
+
+
+        // =====================================================
+        // LINHA
+        // =====================================================
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            x,
+            y
+        );
+
+        ctx.lineTo(
+            x + dx,
+            y + dy
+        );
+
+        ctx.stroke();
+
+
+        // =====================================================
+        // PONTA DA SETA
+        // =====================================================
+
+        const ux =
+            dx / length;
+
+        const uy =
+            dy / length;
+
+
+        const px =
+            -uy;
+
+        const py =
+            ux;
+
+
+        ctx.beginPath();
+
+
+        ctx.moveTo(
+            x + dx,
+            y + dy
+        );
+
+
+        ctx.lineTo(
+            x +
+            dx -
+            head * ux +
+            head * 0.45 * px,
+
+            y +
+            dy -
+            head * uy +
+            head * 0.45 * py
+        );
+
+
+        ctx.lineTo(
+            x +
+            dx -
+            head * ux -
+            head * 0.45 * px,
+
+            y +
+            dy -
+            head * uy -
+            head * 0.45 * py
+        );
+
+
+        ctx.closePath();
+
+        ctx.fill();
+
+
+        ctx.restore();
+    }
+
+
+    // =========================================================
+    // ESTADO DO BLOCO
+    // =========================================================
+
+    drawBlockState(ctx) {
+
+        const index =
+            Math.min(
+                Math.floor(this.frame),
+                this.data.s.length - 1
+            );
+
+
+        if (index < 0) {
+            return;
+        }
+
+
+        const s =
+            this.data.s[index];
+
+
+        const v =
+            this.data.v[index];
+
 
         const plane =
             this.getPlaneGeometry();
 
 
-        const theta =
-            plane.theta;
+        const pos =
+            this.positionOnPlane(s);
 
 
-        this.solids.forEach(solid => {
-
-            const data =
-                this.data[solid.name];
+        const vectors =
+            this.getPlaneVectors();
 
 
-            const index =
-                Math.min(
-                    Math.floor(this.frame),
-                    data.x.length - 1
-                );
+        // =====================================================
+        // PONTO DE CONTATO
+        // =====================================================
+
+        const contactX =
+            pos.x;
+
+        const contactY =
+            pos.y;
 
 
-            if (index < 0) {
-                return;
-            }
+        // =====================================================
+        // CENTRO DO BLOCO
+        // =====================================================
+        //
+        // O bloco é deslocado pela normal
+        // para ficar acima da hipotenusa.
+        //
+
+        const centerX =
+            contactX +
+            this.blockHalf *
+            vectors.normal.x;
 
 
-            const physicalX =
-                Math.min(
-                    data.x[index],
-                    this.planeLength
-                );
+        const centerY =
+            contactY +
+            this.blockHalf *
+            vectors.normal.y;
 
 
-            const pos =
-                this.positionOnPlane(
-                    physicalX
-                );
+        // =====================================================
+        // RASTRO
+        // =====================================================
+
+        this.drawTrail(
+            ctx,
+            this.frame
+        );
 
 
-            const radius =
-                18;
+        // =====================================================
+        // BLOCO
+        // =====================================================
+
+        this.drawBlock(
+            ctx,
+            centerX,
+            centerY,
+            plane.theta,
+            "#7b1fa2"
+        );
 
 
-            // =================================================
-            // NORMAL PARA CIMA DO PLANO
-            // =================================================
+        // =====================================================
+        // VELOCIDADE
+        // =====================================================
 
-            const x =
-                pos.x +
-                radius *
-                Math.sin(theta);
-
-
-            const y =
-                pos.y -
-                radius *
-                Math.cos(theta);
-
-
-            // =================================================
-            // RASTRO
-            // =================================================
-
-            this.drawTrail(
-                ctx,
-                solid,
-                index
-            );
-
-
-            // =================================================
-            // ROTAÇÃO
-            // =================================================
-
-            const rotation =
-                physicalX /
-                radius;
-
-
-            // =================================================
-            // BLOCO
-            // =================================================
-
-            if (
-                solid.type === "block"
-            ) {
-
-                this.drawBlock(
-                    ctx,
-                    x,
-                    y,
-                    theta,
-                    solid.color
-                );
-
-            }
-
-
-            // =================================================
-            // ESFERA
-            // =================================================
-
-            else if (
-                solid.type === "sphere"
-            ) {
-
-                this.drawSphere(
-                    ctx,
-                    x,
-                    y,
-                    radius,
-                    rotation,
-                    solid.color
-                );
-
-            }
-
-
-            // =================================================
-            // CILINDRO
-            // =================================================
-
-            else if (
-                solid.type === "cylinder"
-            ) {
-
-                this.drawCylinder(
-                    ctx,
-                    x,
-                    y,
-                    radius,
-                    rotation,
-                    theta,
-                    solid.color
-                );
-
-            }
-
-
-            // =================================================
-            // ANEL
-            // =================================================
-
-            else if (
-                solid.type === "ring"
-            ) {
-
-                this.drawRing(
-                    ctx,
-                    x,
-                    y,
-                    radius,
-                    rotation,
-                    theta,
-                    solid.color
-                );
-
-            }
-
-        });
+        this.drawVelocity(
+            ctx,
+            centerX,
+            centerY,
+            v
+        );
     }
 
 
@@ -1424,6 +1299,17 @@ class InclinedPlaneSolids {
 
         const h =
             this.graphH;
+
+
+        const xMax =
+            Math.max(
+                this.tMax,
+                1
+            );
+
+
+        const yMax =
+            this.planeLength;
 
 
         // =====================================================
@@ -1456,7 +1342,7 @@ class InclinedPlaneSolids {
 
 
         // =====================================================
-        // EIXO X — TEMPO
+        // EIXO X
         // =====================================================
 
         for (
@@ -1466,7 +1352,7 @@ class InclinedPlaneSolids {
         ) {
 
             const value =
-                this.tMax *
+                xMax *
                 i /
                 xTicks;
 
@@ -1475,7 +1361,7 @@ class InclinedPlaneSolids {
                 x +
                 (
                     value /
-                    this.tMax
+                    xMax
                 ) *
                 w;
 
@@ -1483,24 +1369,20 @@ class InclinedPlaneSolids {
             ctx.strokeStyle =
                 "#eeeeee";
 
-            ctx.lineWidth =
-                1;
+            ctx.lineWidth = 1;
 
 
             ctx.beginPath();
-
 
             ctx.moveTo(
                 px,
                 y
             );
 
-
             ctx.lineTo(
                 px,
                 y + h
             );
-
 
             ctx.stroke();
 
@@ -1513,7 +1395,7 @@ class InclinedPlaneSolids {
 
 
             ctx.fillText(
-                value.toFixed(2),
+                value.toFixed(1),
                 px,
                 y + h + 20
             );
@@ -1521,7 +1403,7 @@ class InclinedPlaneSolids {
 
 
         // =====================================================
-        // EIXO Y — POSIÇÃO
+        // EIXO Y
         // =====================================================
 
         for (
@@ -1531,7 +1413,7 @@ class InclinedPlaneSolids {
         ) {
 
             const value =
-                this.xMax *
+                yMax *
                 i /
                 yTicks;
 
@@ -1541,7 +1423,7 @@ class InclinedPlaneSolids {
                 h -
                 (
                     value /
-                    this.xMax
+                    yMax
                 ) *
                 h;
 
@@ -1552,18 +1434,15 @@ class InclinedPlaneSolids {
 
             ctx.beginPath();
 
-
             ctx.moveTo(
                 x,
                 py
             );
 
-
             ctx.lineTo(
                 x + w,
                 py
             );
-
 
             ctx.stroke();
 
@@ -1584,49 +1463,40 @@ class InclinedPlaneSolids {
 
 
         // =====================================================
-        // CURVAS
+        // CURVA
         // =====================================================
 
-        ctx.save();
+        const n =
+            Math.min(
+                Math.floor(
+                    this.frame
+                ) + 1,
+
+                this.data.t.length
+            );
 
 
-        ctx.beginPath();
+        if (n > 0) {
+
+            ctx.save();
 
 
-        ctx.rect(
-            x + 1,
-            y + 1,
-            w - 2,
-            h - 2
-        );
+            ctx.beginPath();
 
+            ctx.rect(
+                x + 1,
+                y + 1,
+                w - 2,
+                h - 2
+            );
 
-        ctx.clip();
-
-
-        this.solids.forEach(solid => {
-
-            const data =
-                this.data[solid.name];
-
-
-            const n =
-                Math.min(
-                    Math.floor(this.frame) + 1,
-                    data.t.length
-                );
-
-
-            if (n < 1) {
-                return;
-            }
+            ctx.clip();
 
 
             ctx.strokeStyle =
-                solid.color;
+                "#7b1fa2";
 
-            ctx.lineWidth =
-                2;
+            ctx.lineWidth = 2;
 
 
             ctx.beginPath();
@@ -1641,8 +1511,8 @@ class InclinedPlaneSolids {
                 const px =
                     x +
                     (
-                        data.t[i] /
-                        this.tMax
+                        this.data.t[i] /
+                        xMax
                     ) *
                     w;
 
@@ -1651,8 +1521,8 @@ class InclinedPlaneSolids {
                     y +
                     h -
                     (
-                        data.x[i] /
-                        this.xMax
+                        this.data.s[i] /
+                        yMax
                     ) *
                     h;
 
@@ -1665,14 +1535,12 @@ class InclinedPlaneSolids {
                     );
 
                 }
-
                 else {
 
                     ctx.lineTo(
                         px,
                         py
                     );
-
                 }
             }
 
@@ -1691,8 +1559,8 @@ class InclinedPlaneSolids {
             const px =
                 x +
                 (
-                    data.t[current] /
-                    this.tMax
+                    this.data.t[current] /
+                    xMax
                 ) *
                 w;
 
@@ -1701,18 +1569,17 @@ class InclinedPlaneSolids {
                 y +
                 h -
                 (
-                    data.x[current] /
-                    this.xMax
+                    this.data.s[current] /
+                    yMax
                 ) *
                 h;
 
 
             ctx.fillStyle =
-                solid.color;
+                "#7b1fa2";
 
 
             ctx.beginPath();
-
 
             ctx.arc(
                 px,
@@ -1722,13 +1589,11 @@ class InclinedPlaneSolids {
                 2 * Math.PI
             );
 
-
             ctx.fill();
 
-        });
 
-
-        ctx.restore();
+            ctx.restore();
+        }
 
 
         // =====================================================
@@ -1738,8 +1603,7 @@ class InclinedPlaneSolids {
         ctx.strokeStyle =
             "#777";
 
-        ctx.lineWidth =
-            1;
+        ctx.lineWidth = 1;
 
 
         ctx.strokeRect(
@@ -1751,7 +1615,7 @@ class InclinedPlaneSolids {
 
 
         // =====================================================
-        // TÍTULO EIXO X
+        // EIXO X — TEXTO
         // =====================================================
 
         ctx.fillStyle =
@@ -1772,7 +1636,7 @@ class InclinedPlaneSolids {
 
 
         // =====================================================
-        // TÍTULO EIXO Y
+        // EIXO Y — TEXTO
         // =====================================================
 
         ctx.save();
@@ -1797,33 +1661,6 @@ class InclinedPlaneSolids {
 
 
         ctx.restore();
-
-
-        // =====================================================
-        // LEGENDA
-        // =====================================================
-
-        ctx.font =
-            "12px Arial";
-
-        ctx.textAlign =
-            "left";
-
-
-        this.solids.forEach(
-            (solid, i) => {
-
-                ctx.fillStyle =
-                    solid.color;
-
-
-                ctx.fillText(
-                    solid.name,
-                    x + w - 85,
-                    y + 20 + i * 20
-                );
-            }
-        );
     }
 
 
@@ -1835,55 +1672,74 @@ class InclinedPlaneSolids {
 
         const index =
             Math.min(
-                Math.floor(this.frame),
-                this.data.Bloco.x.length - 1
+                Math.floor(
+                    this.frame
+                ),
+                this.data.s.length - 1
             );
 
 
         const t =
-            this.data.Bloco.t[index] || 0;
+            index >= 0 ?
+            this.data.t[index] :
+            0;
 
 
-        const aBloco =
-            this.acceleration(0);
+        const s =
+            index >= 0 ?
+            this.data.s[index] :
+            0;
 
 
-        const aEsfera =
-            this.acceleration(2 / 5);
+        const v =
+            index >= 0 ?
+            this.data.v[index] :
+            0;
 
 
-        const aCilindro =
-            this.acceleration(1 / 2);
+        const a =
+            index >= 0 ?
+            this.data.a[index] :
+            0;
 
 
-        const aAnel =
-            this.acceleration(1);
+        const sliding =
+            this.isSliding() &&
+            this.acceleration() > 0;
+
+
+        const thetaCrit =
+            Math.atan(
+                this.params.muS
+            ) *
+            180 /
+            Math.PI;
 
 
         const x = 20;
         const y = 55;
 
         const width = 300;
-        const height = 190;
+        const height = 225;
 
 
         ctx.save();
 
 
+        // =====================================================
+        // CAIXA
+        // =====================================================
+
         ctx.fillStyle =
             "rgba(255,255,255,0.96)";
-
 
         ctx.strokeStyle =
             "#777";
 
-
-        ctx.lineWidth =
-            1;
+        ctx.lineWidth = 1;
 
 
         ctx.beginPath();
-
 
         ctx.roundRect(
             x,
@@ -1895,6 +1751,7 @@ class InclinedPlaneSolids {
 
 
         ctx.fill();
+
         ctx.stroke();
 
 
@@ -1935,78 +1792,89 @@ class InclinedPlaneSolids {
 
 
         ctx.fillText(
-            `g = ${this.params.g.toFixed(2)} m/s²`,
+            `μₛ = ${this.params.muS.toFixed(2)}`,
             x + 12,
             y + 60
         );
 
 
         ctx.fillText(
-            `L = ${this.planeLength.toFixed(1)} m`,
+            `μₖ = ${this.params.muK.toFixed(2)}`,
             x + 12,
             y + 78
         );
 
 
         ctx.fillText(
-            `t máximo = ${this.tMax.toFixed(2)} s`,
+            `g = ${this.params.g.toFixed(2)} m/s²`,
             x + 12,
             y + 96
         );
 
 
         ctx.fillText(
-            `t = ${t.toFixed(2)} s`,
+            `L = ${this.planeLength.toFixed(1)} m`,
             x + 12,
             y + 114
         );
 
 
+        ctx.fillText(
+            `θ crítico ≈ ${thetaCrit.toFixed(1)}°`,
+            x + 12,
+            y + 132
+        );
+
+
+        ctx.fillText(
+            `t = ${t.toFixed(2)} s`,
+            x + 12,
+            y + 150
+        );
+
+
+        ctx.fillText(
+            `s = ${s.toFixed(2)} m`,
+            x + 12,
+            y + 168
+        );
+
+
+        ctx.fillText(
+            `v = ${v.toFixed(2)} m/s`,
+            x + 12,
+            y + 186
+        );
+
+
+        ctx.fillText(
+            `a = ${a.toFixed(2)} m/s²`,
+            x + 12,
+            y + 204
+        );
+
+
         // =====================================================
-        // ACELERAÇÕES
+        // ESTADO
         // =====================================================
 
-        ctx.fillStyle =
-            "#7b1fa2";
-
-
-        ctx.fillText(
-            `Bloco: a = ${aBloco.toFixed(2)} m/s²`,
-            x + 12,
-            y + 137
-        );
+        ctx.font =
+            "bold 12px Arial";
 
 
         ctx.fillStyle =
-            "#1976d2";
+            sliding ?
+            "#7b1fa2" :
+            "#2e7d32";
 
 
         ctx.fillText(
-            `Esfera: a = ${aEsfera.toFixed(2)} m/s²`,
+            sliding ?
+            "Estado: Deslizando" :
+            "Estado: Em repouso",
+
             x + 12,
-            y + 155
-        );
-
-
-        ctx.fillStyle =
-            "#388e3c";
-
-
-        ctx.fillText(
-            `Cilindro: a = ${aCilindro.toFixed(2)} m/s²`,
-            x + 12,
-            y + 173
-        );
-
-
-        ctx.fillStyle =
-            "#d32f2f";
-
-
-        ctx.fillText(
-            `Anel: a = ${aAnel.toFixed(2)} m/s²`,
-            x + 12,
-            y + 191
+            y + 222
         );
 
 
@@ -2024,19 +1892,15 @@ class InclinedPlaneSolids {
             this.ctx;
 
 
-        const w =
-            this.canvas.width;
-
-
-        const h =
-            this.canvas.height;
-
+        // =====================================================
+        // LIMPA
+        // =====================================================
 
         ctx.clearRect(
             0,
             0,
-            w,
-            h
+            this.canvas.width,
+            this.canvas.height
         );
 
 
@@ -2047,8 +1911,8 @@ class InclinedPlaneSolids {
         ctx.fillRect(
             0,
             0,
-            w,
-            h
+            this.canvas.width,
+            this.canvas.height
         );
 
 
@@ -2067,7 +1931,7 @@ class InclinedPlaneSolids {
 
 
         ctx.fillText(
-            "Descida de sólidos em um plano inclinado",
+            "Plano inclinado com atrito",
             330,
             30
         );
@@ -2079,7 +1943,7 @@ class InclinedPlaneSolids {
 
         this.drawPlane(ctx);
 
-        this.drawSolids(ctx);
+        this.drawBlockState(ctx);
 
         this.drawGraph(ctx);
 
@@ -2088,7 +1952,7 @@ class InclinedPlaneSolids {
 
 
     // =========================================================
-    // INICIAR
+    // INICIAR ANIMAÇÃO
     // =========================================================
 
     iniciar() {
@@ -2114,6 +1978,10 @@ class InclinedPlaneSolids {
             this.frame +=
                 this.animationSpeed;
 
+
+            // =================================================
+            // VOLTA PARA O INÍCIO
+            // =================================================
 
             if (
                 this.frame >=
@@ -2145,6 +2013,22 @@ class InclinedPlaneSolids {
 
 
     // =========================================================
+    // RESET
+    // =========================================================
+
+    reset() {
+
+        this.parar();
+
+        this.solve();
+
+        this.draw();
+
+        this.iniciar();
+    }
+
+
+    // =========================================================
     // ATUALIZAR PARÂMETROS
     // =========================================================
 
@@ -2152,14 +2036,21 @@ class InclinedPlaneSolids {
         newParams
     ) {
 
+        this.parar();
+
+
         this.params = {
+
             ...this.params,
             ...newParams
         };
 
 
-        Object.keys(newParams)
-            .forEach(key => {
+        if (this.sliders) {
+
+            Object.keys(
+                newParams
+            ).forEach(key => {
 
                 if (
                     this.sliders[key]
@@ -2168,20 +2059,50 @@ class InclinedPlaneSolids {
                     this.sliders[key].value =
                         newParams[key];
 
-
                     const event =
                         new Event("input");
-
 
                     this.sliders[key]
                         .dispatchEvent(event);
                 }
-
             });
+        }
 
 
         this.solve();
 
-        this.draw();
+        this.iniciar();
     }
 }
+
+
+// =============================================================
+// INICIALIZAÇÃO
+// =============================================================
+
+document.addEventListener(
+    "DOMContentLoaded",
+    () => {
+
+        const canvas =
+            document.getElementById(
+                "inclinedPlaneFrictionCanvas"
+            );
+
+
+        if (!canvas) {
+
+            console.error(
+                "Canvas inclinedPlaneFrictionCanvas não encontrado."
+            );
+
+            return;
+        }
+
+
+        window.inclinedPlaneFriction =
+            new InclinedPlaneFriction(
+                canvas
+            );
+    }
+);
