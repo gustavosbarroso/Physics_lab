@@ -17,7 +17,7 @@ constructor(canvas, options = {}) {
         x0: 1.3,
         v0: 0.0,
 
-        x_eq: 1.0,
+        x_eq: 0.5,
 
         ...options
     };
