@@ -107,7 +107,7 @@ class TwoBodySystem {
             Math.max( 
                 0, 
                 Math.min( 
-                    0.999, 
+                    0.9, 
                     this.params.e 
                 ) 
             ); 
