@@ -490,7 +490,7 @@ createControls() {
             name: "k",
             label: "k (N/m)",
             min: 0.5,
-            max: 20,
+            max: 3,
             step: 0.1
         },
 
@@ -531,8 +531,8 @@ createControls() {
         {
             name: "v0",
             label: "v₀ (m/s)",
-            min: -5,
-            max: 5,
+            min: -2,
+            max: 2,
             step: 0.1
         }
 
