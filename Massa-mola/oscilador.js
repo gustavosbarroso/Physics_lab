@@ -505,8 +505,8 @@ createControls() {
         {
             name: "x0",
             label: "x₀ (m)",
-            min: 0.3,
-            max: 1.0,
+            min: 0.1,
+            max: 0.9,
 
             step: 0.01
         },
