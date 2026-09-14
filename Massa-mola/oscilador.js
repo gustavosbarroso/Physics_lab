@@ -14,7 +14,7 @@ constructor(canvas, options = {}) {
         b: 0.5,
         m: 1.0,
 
-        x0: 1.3,
+        x0: 0.8,
         v0: 0.0,
 
         x_eq: 0.5,
@@ -506,24 +506,7 @@ createControls() {
             name: "x0",
             label: "x₀ (m)",
             min: 0.3,
-
-            /*
-             * Limite calculado pela geometria.
-             *
-             * Com a configuração atual:
-             *
-             * graphX = 700
-             * systemRight = 600
-             * blockSize = 70
-             * xLeft = 120
-             * scaleX = 350
-             *
-             * resulta em aproximadamente:
-             *
-             * x₀ máximo = 1.27 m
-             */
-
-            max: this.maxX,
+            max: 1.0,
 
             step: 0.01
         },
