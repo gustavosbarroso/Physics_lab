@@ -10,7 +10,7 @@ constructor(canvas, options = {}) {
 
     this.params = {
 
-        k: 5.0,
+        k: 3.0,
         b: 0.5,
         m: 1.0,
 
