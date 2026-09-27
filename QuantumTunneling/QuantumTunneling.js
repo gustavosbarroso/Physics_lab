@@ -2,6 +2,8 @@
 // TUNELAMENTO QUÂNTICO
 // Diferenças Finitas + Crank-Nicolson
 // Método de Thomas para sistema tridiagonal complexo
+//
+// T = coeficiente de transmissão da barreira retangular
 // ============================================================
 
 class QuantumTunneling {
@@ -11,16 +13,18 @@ class QuantumTunneling {
         this.canvas = canvas;
         this.ctx = canvas.getContext("2d");
 
-        // ========================================================
+        // ----------------------------------------------------
         // Parâmetros
-        // ========================================================
+        // ----------------------------------------------------
 
         this.params = {
+
             h_bar: 1.0,
             m: 1.0,
 
             x_min: -6.5,
             x_max: 6.5,
+
             N: 500,
 
             V0: 20.0,
@@ -36,18 +40,18 @@ class QuantumTunneling {
             ...options
         };
 
-        // ========================================================
-        // Estado
-        // ========================================================
+        // ----------------------------------------------------
+        // Estado da simulação
+        // ----------------------------------------------------
 
         this.running = false;
 
         this.frame = 0;
         this.time = 0;
 
-        // ========================================================
+        // ----------------------------------------------------
         // Malha espacial
-        // ========================================================
+        // ----------------------------------------------------
 
         this.dx =
             (
@@ -71,22 +75,22 @@ class QuantumTunneling {
 
         this.M = this.x.length;
 
-        // ========================================================
+        // ----------------------------------------------------
         // Função de onda
-        // ========================================================
+        // ----------------------------------------------------
 
         this.psiRe = [];
         this.psiIm = [];
 
-        // ========================================================
+        // ----------------------------------------------------
         // Potencial
-        // ========================================================
+        // ----------------------------------------------------
 
         this.V = [];
 
-        // ========================================================
-        // Coeficientes do método de Thomas
-        // ========================================================
+        // ----------------------------------------------------
+        // Sistema de Thomas
+        // ----------------------------------------------------
 
         this.diagRe = [];
         this.diagIm = [];
@@ -97,58 +101,71 @@ class QuantumTunneling {
         this.foraRe = 0;
         this.foraIm = 0;
 
-        // ========================================================
-        // Coeficientes de reflexão e transmissão
-        // ========================================================
+        // ----------------------------------------------------
+        // Coeficientes físicos
+        // ----------------------------------------------------
 
-        this.R_final = null;
-        this.T_final = null;
+        this.energia = 0;
+        this.kappa = 0;
 
-        // ========================================================
+        this.R = 0;
+        this.T = 0;
+
+        // ----------------------------------------------------
         // Inicialização
-        // ========================================================
+        // ----------------------------------------------------
 
         this.solve();
     }
 
 
-    // ============================================================
-    // Multiplicação de complexos
-    // ============================================================
+    // ========================================================
+    // OPERAÇÕES COM NÚMEROS COMPLEXOS
+    // ========================================================
 
     multiplicarComplexo(ar, ai, br, bi) {
 
         return {
-            re: ar * br - ai * bi,
-            im: ar * bi + ai * br
+
+            re:
+                ar * br -
+                ai * bi,
+
+            im:
+                ar * bi +
+                ai * br
         };
     }
 
 
-    // ============================================================
-    // Divisão de complexos
-    // ============================================================
-
     dividirComplexo(ar, ai, br, bi) {
 
         const denominador =
-            br * br + bi * bi;
+            br * br +
+            bi * bi;
 
         return {
+
             re:
-                (ar * br + ai * bi) /
+                (
+                    ar * br +
+                    ai * bi
+                ) /
                 denominador,
 
             im:
-                (ai * br - ar * bi) /
+                (
+                    ai * br -
+                    ar * bi
+                ) /
                 denominador
         };
     }
 
 
-    // ============================================================
-    // Cria pacote de onda
-    // ============================================================
+    // ========================================================
+    // PACOTE DE ONDA
+    // ========================================================
 
     criarPacote() {
 
@@ -162,15 +179,15 @@ class QuantumTunneling {
 
         let norma = 0;
 
-        // --------------------------------------------------------
-        // Pacote:
-        //
-        // psi(x,0) =
-        // exp[-(x-x0)^2/(4 sigma^2)]
-        // exp(i k0 x)
-        // --------------------------------------------------------
+        // ----------------------------------------------------
+        // Criação do pacote
+        // ----------------------------------------------------
 
-        for (let i = 0; i < this.M; i++) {
+        for (
+            let i = 0;
+            i < this.M;
+            i++
+        ) {
 
             const x = this.x[i];
 
@@ -203,22 +220,26 @@ class QuantumTunneling {
             norma +=
                 (
                     this.psiRe[i] *
-                    this.psiRe[i] +
-
+                    this.psiRe[i]
+                    +
                     this.psiIm[i] *
                     this.psiIm[i]
                 ) *
                 this.dx;
         }
 
-        // --------------------------------------------------------
+        // ----------------------------------------------------
         // Normalização
-        // --------------------------------------------------------
+        // ----------------------------------------------------
 
         norma =
             Math.sqrt(norma);
 
-        for (let i = 0; i < this.M; i++) {
+        for (
+            let i = 0;
+            i < this.M;
+            i++
+        ) {
 
             this.psiRe[i] /=
                 norma;
@@ -229,9 +250,9 @@ class QuantumTunneling {
     }
 
 
-    // ============================================================
-    // Cria potencial
-    // ============================================================
+    // ========================================================
+    // POTENCIAL
+    // ========================================================
 
     criarPotencial() {
 
@@ -240,10 +261,13 @@ class QuantumTunneling {
         this.V =
             new Array(this.M);
 
-        for (let i = 0; i < this.M; i++) {
+        for (
+            let i = 0;
+            i < this.M;
+            i++
+        ) {
 
-            const x =
-                this.x[i];
+            const x = this.x[i];
 
             if (
                 x > 0 &&
@@ -262,27 +286,230 @@ class QuantumTunneling {
     }
 
 
-    // ============================================================
-    // Prepara matriz A do Crank-Nicolson
+    // ========================================================
+    // COEFICIENTE DE TRANSMISSÃO
     //
-    // A = I + i dt/(2hbar) H
-    // ============================================================
+    // Energia:
+    //
+    //       E = hbar² k₀² / 2m
+    //
+    // Para E < V₀:
+    //
+    //       κ = sqrt(2m(V₀-E)) / hbar
+    //
+    //       T =
+    //       1 /
+    //       [1 + V₀² sinh²(κa)/(4E(V₀-E))]
+    //
+    // ========================================================
 
-    prepararThomas() {
+    calcularCoeficientes() {
 
         const p = this.params;
 
-        const hbar = p.h_bar;
-        const m = p.m;
-        const dx = this.dx;
-        const dt = p.dt;
+        const hbar =
+            p.h_bar;
 
-        // --------------------------------------------------------
-        // Hamiltoniana
-        // --------------------------------------------------------
+        const m =
+            p.m;
+
+        const V0 =
+            p.V0;
+
+        const a =
+            p.a;
+
+        const k0 =
+            p.k0;
+
+        // ----------------------------------------------------
+        // Energia da onda incidente
+        // ----------------------------------------------------
+
+        const E =
+            (
+                hbar *
+                hbar *
+                k0 *
+                k0
+            ) /
+            (
+                2 * m
+            );
+
+        this.energia =
+            E;
+
+        // ----------------------------------------------------
+        // Caso E < V0
+        // Regime de tunelamento
+        // ----------------------------------------------------
+
+        if (
+            E < V0
+        ) {
+
+            const kappa =
+                Math.sqrt(
+                    2 *
+                    m *
+                    (V0 - E)
+                ) /
+                hbar;
+
+            this.kappa =
+                kappa;
+
+            const sinhTerm =
+                Math.sinh(
+                    kappa * a
+                );
+
+            const numerador =
+                V0 *
+                V0 *
+                sinhTerm *
+                sinhTerm;
+
+            const denominador =
+                4 *
+                E *
+                (V0 - E);
+
+            this.T =
+                1 /
+                (
+                    1 +
+                    numerador /
+                    denominador
+                );
+
+            this.R =
+                1 -
+                this.T;
+        }
+
+        // ----------------------------------------------------
+        // Caso E > V0
+        // Acima da barreira
+        // ----------------------------------------------------
+
+        else if (
+            E > V0
+        ) {
+
+            this.kappa =
+                0;
+
+            const k2 =
+                Math.sqrt(
+                    2 *
+                    m *
+                    (E - V0)
+                ) /
+                hbar;
+
+            const sinTerm =
+                Math.sin(
+                    k2 * a
+                );
+
+            const numerador =
+                V0 *
+                V0 *
+                sinTerm *
+                sinTerm;
+
+            const denominador =
+                4 *
+                E *
+                (E - V0);
+
+            this.T =
+                1 /
+                (
+                    1 +
+                    numerador /
+                    denominador
+                );
+
+            this.R =
+                1 -
+                this.T;
+        }
+
+        // ----------------------------------------------------
+        // Caso E = V0
+        // ----------------------------------------------------
+
+        else {
+
+            this.kappa =
+                0;
+
+            this.T =
+                1 /
+                (
+                    1 +
+                    (
+                        m *
+                        V0 *
+                        a *
+                        a
+                    ) /
+                    (
+                        2 *
+                        hbar *
+                        hbar
+                    )
+                );
+
+            this.R =
+                1 -
+                this.T;
+        }
+
+        return {
+
+            E: this.energia,
+
+            kappa: this.kappa,
+
+            R: this.R,
+
+            T: this.T
+        };
+    }
+
+
+    // ========================================================
+    // PREPARAÇÃO DO MÉTODO DE THOMAS
+    // ========================================================
+
+    prepararThomas() {
+
+        const p =
+            this.params;
+
+        const hbar =
+            p.h_bar;
+
+        const m =
+            p.m;
+
+        const dx =
+            this.dx;
+
+        const dt =
+            p.dt;
+
+        // ----------------------------------------------------
+        // Elemento fora da diagonal do Hamiltoniano
+        // ----------------------------------------------------
 
         const foraH =
-            -hbar * hbar /
+            -hbar *
+            hbar /
             (
                 2 *
                 m *
@@ -297,20 +524,27 @@ class QuantumTunneling {
                 hbar
             );
 
-        // --------------------------------------------------------
-        // Diagonal
-        // --------------------------------------------------------
-
         this.diagRe =
             new Array(this.M);
 
         this.diagIm =
             new Array(this.M);
 
-        for (let i = 0; i < this.M; i++) {
+        // ----------------------------------------------------
+        // Diagonal de A
+        //
+        // A = I + i dt H / (2hbar)
+        // ----------------------------------------------------
+
+        for (
+            let i = 0;
+            i < this.M;
+            i++
+        ) {
 
             const diagonalH =
-                hbar * hbar /
+                hbar *
+                hbar /
                 (
                     m *
                     dx *
@@ -327,21 +561,20 @@ class QuantumTunneling {
                 diagonalH;
         }
 
-        // --------------------------------------------------------
-        // Fora da diagonal
-        //
-        // A = I + i fator H
-        // --------------------------------------------------------
+        // ----------------------------------------------------
+        // Fora da diagonal de A
+        // ----------------------------------------------------
 
-        this.foraRe = 0;
+        this.foraRe =
+            0;
 
         this.foraIm =
             fator *
             foraH;
 
-        // --------------------------------------------------------
-        // Thomas
-        // --------------------------------------------------------
+        // ----------------------------------------------------
+        // Coeficientes modificados
+        // ----------------------------------------------------
 
         this.cPrimeRe =
             new Array(this.M);
@@ -363,7 +596,11 @@ class QuantumTunneling {
         this.cPrimeIm[0] =
             resultado.im;
 
-        for (let i = 1; i < this.M; i++) {
+        for (
+            let i = 1;
+            i < this.M;
+            i++
+        ) {
 
             const produto =
                 this.multiplicarComplexo(
@@ -398,20 +635,26 @@ class QuantumTunneling {
     }
 
 
-    // ============================================================
-    // Calcula B psi
-    //
-    // B = I - i dt/(2hbar) H
-    // ============================================================
+    // ========================================================
+    // LADO DIREITO DO SISTEMA
+    // ========================================================
 
     calcularRHS() {
 
-        const p = this.params;
+        const p =
+            this.params;
 
-        const hbar = p.h_bar;
-        const m = p.m;
-        const dx = this.dx;
-        const dt = p.dt;
+        const hbar =
+            p.h_bar;
+
+        const m =
+            p.m;
+
+        const dx =
+            this.dx;
+
+        const dt =
+            p.dt;
 
         const fator =
             dt /
@@ -421,7 +664,8 @@ class QuantumTunneling {
             );
 
         const foraH =
-            -hbar * hbar /
+            -hbar *
+            hbar /
             (
                 2 *
                 m *
@@ -435,10 +679,15 @@ class QuantumTunneling {
         const rhsIm =
             new Array(this.M);
 
-        for (let i = 0; i < this.M; i++) {
+        for (
+            let i = 0;
+            i < this.M;
+            i++
+        ) {
 
             const diagonalH =
-                hbar * hbar /
+                hbar *
+                hbar /
                 (
                     m *
                     dx *
@@ -447,11 +696,14 @@ class QuantumTunneling {
                 +
                 this.V[i];
 
-            // ----------------------------------------------------
+            // ------------------------------------------------
             // Diagonal de B
-            // ----------------------------------------------------
+            //
+            // B = I - i dt H / (2hbar)
+            // ------------------------------------------------
 
-            const diagBRe = 1.0;
+            const diagBRe =
+                1.0;
 
             const diagBIm =
                 -fator *
@@ -471,13 +723,16 @@ class QuantumTunneling {
             let somaIm =
                 diagonal.im;
 
-            // ----------------------------------------------------
+            // ------------------------------------------------
             // Vizinho esquerdo
-            // ----------------------------------------------------
+            // ------------------------------------------------
 
-            if (i > 0) {
+            if (
+                i > 0
+            ) {
 
-                const foraBRe = 0;
+                const foraBRe =
+                    0;
 
                 const foraBIm =
                     -fator *
@@ -498,16 +753,17 @@ class QuantumTunneling {
                     esquerda.im;
             }
 
-            // ----------------------------------------------------
+            // ------------------------------------------------
             // Vizinho direito
-            // ----------------------------------------------------
+            // ------------------------------------------------
 
             if (
                 i <
                 this.M - 1
             ) {
 
-                const foraBRe = 0;
+                const foraBRe =
+                    0;
 
                 const foraBIm =
                     -fator *
@@ -536,16 +792,17 @@ class QuantumTunneling {
         }
 
         return {
+
             re: rhsRe,
+
             im: rhsIm
         };
     }
 
 
-    // ============================================================
-    // Resolve A psi = RHS
-    // Thomas complexo
-    // ============================================================
+    // ========================================================
+    // RESOLVER THOMAS
+    // ========================================================
 
     resolverThomas(
         rhsRe,
@@ -564,9 +821,9 @@ class QuantumTunneling {
         const novoIm =
             new Array(this.M);
 
-        // --------------------------------------------------------
-        // Forward sweep
-        // --------------------------------------------------------
+        // ----------------------------------------------------
+        // Primeiro elemento
+        // ----------------------------------------------------
 
         let resultado =
             this.dividirComplexo(
@@ -581,6 +838,10 @@ class QuantumTunneling {
 
         yIm[0] =
             resultado.im;
+
+        // ----------------------------------------------------
+        // Eliminação para frente
+        // ----------------------------------------------------
 
         for (
             let i = 1;
@@ -635,9 +896,9 @@ class QuantumTunneling {
                 resultado.im;
         }
 
-        // --------------------------------------------------------
-        // Back substitution
-        // --------------------------------------------------------
+        // ----------------------------------------------------
+        // Substituição regressiva
+        // ----------------------------------------------------
 
         novoRe[this.M - 1] =
             yRe[this.M - 1];
@@ -646,8 +907,11 @@ class QuantumTunneling {
             yIm[this.M - 1];
 
         for (
-            let i = this.M - 2;
+            let i =
+                this.M - 2;
+
             i >= 0;
+
             i--
         ) {
 
@@ -676,9 +940,9 @@ class QuantumTunneling {
     }
 
 
-    // ============================================================
-    // Um passo de Crank-Nicolson
-    // ============================================================
+    // ========================================================
+    // UM PASSO DE CRANK-NICOLSON
+    // ========================================================
 
     passoCrankNicolson() {
 
@@ -692,245 +956,40 @@ class QuantumTunneling {
 
         this.time +=
             this.params.dt;
-
-        // Verifica se já chegou a hora de calcular R/T
-        this.atualizarRT();
     }
 
 
-    // ============================================================
-    // Evolução
-    // ============================================================
+    // ========================================================
+    // EVOLUÇÃO
+    // ========================================================
 
     evoluir() {
 
         for (
             let i = 0;
-            i < this.params.passos_por_frame;
+            i <
+            this.params.passos_por_frame;
             i++
         ) {
-
-            // Se R/T já foram calculados,
-            // não continua evoluindo.
-            if (
-                this.R_final !== null &&
-                this.T_final !== null
-            ) {
-                break;
-            }
 
             this.passoCrankNicolson();
         }
     }
 
 
-    // ============================================================
-    // Probabilidades nas regiões
-    // ============================================================
-
-    calcularProbabilidades() {
-
-        let P_esquerda = 0;
-        let P_barreira = 0;
-        let P_direita = 0;
-
-        for (
-            let i = 0;
-            i < this.M;
-            i++
-        ) {
-
-            const x =
-                this.x[i];
-
-            const prob =
-                this.psiRe[i] *
-                this.psiRe[i]
-                +
-                this.psiIm[i] *
-                this.psiIm[i];
-
-            if (x < 0) {
-
-                P_esquerda +=
-                    prob *
-                    this.dx;
-
-            } else if (
-                x >= 0 &&
-                x <= this.params.a
-            ) {
-
-                P_barreira +=
-                    prob *
-                    this.dx;
-
-            } else {
-
-                P_direita +=
-                    prob *
-                    this.dx;
-            }
-        }
-
-        const P_total =
-            P_esquerda +
-            P_barreira +
-            P_direita;
-
-        return {
-
-            esquerda:
-                P_esquerda,
-
-            barreira:
-                P_barreira,
-
-            direita:
-                P_direita,
-
-            total:
-                P_total
-        };
-    }
-
-
-    // ============================================================
-    // Calcula R e T
-    //
-    // Para um pacote normalizado:
-    //
-    // R = probabilidade final à esquerda
-    // T = probabilidade final à direita
-    //
-    // A medição ocorre depois que o pacote se separou.
-    // ============================================================
-
-    atualizarRT() {
-
-        // Já calculou?
-        if (
-            this.R_final !== null &&
-            this.T_final !== null
-        ) {
-
-            return;
-        }
-
-        const p =
-            this.params;
-
-        // --------------------------------------------------------
-        // Velocidade de grupo
-        //
-        // v = hbar*k0/m
-        // --------------------------------------------------------
-
-        const velocidade =
-            Math.abs(
-                p.h_bar *
-                p.k0 /
-                p.m
-            );
-
-        // --------------------------------------------------------
-        // Tempo para chegar à barreira
-        // --------------------------------------------------------
-
-        const distancia =
-            Math.abs(
-                0 -
-                p.x0
-            );
-
-        const tChegada =
-            distancia /
-            velocidade;
-
-        // --------------------------------------------------------
-        // Tempo adicional para separação
-        //
-        // Aproximadamente 2 unidades espaciais.
-        // --------------------------------------------------------
-
-        const distanciaSeparacao =
-            2.0;
-
-        const tempoSeparacao =
-            distanciaSeparacao /
-            velocidade;
-
-        // --------------------------------------------------------
-        // Momento da medição
-        // --------------------------------------------------------
-
-        const tempoMedicao =
-            tChegada +
-            tempoSeparacao;
-
-        // --------------------------------------------------------
-        // Ainda não chegou?
-        // --------------------------------------------------------
-
-        if (
-            this.time <
-            tempoMedicao
-        ) {
-
-            return;
-        }
-
-        // --------------------------------------------------------
-        // Calcula probabilidades
-        // --------------------------------------------------------
-
-        const P =
-            this.calcularProbabilidades();
-
-        // --------------------------------------------------------
-        // Proteção numérica
-        // --------------------------------------------------------
-
-        if (
-            P.total <= 0
-        ) {
-
-            return;
-        }
-
-        // --------------------------------------------------------
-        // Coeficientes
-        // --------------------------------------------------------
-
-        this.R_final =
-            P.esquerda /
-            P.total;
-
-        this.T_final =
-            P.direita /
-            P.total;
-
-        // --------------------------------------------------------
-        // Para a animação
-        // --------------------------------------------------------
-
-        this.parar();
-    }
-
-
-    // ============================================================
-    // Reset
-    // ============================================================
+    // ========================================================
+    // RESET
+    // ========================================================
 
     resetar() {
 
         this.parar();
 
-        this.time = 0;
-        this.frame = 0;
+        this.time =
+            0;
 
-        this.R_final = null;
-        this.T_final = null;
+        this.frame =
+            0;
 
         this.criarPacote();
 
@@ -938,13 +997,15 @@ class QuantumTunneling {
 
         this.prepararThomas();
 
+        this.calcularCoeficientes();
+
         this.draw();
     }
 
 
-    // ============================================================
-    // Atualizar parâmetros
-    // ============================================================
+    // ========================================================
+    // ATUALIZAR PARÂMETROS
+    // ========================================================
 
     atualizarParametros(
         newParams
@@ -953,13 +1014,15 @@ class QuantumTunneling {
         this.parar();
 
         this.params = {
+
             ...this.params,
+
             ...newParams
         };
 
-        // --------------------------------------------------------
-        // Recalcula dx
-        // --------------------------------------------------------
+        // ----------------------------------------------------
+        // Recalcular dx
+        // ----------------------------------------------------
 
         this.dx =
             (
@@ -968,9 +1031,9 @@ class QuantumTunneling {
             ) /
             this.params.N;
 
-        // --------------------------------------------------------
-        // Recria malha
-        // --------------------------------------------------------
+        // ----------------------------------------------------
+        // Recriar malha
+        // ----------------------------------------------------
 
         this.x = [];
 
@@ -989,17 +1052,13 @@ class QuantumTunneling {
         this.M =
             this.x.length;
 
-        // --------------------------------------------------------
-        // Reinicia
-        // --------------------------------------------------------
-
         this.resetar();
     }
 
 
-    // ============================================================
-    // Desenho
-    // ============================================================
+    // ========================================================
+    // DESENHO
+    // ========================================================
 
     draw() {
 
@@ -1012,10 +1071,6 @@ class QuantumTunneling {
         const height =
             this.canvas.height;
 
-        // --------------------------------------------------------
-        // Limpa canvas
-        // --------------------------------------------------------
-
         ctx.clearRect(
             0,
             0,
@@ -1023,14 +1078,21 @@ class QuantumTunneling {
             height
         );
 
-        // --------------------------------------------------------
+        // ----------------------------------------------------
         // Margens
-        // --------------------------------------------------------
+        // ----------------------------------------------------
 
-        const margemEsq = 65;
-        const margemDir = 35;
-        const margemTopo = 45;
-        const margemBaixo = 55;
+        const margemEsq =
+            65;
+
+        const margemDir =
+            35;
+
+        const margemTopo =
+            45;
+
+        const margemBaixo =
+            55;
 
         const plotWidth =
             width -
@@ -1042,9 +1104,9 @@ class QuantumTunneling {
             margemTopo -
             margemBaixo;
 
-        // --------------------------------------------------------
+        // ----------------------------------------------------
         // Escalas
-        // --------------------------------------------------------
+        // ----------------------------------------------------
 
         const xMin =
             this.params.x_min;
@@ -1062,48 +1124,58 @@ class QuantumTunneling {
                 1.15
             );
 
-        const mapX = x => {
+        const mapX =
+            x => {
 
-            return margemEsq +
-                (
-                    x - xMin
-                ) /
-                (
-                    xMax - xMin
-                ) *
-                plotWidth;
-        };
+                return (
+                    margemEsq +
+                    (
+                        x - xMin
+                    ) /
+                    (
+                        xMax - xMin
+                    ) *
+                    plotWidth
+                );
+            };
 
-        const mapProbY = y => {
+        const mapProbY =
+            y => {
 
-            return margemTopo +
-                plotHeight -
-                (
-                    y /
-                    probMax
-                ) *
-                plotHeight;
-        };
+                return (
+                    margemTopo +
+                    plotHeight -
+                    (
+                        y /
+                        probMax
+                    ) *
+                    plotHeight
+                );
+            };
 
-        const mapVY = V => {
+        const mapVY =
+            V => {
 
-            return margemTopo +
-                plotHeight -
-                (
-                    V /
-                    Vmax
-                ) *
-                plotHeight;
-        };
+                return (
+                    margemTopo +
+                    plotHeight -
+                    (
+                        V /
+                        Vmax
+                    ) *
+                    plotHeight
+                );
+            };
 
-        // ========================================================
+        // ----------------------------------------------------
         // Eixos
-        // ========================================================
+        // ----------------------------------------------------
 
         ctx.strokeStyle =
             "#222";
 
-        ctx.lineWidth = 1;
+        ctx.lineWidth =
+            1;
 
         ctx.beginPath();
 
@@ -1127,9 +1199,9 @@ class QuantumTunneling {
 
         ctx.stroke();
 
-        // ========================================================
-        // Eixo x
-        // ========================================================
+        // ----------------------------------------------------
+        // Marcações do eixo x
+        // ----------------------------------------------------
 
         ctx.fillStyle =
             "#222";
@@ -1172,15 +1244,17 @@ class QuantumTunneling {
             );
         }
 
-        // ========================================================
+        // ----------------------------------------------------
         // Barreira
-        // ========================================================
+        // ----------------------------------------------------
 
         const bx1 =
             mapX(0);
 
         const bx2 =
-            mapX(this.params.a);
+            mapX(
+                this.params.a
+            );
 
         const by =
             mapVY(
@@ -1201,14 +1275,15 @@ class QuantumTunneling {
             base - by
         );
 
-        // ========================================================
+        // ----------------------------------------------------
         // Potencial
-        // ========================================================
+        // ----------------------------------------------------
 
         ctx.strokeStyle =
             "#d62728";
 
-        ctx.lineWidth = 3;
+        ctx.lineWidth =
+            3;
 
         ctx.beginPath();
 
@@ -1229,7 +1304,9 @@ class QuantumTunneling {
                     this.V[i]
                 );
 
-            if (i === 0) {
+            if (
+                i === 0
+            ) {
 
                 ctx.moveTo(
                     px,
@@ -1247,14 +1324,15 @@ class QuantumTunneling {
 
         ctx.stroke();
 
-        // ========================================================
-        // |Psi|²
-        // ========================================================
+        // ----------------------------------------------------
+        // Densidade de probabilidade
+        // ----------------------------------------------------
 
         ctx.strokeStyle =
             "#1565c0";
 
-        ctx.lineWidth = 2;
+        ctx.lineWidth =
+            2;
 
         ctx.beginPath();
 
@@ -1282,7 +1360,9 @@ class QuantumTunneling {
                     prob
                 );
 
-            if (i === 0) {
+            if (
+                i === 0
+            ) {
 
                 ctx.moveTo(
                     px,
@@ -1300,9 +1380,9 @@ class QuantumTunneling {
 
         ctx.stroke();
 
-        // ========================================================
+        // ----------------------------------------------------
         // Título
-        // ========================================================
+        // ----------------------------------------------------
 
         ctx.fillStyle =
             "#111";
@@ -1316,9 +1396,9 @@ class QuantumTunneling {
             25
         );
 
-        // ========================================================
-        // Legenda |Psi|²
-        // ========================================================
+        // ----------------------------------------------------
+        // Legenda
+        // ----------------------------------------------------
 
         ctx.fillStyle =
             "#1565c0";
@@ -1332,10 +1412,6 @@ class QuantumTunneling {
             margemTopo + 15
         );
 
-        // ========================================================
-        // Legenda V(x)
-        // ========================================================
-
         ctx.fillStyle =
             "#d62728";
 
@@ -1345,9 +1421,9 @@ class QuantumTunneling {
             margemTopo + 15
         );
 
-        // ========================================================
+        // ----------------------------------------------------
         // Tempo
-        // ========================================================
+        // ----------------------------------------------------
 
         ctx.fillStyle =
             "#111";
@@ -1361,21 +1437,24 @@ class QuantumTunneling {
             margemTopo + 35
         );
 
-        // ========================================================
-        // Caixa R e T
-        // ========================================================
+        // ====================================================
+        // CAIXA DE INFORMAÇÕES
+        // ====================================================
 
         const caixaX =
-            width - 215;
+            width - 265;
 
         const caixaY =
             margemTopo + 55;
 
-        const caixaW = 185;
-        const caixaH = 120;
+        const caixaW =
+            235;
+
+        const caixaH =
+            180;
 
         ctx.fillStyle =
-            "rgba(255,255,255,0.92)";
+            "rgba(255,255,255,0.94)";
 
         ctx.fillRect(
             caixaX,
@@ -1387,7 +1466,8 @@ class QuantumTunneling {
         ctx.strokeStyle =
             "#555";
 
-        ctx.lineWidth = 1;
+        ctx.lineWidth =
+            1;
 
         ctx.strokeRect(
             caixaX,
@@ -1396,9 +1476,9 @@ class QuantumTunneling {
             caixaH
         );
 
-        // --------------------------------------------------------
-        // Título da caixa
-        // --------------------------------------------------------
+        // ----------------------------------------------------
+        // Cabeçalho
+        // ----------------------------------------------------
 
         ctx.fillStyle =
             "#111";
@@ -1407,7 +1487,7 @@ class QuantumTunneling {
             "bold 15px Arial";
 
         ctx.fillText(
-            "Coeficientes",
+            "Barreira retangular",
             caixaX + 12,
             caixaY + 23
         );
@@ -1415,68 +1495,83 @@ class QuantumTunneling {
         ctx.font =
             "14px Arial";
 
-        // --------------------------------------------------------
-        // Antes do cálculo
-        // --------------------------------------------------------
+        // ----------------------------------------------------
+        // Energia
+        // ----------------------------------------------------
+
+        ctx.fillText(
+            `E = ${this.energia.toFixed(3)}`,
+            caixaX + 12,
+            caixaY + 50
+        );
+
+        ctx.fillText(
+            `V₀ = ${this.params.V0.toFixed(3)}`,
+            caixaX + 12,
+            caixaY + 73
+        );
+
+        ctx.fillText(
+            `a = ${this.params.a.toFixed(3)}`,
+            caixaX + 12,
+            caixaY + 96
+        );
+
+        // ----------------------------------------------------
+        // Regime
+        // ----------------------------------------------------
 
         if (
-            this.R_final === null ||
-            this.T_final === null
+            this.energia <
+            this.params.V0
         ) {
+
+            ctx.fillStyle =
+                "#8b0000";
+
+            ctx.fillText(
+                "E < V₀  →  Tunelamento",
+                caixaX + 12,
+                caixaY + 119
+            );
+
+        } else {
 
             ctx.fillStyle =
                 "#555";
 
             ctx.fillText(
-                "R = calculando...",
+                "E ≥ V₀  →  Acima da barreira",
                 caixaX + 12,
-                caixaY + 52
-            );
-
-            ctx.fillText(
-                "T = calculando...",
-                caixaX + 12,
-                caixaY + 77
-            );
-
-            ctx.fillText(
-                "Aguardando separação",
-                caixaX + 12,
-                caixaY + 102
+                caixaY + 119
             );
         }
 
-        // --------------------------------------------------------
-        // Depois do cálculo
-        // --------------------------------------------------------
+        // ----------------------------------------------------
+        // Coeficientes
+        // ----------------------------------------------------
 
-        else {
+        ctx.fillStyle =
+            "#1565c0";
 
-            ctx.fillStyle =
-                "#1565c0";
+        ctx.font =
+            "bold 14px Arial";
 
-            ctx.fillText(
-                `R = ${(100 * this.R_final).toFixed(2)}%`,
-                caixaX + 12,
-                caixaY + 52
-            );
+        ctx.fillText(
+            `R = ${(100 * this.R).toFixed(3)}%`,
+            caixaX + 12,
+            caixaY + 144
+        );
 
-            ctx.fillText(
-                `T = ${(100 * this.T_final).toFixed(2)}%`,
-                caixaX + 12,
-                caixaY + 77
-            );
+        ctx.fillText(
+            `T = ${(100 * this.T).toFixed(3)}%`,
+            caixaX + 12,
+            caixaY + 166
+        );
 
-            ctx.fillText(
-                `R + T = ${(100 * (this.R_final + this.T_final)).toFixed(2)}%`,
-                caixaX + 12,
-                caixaY + 102
-            );
-        }
-
-        // ========================================================
-        // Parâmetros
-        // ========================================================
+        // ----------------------------------------------------
+        // Parâmetros inferiores
+        // ----------------------------------------------------
 
         ctx.fillStyle =
             "#111";
@@ -1504,56 +1599,67 @@ class QuantumTunneling {
     }
 
 
-    // ============================================================
-    // Iniciar
-    // ============================================================
+    // ========================================================
+    // INICIAR
+    // ========================================================
 
     iniciar() {
 
-        if (this.running) {
+        if (
+            this.running
+        ) {
+
             return;
         }
 
-        this.running = true;
+        this.running =
+            true;
 
-        const loop = () => {
+        const loop =
+            () => {
 
-            if (!this.running) {
-                return;
-            }
+                if (
+                    !this.running
+                ) {
 
-            this.evoluir();
+                    return;
+                }
 
-            this.draw();
+                this.evoluir();
 
-            this.frame++;
+                this.draw();
 
-            requestAnimationFrame(
-                loop
-            );
-        };
+                this.frame++;
+
+                requestAnimationFrame(
+                    loop
+                );
+            };
 
         loop();
     }
 
 
-    // ============================================================
-    // Parar
-    // ============================================================
+    // ========================================================
+    // PARAR
+    // ========================================================
 
     parar() {
 
-        this.running = false;
+        this.running =
+            false;
     }
 
 
-    // ============================================================
-    // Pause / Play
-    // ============================================================
+    // ========================================================
+    // PAUSE / PLAY
+    // ========================================================
 
     alternar() {
 
-        if (this.running) {
+        if (
+            this.running
+        ) {
 
             this.parar();
 
@@ -1564,23 +1670,26 @@ class QuantumTunneling {
     }
 
 
-    // ============================================================
-    // Solve
-    // ============================================================
+    // ========================================================
+    // SOLVE
+    // ========================================================
 
     solve() {
 
-        this.time = 0;
-        this.frame = 0;
+        this.time =
+            0;
 
-        this.R_final = null;
-        this.T_final = null;
+        this.frame =
+            0;
 
         this.criarPacote();
 
         this.criarPotencial();
 
         this.prepararThomas();
+
+        // Calcula T e R analiticamente
+        this.calcularCoeficientes();
 
         this.draw();
     }
