@@ -12,33 +12,63 @@
     <style>
 
         body {
-            font-family: Arial, sans-serif;
+
+            font-family:
+                Arial,
+                sans-serif;
+
             margin: 20px;
-            background: #f5f5f5;
+
+            background:
+                #f5f5f5;
         }
 
         canvas {
-            border: 1px solid #aaa;
-            background: white;
-            display: block;
-            margin-bottom: 20px;
+
+            border:
+                1px solid #aaa;
+
+            background:
+                white;
+
+            display:
+                block;
+
+            margin-bottom:
+                20px;
         }
 
         .controle {
-            margin: 8px 0;
+
+            margin:
+                8px 0;
         }
 
         .controle label {
-            display: inline-block;
-            width: 160px;
+
+            display:
+                inline-block;
+
+            width:
+                160px;
         }
 
         button {
-            margin-top: 15px;
-            margin-right: 10px;
-            padding: 8px 18px;
-            font-size: 15px;
-            cursor: pointer;
+
+            margin-top:
+                15px;
+
+            margin-right:
+                10px;
+
+            padding:
+                8px 18px;
+
+            font-size:
+                15px;
+
+            cursor:
+                pointer;
         }
 
     </style>
@@ -52,6 +82,7 @@
         Tunelamento Quântico
     </h2>
 
+
     <canvas
         id="canvasTunelamento"
         width="1100"
@@ -59,9 +90,9 @@
     </canvas>
 
 
-    <!-- ======================================================
-         Controles
-         ====================================================== -->
+    <!-- =====================================================
+         V0
+         ===================================================== -->
 
     <div class="controle">
 
@@ -84,6 +115,10 @@
     </div>
 
 
+    <!-- =====================================================
+         Largura da barreira
+         ===================================================== -->
+
     <div class="controle">
 
         <label>
@@ -104,6 +139,10 @@
 
     </div>
 
+
+    <!-- =====================================================
+         Posição inicial
+         ===================================================== -->
 
     <div class="controle">
 
@@ -126,6 +165,10 @@
     </div>
 
 
+    <!-- =====================================================
+         Sigma
+         ===================================================== -->
+
     <div class="controle">
 
         <label>
@@ -146,6 +189,10 @@
 
     </div>
 
+
+    <!-- =====================================================
+         k0
+         ===================================================== -->
 
     <div class="controle">
 
@@ -168,31 +215,36 @@
     </div>
 
 
-    <!-- ======================================================
+    <!-- =====================================================
          Botões
-         ====================================================== -->
+         ===================================================== -->
 
     <button id="botaoPause">
+
         Pause
+
     </button>
+
 
     <button id="botaoReset">
+
         Reset
+
     </button>
 
 
-    <!-- ======================================================
+    <!-- =====================================================
          JavaScript
-         ====================================================== -->
+         ===================================================== -->
 
     <script src="QuantumTunneling.js"></script>
 
 
     <script>
 
-        // ------------------------------------------------------
+        // ====================================================
         // Canvas
-        // ------------------------------------------------------
+        // ====================================================
 
         const canvas =
             document.getElementById(
@@ -200,77 +252,107 @@
             );
 
 
-        // ------------------------------------------------------
-        // Simulação
-        // ------------------------------------------------------
-
         const simulacao =
-            new QuantumTunneling(canvas);
+            new QuantumTunneling(
+                canvas
+            );
 
 
-        // ------------------------------------------------------
+        // ====================================================
         // Sliders
-        // ------------------------------------------------------
+        // ====================================================
 
         const sliderV0 =
-            document.getElementById("sliderV0");
+            document.getElementById(
+                "sliderV0"
+            );
 
         const sliderA =
-            document.getElementById("sliderA");
+            document.getElementById(
+                "sliderA"
+            );
 
         const sliderX0 =
-            document.getElementById("sliderX0");
+            document.getElementById(
+                "sliderX0"
+            );
 
         const sliderSigma =
-            document.getElementById("sliderSigma");
+            document.getElementById(
+                "sliderSigma"
+            );
 
         const sliderK0 =
-            document.getElementById("sliderK0");
+            document.getElementById(
+                "sliderK0"
+            );
 
 
-        // ------------------------------------------------------
-        // Valores
-        // ------------------------------------------------------
+        // ====================================================
+        // Valores exibidos
+        // ====================================================
 
         const valorV0 =
-            document.getElementById("valorV0");
+            document.getElementById(
+                "valorV0"
+            );
 
         const valorA =
-            document.getElementById("valorA");
+            document.getElementById(
+                "valorA"
+            );
 
         const valorX0 =
-            document.getElementById("valorX0");
+            document.getElementById(
+                "valorX0"
+            );
 
         const valorSigma =
-            document.getElementById("valorSigma");
+            document.getElementById(
+                "valorSigma"
+            );
 
         const valorK0 =
-            document.getElementById("valorK0");
+            document.getElementById(
+                "valorK0"
+            );
 
 
-        // ------------------------------------------------------
-        // Atualização dos parâmetros
-        // ------------------------------------------------------
+        // ====================================================
+        // Atualizar simulação
+        // ====================================================
 
         function atualizarSimulacao() {
 
             const V0 =
-                parseFloat(sliderV0.value);
+                parseFloat(
+                    sliderV0.value
+                );
 
             const a =
-                parseFloat(sliderA.value);
+                parseFloat(
+                    sliderA.value
+                );
 
             const x0 =
-                parseFloat(sliderX0.value);
+                parseFloat(
+                    sliderX0.value
+                );
 
             const sigma =
-                parseFloat(sliderSigma.value);
+                parseFloat(
+                    sliderSigma.value
+                );
 
             const k0 =
-                parseFloat(sliderK0.value);
+                parseFloat(
+                    sliderK0.value
+                );
 
 
-            // Valores exibidos
+            // -----------------------------------------------
+            // Atualizar textos
+            // -----------------------------------------------
 
             valorV0.textContent =
                 V0.toFixed(1);
@@ -288,23 +370,35 @@
                 k0.toFixed(1);
 
 
-            // Atualiza a simulação
+            // -----------------------------------------------
+            // Atualizar simulação
+            // -----------------------------------------------
 
             simulacao.atualizarParametros({
 
-                V0: V0,
-                a: a,
-                x0: x0,
-                sigma: sigma,
-                k0: k0
+                V0:
+                    V0,
+
+                a:
+                    a,
+
+                x0:
+                    x0,
+
+                sigma:
+                    sigma,
+
+                k0:
+                    k0
 
             });
+
         }
 
 
-        // ------------------------------------------------------
+        // ====================================================
         // Eventos dos sliders
-        // ------------------------------------------------------
+        // ====================================================
 
         sliderV0.addEventListener(
             "input",
@@ -332,9 +426,9 @@
         );
 
 
-        // ------------------------------------------------------
+        // ====================================================
         // Pause / Play
-        // ------------------------------------------------------
+        // ====================================================
 
         const botaoPause =
             document.getElementById(
@@ -348,7 +442,9 @@
 
                 simulacao.alternar();
 
-                if (simulacao.running) {
+                if (
+                    simulacao.running
+                ) {
 
                     botaoPause.textContent =
                         "Pause";
@@ -363,9 +459,9 @@
         );
 
 
-        // ------------------------------------------------------
+        // ====================================================
         // Reset
-        // ------------------------------------------------------
+        // ====================================================
 
         const botaoReset =
             document.getElementById(
@@ -377,23 +473,35 @@
             "click",
             () => {
 
-                sliderV0.value = 20;
-                sliderA.value = 0.5;
-                sliderX0.value = -2.5;
-                sliderSigma.value = 0.4;
-                sliderK0.value = 5.0;
+                sliderV0.value =
+                    20;
+
+                sliderA.value =
+                    0.5;
+
+                sliderX0.value =
+                    -2.5;
+
+                sliderSigma.value =
+                    0.4;
+
+                sliderK0.value =
+                    5.0;
+
 
                 atualizarSimulacao();
 
+
                 botaoPause.textContent =
                     "Play";
+
             }
         );
 
 
-        // ------------------------------------------------------
-        // Inicia
-        // ------------------------------------------------------
+        // ====================================================
+        // Inicialização
+        // ====================================================
 
         atualizarSimulacao();
 
