@@ -18,6 +18,7 @@
 
 class SuperposicaoOndas {
 
+
     // ========================================================
     // CONSTRUTOR
     // ========================================================
@@ -25,7 +26,10 @@ class SuperposicaoOndas {
     constructor(canvas, options = {}) {
 
         this.canvas = canvas;
-        this.ctx = canvas.getContext("2d");
+
+        this.ctx =
+            canvas.getContext("2d");
+
 
         // ====================================================
         // PARÂMETROS
@@ -33,44 +37,58 @@ class SuperposicaoOndas {
 
         this.params = {
 
-            A1: options.A1 ?? 10,
-            A2: options.A2 ?? 10,
+            A1:
+                options.A1 ?? 10,
 
-            lambda1: options.lambda1 ?? 2,
-            lambda2: options.lambda2 ?? 2,
+            A2:
+                options.A2 ?? 10,
 
-            f1: options.f1 ?? 1,
-            f2: options.f2 ?? 1,
+            lambda1:
+                options.lambda1 ?? 2,
 
-            phi1: options.phi1 ?? 0,
-            phi2: options.phi2 ?? Math.PI / 2
+            lambda2:
+                options.lambda2 ?? 2,
 
+            f1:
+                options.f1 ?? 1,
+
+            f2:
+                options.f2 ?? 1,
+
+            phi1:
+                options.phi1 ?? 0,
+
+            phi2:
+                options.phi2 ?? Math.PI / 2
         };
 
+
         // ====================================================
-        // PARÂMETROS DA SIMULAÇÃO
+        // PARÂMETROS ESPACIAIS
         // ====================================================
 
         this.xMin = 0;
+
         this.xMax = 10;
 
         this.N = 1000;
 
+
+        // ====================================================
+        // TEMPO
+        // ====================================================
+
         this.t = 0;
 
-        // ====================================================
-        // GEOMETRIA DOS GRÁFICOS
-        // ====================================================
 
-        this.graphTop = 60;
-        this.graphBottom = 400;
-
-        this.graphHeight =
-            this.graphBottom -
-            this.graphTop;
+        // ====================================================
+        // LIMITES VERTICAIS
+        // ====================================================
 
         this.yMin = -22;
+
         this.yMax = 22;
+
 
         // ====================================================
         // CONTROLES
@@ -78,14 +96,16 @@ class SuperposicaoOndas {
 
         this.createControls();
 
+
         // ====================================================
         // DESENHO INICIAL
         // ====================================================
 
         this.draw();
 
+
         // ====================================================
-        // INICIA A ANIMAÇÃO
+        // ANIMAÇÃO
         // ====================================================
 
         this.iniciar();
@@ -93,17 +113,32 @@ class SuperposicaoOndas {
 
 
     // ========================================================
-    // FUNÇÃO DA ONDA
+    // GERADOR DE ONDA
     // ========================================================
 
-    onda(A, lambda, f, x, t, phi) {
+    onda(
+        A,
+        comprimento_onda,
+        f,
+        x,
+        t,
+        phi
+    ) {
 
         return A *
             Math.sin(
-                ((2 * Math.PI) / lambda) * x
+
+                (
+                    (2 * Math.PI) /
+                    comprimento_onda
+                ) * x
+
                 -
+
                 (2 * Math.PI * f) * t
+
                 +
+
                 phi
             );
     }
@@ -118,17 +153,25 @@ class SuperposicaoOndas {
         this.controlsContainer =
             document.createElement("div");
 
+
         this.controlsContainer.className =
             "ondas-controls";
+
 
         this.controlsContainer.innerHTML = `
 
             <h2>Superposição de Ondas</h2>
 
 
+            <!-- ==========================================
+                 ONDA 1
+                 ========================================== -->
+
             <h3>Onda 1</h3>
 
+
             <div class="control">
+
                 <label>
 
                     <span class="control-label">
@@ -149,10 +192,12 @@ class SuperposicaoOndas {
                     </span>
 
                 </label>
+
             </div>
 
 
             <div class="control">
+
                 <label>
 
                     <span class="control-label">
@@ -173,10 +218,12 @@ class SuperposicaoOndas {
                     </span>
 
                 </label>
+
             </div>
 
 
             <div class="control">
+
                 <label>
 
                     <span class="control-label">
@@ -197,10 +244,12 @@ class SuperposicaoOndas {
                     </span>
 
                 </label>
+
             </div>
 
 
             <div class="control">
+
                 <label>
 
                     <span class="control-label">
@@ -221,13 +270,19 @@ class SuperposicaoOndas {
                     </span>
 
                 </label>
+
             </div>
 
+
+            <!-- ==========================================
+                 ONDA 2
+                 ========================================== -->
 
             <h3>Onda 2</h3>
 
 
             <div class="control">
+
                 <label>
 
                     <span class="control-label">
@@ -248,10 +303,12 @@ class SuperposicaoOndas {
                     </span>
 
                 </label>
+
             </div>
 
 
             <div class="control">
+
                 <label>
 
                     <span class="control-label">
@@ -272,10 +329,12 @@ class SuperposicaoOndas {
                     </span>
 
                 </label>
+
             </div>
 
 
             <div class="control">
+
                 <label>
 
                     <span class="control-label">
@@ -296,10 +355,12 @@ class SuperposicaoOndas {
                     </span>
 
                 </label>
+
             </div>
 
 
             <div class="control">
+
                 <label>
 
                     <span class="control-label">
@@ -320,6 +381,7 @@ class SuperposicaoOndas {
                     </span>
 
                 </label>
+
             </div>
 
         `;
@@ -335,7 +397,7 @@ class SuperposicaoOndas {
 
 
         // ====================================================
-        // REFERÊNCIAS AOS INPUTS
+        // INPUTS
         // ====================================================
 
         const A1Input =
@@ -381,125 +443,218 @@ class SuperposicaoOndas {
 
 
         // ====================================================
-        // FUNÇÃO AUXILIAR PARA ATUALIZAR CONTROLES
-        // ====================================================
-
-        const atualizar = (
-            input,
-            parametro,
-            id,
-            casas
-        ) => {
-
-            input.addEventListener(
-                "input",
-                () => {
-
-                    this.params[parametro] =
-                        parseFloat(input.value);
-
-                    this.controlsContainer
-                        .querySelector(id)
-                        .textContent =
-                        this.params[parametro]
-                            .toFixed(casas);
-
-                    this.draw();
-                }
-            );
-        };
-
-
-        // ====================================================
         // EVENTOS
         // ====================================================
 
-        atualizar(
-            A1Input,
-            "A1",
-            "#ondas-A1-value",
-            1
-        );
+        A1Input.addEventListener(
+            "input",
+            () => {
 
-        atualizar(
-            lambda1Input,
-            "lambda1",
-            "#ondas-lambda1-value",
-            1
-        );
+                this.params.A1 =
+                    parseFloat(
+                        A1Input.value
+                    );
 
-        atualizar(
-            f1Input,
-            "f1",
-            "#ondas-f1-value",
-            1
-        );
+                this.controlsContainer
+                    .querySelector(
+                        "#ondas-A1-value"
+                    )
+                    .textContent =
+                    this.params.A1.toFixed(1);
 
-        atualizar(
-            phi1Input,
-            "phi1",
-            "#ondas-phi1-value",
-            2
+                this.draw();
+            }
         );
 
 
-        atualizar(
-            A2Input,
-            "A2",
-            "#ondas-A2-value",
-            1
+        lambda1Input.addEventListener(
+            "input",
+            () => {
+
+                this.params.lambda1 =
+                    parseFloat(
+                        lambda1Input.value
+                    );
+
+                this.controlsContainer
+                    .querySelector(
+                        "#ondas-lambda1-value"
+                    )
+                    .textContent =
+                    this.params.lambda1.toFixed(1);
+
+                this.draw();
+            }
         );
 
-        atualizar(
-            lambda2Input,
-            "lambda2",
-            "#ondas-lambda2-value",
-            1
+
+        f1Input.addEventListener(
+            "input",
+            () => {
+
+                this.params.f1 =
+                    parseFloat(
+                        f1Input.value
+                    );
+
+                this.controlsContainer
+                    .querySelector(
+                        "#ondas-f1-value"
+                    )
+                    .textContent =
+                    this.params.f1.toFixed(1);
+
+                this.draw();
+            }
         );
 
-        atualizar(
-            f2Input,
-            "f2",
-            "#ondas-f2-value",
-            1
+
+        phi1Input.addEventListener(
+            "input",
+            () => {
+
+                this.params.phi1 =
+                    parseFloat(
+                        phi1Input.value
+                    );
+
+                this.controlsContainer
+                    .querySelector(
+                        "#ondas-phi1-value"
+                    )
+                    .textContent =
+                    this.params.phi1.toFixed(2);
+
+                this.draw();
+            }
         );
 
-        atualizar(
-            phi2Input,
-            "phi2",
-            "#ondas-phi2-value",
-            2
+
+        A2Input.addEventListener(
+            "input",
+            () => {
+
+                this.params.A2 =
+                    parseFloat(
+                        A2Input.value
+                    );
+
+                this.controlsContainer
+                    .querySelector(
+                        "#ondas-A2-value"
+                    )
+                    .textContent =
+                    this.params.A2.toFixed(1);
+
+                this.draw();
+            }
+        );
+
+
+        lambda2Input.addEventListener(
+            "input",
+            () => {
+
+                this.params.lambda2 =
+                    parseFloat(
+                        lambda2Input.value
+                    );
+
+                this.controlsContainer
+                    .querySelector(
+                        "#ondas-lambda2-value"
+                    )
+                    .textContent =
+                    this.params.lambda2.toFixed(1);
+
+                this.draw();
+            }
+        );
+
+
+        f2Input.addEventListener(
+            "input",
+            () => {
+
+                this.params.f2 =
+                    parseFloat(
+                        f2Input.value
+                    );
+
+                this.controlsContainer
+                    .querySelector(
+                        "#ondas-f2-value"
+                    )
+                    .textContent =
+                    this.params.f2.toFixed(1);
+
+                this.draw();
+            }
+        );
+
+
+        phi2Input.addEventListener(
+            "input",
+            () => {
+
+                this.params.phi2 =
+                    parseFloat(
+                        phi2Input.value
+                    );
+
+                this.controlsContainer
+                    .querySelector(
+                        "#ondas-phi2-value"
+                    )
+                    .textContent =
+                    this.params.phi2.toFixed(2);
+
+                this.draw();
+            }
         );
     }
 
 
     // ========================================================
-    // CONVERTE X PARA COORDENADA DO CANVAS
+    // CONVERSÃO X → CANVAS
     // ========================================================
 
-    xCanvas(x, xInicio, largura) {
+    xCanvas(
+        x,
+        xInicio,
+        largura
+    ) {
 
         return xInicio +
+
             (
                 (x - this.xMin) /
                 (this.xMax - this.xMin)
             ) *
+
             largura;
     }
 
 
     // ========================================================
-    // CONVERTE Y PARA COORDENADA DO CANVAS
+    // CONVERSÃO Y → CANVAS
     // ========================================================
 
-    yCanvas(y, yInicio, altura) {
+    yCanvas(
+        y,
+        yInicio,
+        altura
+    ) {
 
         return yInicio +
+
             (
                 1 -
+
                 (y - this.yMin) /
                 (this.yMax - this.yMin)
             ) *
+
             altura;
     }
 
@@ -518,31 +673,118 @@ class SuperposicaoOndas {
 
         const ctx = this.ctx;
 
-        // ----------------------------------------------------
-        // Moldura
-        // ----------------------------------------------------
+
+        const graphTop = 60;
+
+        const graphBottom =
+            this.canvas.height - 100;
+
+        const graphHeight =
+            graphBottom -
+            graphTop;
+
+
+        // ====================================================
+        // MOLDURA
+        // ====================================================
 
         ctx.strokeStyle = "#cccccc";
+
         ctx.lineWidth = 1;
 
         ctx.strokeRect(
             xInicio,
-            this.graphTop,
+            graphTop,
             largura,
-            this.graphHeight
+            graphHeight
         );
 
 
-        // ----------------------------------------------------
-        // Eixo x
-        // ----------------------------------------------------
+        // ====================================================
+        // GRADE
+        // ====================================================
+
+        ctx.strokeStyle =
+            "rgba(0, 0, 0, 0.10)";
+
+        ctx.lineWidth = 1;
+
+
+        // Linhas horizontais
+
+        for (
+            let y = -20;
+            y <= 20;
+            y += 10
+        ) {
+
+            const py =
+                this.yCanvas(
+                    y,
+                    graphTop,
+                    graphHeight
+                );
+
+
+            ctx.beginPath();
+
+            ctx.moveTo(
+                xInicio,
+                py
+            );
+
+            ctx.lineTo(
+                xInicio + largura,
+                py
+            );
+
+            ctx.stroke();
+        }
+
+
+        // Linhas verticais
+
+        for (
+            let x = 0;
+            x <= 10;
+            x += 2
+        ) {
+
+            const px =
+                this.xCanvas(
+                    x,
+                    xInicio,
+                    largura
+                );
+
+
+            ctx.beginPath();
+
+            ctx.moveTo(
+                px,
+                graphTop
+            );
+
+            ctx.lineTo(
+                px,
+                graphBottom
+            );
+
+            ctx.stroke();
+        }
+
+
+        // ====================================================
+        // EIXO X
+        // ====================================================
 
         const yZero =
             this.yCanvas(
                 0,
-                this.graphTop,
-                this.graphHeight
+                graphTop,
+                graphHeight
             );
+
 
         ctx.beginPath();
 
@@ -556,17 +798,19 @@ class SuperposicaoOndas {
             yZero
         );
 
-        ctx.strokeStyle = "#888888";
+        ctx.strokeStyle = "#777777";
+
         ctx.lineWidth = 1;
 
         ctx.stroke();
 
 
-        // ----------------------------------------------------
-        // Curva
-        // ----------------------------------------------------
+        // ====================================================
+        // CURVA
+        // ====================================================
 
         ctx.beginPath();
+
 
         for (
             let i = 0;
@@ -576,14 +820,17 @@ class SuperposicaoOndas {
 
             const x =
                 this.xMin +
+
                 (
                     i /
                     (this.N - 1)
                 ) *
+
                 (
                     this.xMax -
                     this.xMin
                 );
+
 
             const px =
                 this.xCanvas(
@@ -592,35 +839,47 @@ class SuperposicaoOndas {
                     largura
                 );
 
+
             const py =
                 this.yCanvas(
                     valores[i],
-                    this.graphTop,
-                    this.graphHeight
+                    graphTop,
+                    graphHeight
                 );
+
 
             if (i === 0) {
 
-                ctx.moveTo(px, py);
+                ctx.moveTo(
+                    px,
+                    py
+                );
 
             } else {
 
-                ctx.lineTo(px, py);
+                ctx.lineTo(
+                    px,
+                    py
+                );
             }
         }
 
+
         ctx.strokeStyle = "#1976d2";
+
         ctx.lineWidth = 2;
 
         ctx.stroke();
 
 
-        // ----------------------------------------------------
-        // Título
-        // ----------------------------------------------------
+        // ====================================================
+        // TÍTULO
+        // ====================================================
 
         ctx.fillStyle = "#222";
-        ctx.font = "bold 16px Arial";
+
+        ctx.font =
+            "bold 16px Arial";
 
         ctx.textAlign = "center";
 
@@ -631,32 +890,80 @@ class SuperposicaoOndas {
         );
 
 
-        // ----------------------------------------------------
-        // Eixo x
-        // ----------------------------------------------------
+        // ====================================================
+        // EIXO X
+        // ====================================================
 
-        ctx.font = "13px Arial";
+        ctx.font =
+            "13px Arial";
 
         ctx.fillText(
             "x (m)",
             xInicio + largura / 2,
-            this.graphBottom + 25
+            graphBottom + 30
         );
 
 
-        // ----------------------------------------------------
-        // Eixo y
-        // ----------------------------------------------------
+        // ====================================================
+        // MARCAÇÕES X
+        // ====================================================
+
+        ctx.font =
+            "11px Arial";
+
+        ctx.fillStyle = "#555";
+
+        ctx.textAlign = "center";
+
+
+        for (
+            let x = 0;
+            x <= 10;
+            x += 2
+        ) {
+
+            const px =
+                this.xCanvas(
+                    x,
+                    xInicio,
+                    largura
+                );
+
+
+            ctx.fillText(
+                x.toString(),
+                px,
+                graphBottom + 45
+            );
+        }
+
+
+        // ====================================================
+        // EIXO Y
+        // ====================================================
 
         ctx.save();
 
+
         ctx.translate(
-            xInicio - 25,
-            this.graphTop +
-            this.graphHeight / 2
+            xInicio - 30,
+            graphTop +
+            graphHeight / 2
         );
 
-        ctx.rotate(-Math.PI / 2);
+
+        ctx.rotate(
+            -Math.PI / 2
+        );
+
+
+        ctx.font =
+            "13px Arial";
+
+        ctx.fillStyle = "#222";
+
+        ctx.textAlign = "center";
+
 
         ctx.fillText(
             eixoY,
@@ -664,35 +971,47 @@ class SuperposicaoOndas {
             0
         );
 
+
         ctx.restore();
 
 
-        // ----------------------------------------------------
-        // Limites do eixo y
-        // ----------------------------------------------------
+        // ====================================================
+        // MARCAÇÕES Y
+        // ====================================================
 
-        ctx.textAlign = "right";
-
-        ctx.font = "11px Arial";
+        ctx.font =
+            "11px Arial";
 
         ctx.fillStyle = "#555";
 
-        ctx.fillText(
-            this.yMax,
-            xInicio - 5,
-            this.graphTop + 5
-        );
+        ctx.textAlign = "right";
 
-        ctx.fillText(
-            this.yMin,
-            xInicio - 5,
-            this.graphBottom
-        );
+
+        for (
+            let y = -20;
+            y <= 20;
+            y += 10
+        ) {
+
+            const py =
+                this.yCanvas(
+                    y,
+                    graphTop,
+                    graphHeight
+                );
+
+
+            ctx.fillText(
+                y.toString(),
+                xInicio - 5,
+                py + 4
+            );
+        }
     }
 
 
     // ========================================================
-    // DESENHA SÍMBOLO ENTRE OS GRÁFICOS
+    // SÍMBOLOS + E =
     // ========================================================
 
     drawSymbol(
@@ -703,12 +1022,16 @@ class SuperposicaoOndas {
 
         const ctx = this.ctx;
 
+
         ctx.fillStyle = "#222";
 
-        ctx.font = "bold 32px Arial";
+        ctx.font =
+            "bold 32px Arial";
 
         ctx.textAlign = "center";
+
         ctx.textBaseline = "middle";
+
 
         ctx.fillText(
             symbol,
@@ -716,7 +1039,9 @@ class SuperposicaoOndas {
             y
         );
 
-        ctx.textBaseline = "alphabetic";
+
+        ctx.textBaseline =
+            "alphabetic";
     }
 
 
@@ -728,6 +1053,7 @@ class SuperposicaoOndas {
 
         const ctx = this.ctx;
 
+
         const width =
             this.canvas.width;
 
@@ -735,9 +1061,9 @@ class SuperposicaoOndas {
             this.canvas.height;
 
 
-        // ----------------------------------------------------
-        // Limpa o canvas
-        // ----------------------------------------------------
+        // ====================================================
+        // LIMPA O CANVAS
+        // ====================================================
 
         ctx.clearRect(
             0,
@@ -747,12 +1073,14 @@ class SuperposicaoOndas {
         );
 
 
-        // ----------------------------------------------------
-        // Calcula as ondas
-        // ----------------------------------------------------
+        // ====================================================
+        // CALCULA AS ONDAS
+        // ====================================================
 
         const y1 = [];
+
         const y2 = [];
+
         const yResultante = [];
 
 
@@ -764,10 +1092,12 @@ class SuperposicaoOndas {
 
             const x =
                 this.xMin +
+
                 (
                     i /
                     (this.N - 1)
                 ) *
+
                 (
                     this.xMax -
                     this.xMin
@@ -776,27 +1106,42 @@ class SuperposicaoOndas {
 
             const valor1 =
                 this.onda(
+
                     this.params.A1,
+
                     this.params.lambda1,
+
                     this.params.f1,
+
                     x,
+
                     this.t,
+
                     this.params.phi1
+
                 );
 
 
             const valor2 =
                 this.onda(
+
                     this.params.A2,
+
                     this.params.lambda2,
+
                     this.params.f2,
+
                     x,
+
                     this.t,
+
                     this.params.phi2
+
                 );
 
 
             y1.push(valor1);
+
             y2.push(valor2);
 
             yResultante.push(
@@ -805,99 +1150,154 @@ class SuperposicaoOndas {
         }
 
 
-        // ----------------------------------------------------
-        // Dimensões dos gráficos
-        // ----------------------------------------------------
+        // ====================================================
+        // DIMENSÕES
+        // ====================================================
 
-        const margem = 45;
+        const margem = 55;
 
-        const simbolo = 35;
+        const espacoSimbolo = 45;
+
 
         const largura =
             (
-                width -
-                2 * margem -
-                2 * simbolo
+                width
+                -
+                2 * margem
+                -
+                2 * espacoSimbolo
             ) / 3;
 
 
-        const x1 = margem;
+        const x1 =
+            margem;
+
 
         const x2 =
             x1 +
             largura +
-            simbolo;
+            espacoSimbolo;
+
 
         const x3 =
             x2 +
             largura +
-            simbolo;
+            espacoSimbolo;
 
 
-        // ----------------------------------------------------
-        // Gráficos
-        // ----------------------------------------------------
+        // ====================================================
+        // PRIMEIRO GRÁFICO
+        // ====================================================
 
         this.drawGraph(
+
             x1,
+
             largura,
+
             y1,
+
             "y₁(x,t)",
+
             "y₁ (m)"
         );
 
 
+        // ====================================================
+        // SEGUNDO GRÁFICO
+        // ====================================================
+
         this.drawGraph(
+
             x2,
+
             largura,
+
             y2,
+
             "y₂(x,t)",
+
             "y₂ (m)"
         );
 
 
+        // ====================================================
+        // GRÁFICO RESULTANTE
+        // ====================================================
+
         this.drawGraph(
+
             x3,
+
             largura,
+
             yResultante,
+
             "y₁(x,t) + y₂(x,t)",
+
             "y₁ + y₂ (m)"
         );
 
 
-        // ----------------------------------------------------
-        // Símbolos
-        // ----------------------------------------------------
+        // ====================================================
+        // SINAL +
+        // ====================================================
+
+        const centroY =
+            60 +
+            (
+                this.canvas.height -
+                100 -
+                60
+            ) / 2;
+
 
         this.drawSymbol(
+
             "+",
-            x1 + largura + simbolo / 2,
-            this.graphTop +
-            this.graphHeight / 2
+
+            x1 +
+            largura +
+            espacoSimbolo / 2,
+
+            centroY
         );
 
+
+        // ====================================================
+        // SINAL =
+        // ====================================================
 
         this.drawSymbol(
+
             "=",
-            x2 + largura + simbolo / 2,
-            this.graphTop +
-            this.graphHeight / 2
+
+            x2 +
+            largura +
+            espacoSimbolo / 2,
+
+            centroY
         );
 
 
-        // ----------------------------------------------------
-        // Tempo
-        // ----------------------------------------------------
+        // ====================================================
+        // TEMPO
+        // ====================================================
 
         ctx.fillStyle = "#222";
 
-        ctx.font = "15px Arial";
+        ctx.font =
+            "15px Arial";
 
         ctx.textAlign = "left";
 
+
         ctx.fillText(
+
             `t = ${this.t.toFixed(2)} s`,
+
             15,
+
             height - 15
         );
     }
@@ -905,4 +1305,55 @@ class SuperposicaoOndas {
 
     // ========================================================
     // ANIMAÇÃO
-   
+    // ========================================================
+
+    iniciar() {
+
+        const animar = () => {
+
+            // -----------------------------------------------
+            // Avanço do tempo
+            // -----------------------------------------------
+
+            this.t += 0.02;
+
+
+            // -----------------------------------------------
+            // Atualiza os gráficos
+            // -----------------------------------------------
+
+            this.draw();
+
+
+            // -----------------------------------------------
+            // Próximo frame
+            // -----------------------------------------------
+
+            this.frame =
+                requestAnimationFrame(
+                    animar
+                );
+        };
+
+
+        animar();
+    }
+
+
+    // ========================================================
+    // ATUALIZAR PARÂMETROS
+    // ========================================================
+
+    atualizarParametros(newParams) {
+
+        this.params = {
+
+            ...this.params,
+
+            ...newParams
+        };
+
+
+        this.draw();
+    }
+}
