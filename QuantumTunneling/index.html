@@ -5,57 +5,40 @@
 
     <meta charset="UTF-8">
 
-    <title>Tunelamento Quântico</title>
+    <title>
+        Tunelamento Quântico
+    </title>
 
     <style>
 
         body {
-
             font-family: Arial, sans-serif;
-            text-align: center;
+            margin: 20px;
+            background: #f5f5f5;
         }
-
 
         canvas {
-
-            border: 1px solid black;
-            margin-top: 20px;
+            border: 1px solid #aaa;
+            background: white;
+            display: block;
+            margin-bottom: 20px;
         }
 
-
-        .controls {
-
-            margin: 20px auto;
-            width: 600px;
-            text-align: left;
+        .controle {
+            margin: 8px 0;
         }
 
-
-        .slider {
-
-            margin: 12px 0;
-        }
-
-
-        .slider label {
-
+        .controle label {
             display: inline-block;
-            width: 150px;
+            width: 160px;
         }
-
-
-        .buttons {
-
-            text-align: center;
-            margin-top: 20px;
-        }
-
 
         button {
-
-            margin: 0 5px;
-            padding: 8px 20px;
-            font-size: 14px;
+            margin-top: 15px;
+            margin-right: 10px;
+            padding: 8px 18px;
+            font-size: 15px;
+            cursor: pointer;
         }
 
     </style>
@@ -65,376 +48,354 @@
 
 <body>
 
-    <h1>Tunelamento Quântico</h1>
-
+    <h2>
+        Tunelamento Quântico
+    </h2>
 
     <canvas
-        id="canvas"
-        width="900"
-        height="550">
+        id="canvasTunelamento"
+        width="1100"
+        height="600">
     </canvas>
 
 
-    <div class="controls">
+    <!-- ======================================================
+         Controles
+         ====================================================== -->
 
+    <div class="controle">
 
-        <!-- V0 -->
+        <label>
+            V₀:
+        </label>
 
-        <div class="slider">
+        <input
+            type="range"
+            id="sliderV0"
+            min="1"
+            max="40"
+            step="0.5"
+            value="20">
 
-            <label>V₀</label>
-
-            <input
-                id="slider_V0"
-                type="range"
-                min="1"
-                max="40"
-                step="0.5"
-                value="20">
-
-            <span id="value_V0">
-                20.00
-            </span>
-
-        </div>
-
-
-        <!-- a -->
-
-        <div class="slider">
-
-            <label>a</label>
-
-            <input
-                id="slider_a"
-                type="range"
-                min="0.1"
-                max="2"
-                step="0.05"
-                value="0.5">
-
-            <span id="value_a">
-                0.50
-            </span>
-
-        </div>
-
-
-        <!-- x0 -->
-
-        <div class="slider">
-
-            <label>x₀</label>
-
-            <input
-                id="slider_x0"
-                type="range"
-                min="-5"
-                max="-1"
-                step="0.1"
-                value="-2.5">
-
-            <span id="value_x0">
-                -2.50
-            </span>
-
-        </div>
-
-
-        <!-- sigma -->
-
-        <div class="slider">
-
-            <label>σ</label>
-
-            <input
-                id="slider_sigma"
-                type="range"
-                min="0.2"
-                max="1"
-                step="0.05"
-                value="0.4">
-
-            <span id="value_sigma">
-                0.40
-            </span>
-
-        </div>
-
-
-        <!-- k0 -->
-
-        <div class="slider">
-
-            <label>k₀</label>
-
-            <input
-                id="slider_k0"
-                type="range"
-                min="1"
-                max="8"
-                step="0.1"
-                value="5">
-
-            <span id="value_k0">
-                5.00
-            </span>
-
-        </div>
-
-
-        <!-- BOTÕES -->
-
-        <div class="buttons">
-
-            <button id="button_pause">
-                Pause
-            </button>
-
-            <button id="button_reset">
-                Reset
-            </button>
-
-        </div>
+        <span id="valorV0">
+            20
+        </span>
 
     </div>
 
+
+    <div class="controle">
+
+        <label>
+            Largura da barreira a:
+        </label>
+
+        <input
+            type="range"
+            id="sliderA"
+            min="0.1"
+            max="2"
+            step="0.05"
+            value="0.5">
+
+        <span id="valorA">
+            0.50
+        </span>
+
+    </div>
+
+
+    <div class="controle">
+
+        <label>
+            Posição inicial x₀:
+        </label>
+
+        <input
+            type="range"
+            id="sliderX0"
+            min="-5"
+            max="-1"
+            step="0.1"
+            value="-2.5">
+
+        <span id="valorX0">
+            -2.5
+        </span>
+
+    </div>
+
+
+    <div class="controle">
+
+        <label>
+            Largura σ:
+        </label>
+
+        <input
+            type="range"
+            id="sliderSigma"
+            min="0.2"
+            max="1"
+            step="0.05"
+            value="0.4">
+
+        <span id="valorSigma">
+            0.40
+        </span>
+
+    </div>
+
+
+    <div class="controle">
+
+        <label>
+            Número de onda k₀:
+        </label>
+
+        <input
+            type="range"
+            id="sliderK0"
+            min="1"
+            max="8"
+            step="0.1"
+            value="5">
+
+        <span id="valorK0">
+            5.0
+        </span>
+
+    </div>
+
+
+    <!-- ======================================================
+         Botões
+         ====================================================== -->
+
+    <button id="botaoPause">
+        Pause
+    </button>
+
+    <button id="botaoReset">
+        Reset
+    </button>
+
+
+    <!-- ======================================================
+         JavaScript
+         ====================================================== -->
 
     <script src="QuantumTunneling.js"></script>
 
 
     <script>
 
-        // ========================================================
-        // CANVAS
-        // ========================================================
+        // ------------------------------------------------------
+        // Canvas
+        // ------------------------------------------------------
 
         const canvas =
-            document.getElementById("canvas");
+            document.getElementById(
+                "canvasTunelamento"
+            );
 
+
+        // ------------------------------------------------------
+        // Simulação
+        // ------------------------------------------------------
 
         const simulacao =
             new QuantumTunneling(canvas);
 
 
-        // ========================================================
-        // ATUALIZAÇÃO DOS SLIDERS
-        // ========================================================
+        // ------------------------------------------------------
+        // Sliders
+        // ------------------------------------------------------
 
-        function atualizar() {
+        const sliderV0 =
+            document.getElementById("sliderV0");
+
+        const sliderA =
+            document.getElementById("sliderA");
+
+        const sliderX0 =
+            document.getElementById("sliderX0");
+
+        const sliderSigma =
+            document.getElementById("sliderSigma");
+
+        const sliderK0 =
+            document.getElementById("sliderK0");
+
+
+        // ------------------------------------------------------
+        // Valores
+        // ------------------------------------------------------
+
+        const valorV0 =
+            document.getElementById("valorV0");
+
+        const valorA =
+            document.getElementById("valorA");
+
+        const valorX0 =
+            document.getElementById("valorX0");
+
+        const valorSigma =
+            document.getElementById("valorSigma");
+
+        const valorK0 =
+            document.getElementById("valorK0");
+
+
+        // ------------------------------------------------------
+        // Atualização dos parâmetros
+        // ------------------------------------------------------
+
+        function atualizarSimulacao() {
+
+            const V0 =
+                parseFloat(sliderV0.value);
+
+            const a =
+                parseFloat(sliderA.value);
+
+            const x0 =
+                parseFloat(sliderX0.value);
+
+            const sigma =
+                parseFloat(sliderSigma.value);
+
+            const k0 =
+                parseFloat(sliderK0.value);
+
+
+            // Valores exibidos
+
+            valorV0.textContent =
+                V0.toFixed(1);
+
+            valorA.textContent =
+                a.toFixed(2);
+
+            valorX0.textContent =
+                x0.toFixed(1);
+
+            valorSigma.textContent =
+                sigma.toFixed(2);
+
+            valorK0.textContent =
+                k0.toFixed(1);
+
+
+            // Atualiza a simulação
 
             simulacao.atualizarParametros({
 
-                V0: parseFloat(
-                    document
-                        .getElementById("slider_V0")
-                        .value
-                ),
+                V0: V0,
+                a: a,
+                x0: x0,
+                sigma: sigma,
+                k0: k0
 
-                a: parseFloat(
-                    document
-                        .getElementById("slider_a")
-                        .value
-                ),
-
-                x0: parseFloat(
-                    document
-                        .getElementById("slider_x0")
-                        .value
-                ),
-
-                sigma: parseFloat(
-                    document
-                        .getElementById("slider_sigma")
-                        .value
-                ),
-
-                k0: parseFloat(
-                    document
-                        .getElementById("slider_k0")
-                        .value
-                )
             });
-
-
-            document
-                .getElementById("value_V0")
-                .textContent =
-                simulacao.params.V0.toFixed(2);
-
-
-            document
-                .getElementById("value_a")
-                .textContent =
-                simulacao.params.a.toFixed(2);
-
-
-            document
-                .getElementById("value_x0")
-                .textContent =
-                simulacao.params.x0.toFixed(2);
-
-
-            document
-                .getElementById("value_sigma")
-                .textContent =
-                simulacao.params.sigma.toFixed(2);
-
-
-            document
-                .getElementById("value_k0")
-                .textContent =
-                simulacao.params.k0.toFixed(2);
         }
 
 
-        // ========================================================
-        // EVENTOS
-        // ========================================================
+        // ------------------------------------------------------
+        // Eventos dos sliders
+        // ------------------------------------------------------
 
-        document
-            .getElementById("slider_V0")
-            .addEventListener(
-                "input",
-                atualizar
-            );
+        sliderV0.addEventListener(
+            "input",
+            atualizarSimulacao
+        );
 
+        sliderA.addEventListener(
+            "input",
+            atualizarSimulacao
+        );
 
-        document
-            .getElementById("slider_a")
-            .addEventListener(
-                "input",
-                atualizar
-            );
+        sliderX0.addEventListener(
+            "input",
+            atualizarSimulacao
+        );
 
+        sliderSigma.addEventListener(
+            "input",
+            atualizarSimulacao
+        );
 
-        document
-            .getElementById("slider_x0")
-            .addEventListener(
-                "input",
-                atualizar
-            );
-
-
-        document
-            .getElementById("slider_sigma")
-            .addEventListener(
-                "input",
-                atualizar
-            );
+        sliderK0.addEventListener(
+            "input",
+            atualizarSimulacao
+        );
 
 
-        document
-            .getElementById("slider_k0")
-            .addEventListener(
-                "input",
-                atualizar
-            );
+        // ------------------------------------------------------
+        // Pause / Play
+        // ------------------------------------------------------
 
-
-        // ========================================================
-        // PAUSE / PLAY
-        // ========================================================
-
-        const buttonPause =
+        const botaoPause =
             document.getElementById(
-                "button_pause"
+                "botaoPause"
             );
 
 
-        buttonPause.addEventListener(
+        botaoPause.addEventListener(
             "click",
             () => {
 
+                simulacao.alternar();
+
                 if (simulacao.running) {
 
-                    simulacao.parar();
-
-                    buttonPause.textContent =
-                        "Play";
+                    botaoPause.textContent =
+                        "Pause";
 
                 } else {
 
-                    simulacao.iniciar();
-
-                    buttonPause.textContent =
-                        "Pause";
+                    botaoPause.textContent =
+                        "Play";
                 }
+
             }
         );
 
 
-        // ========================================================
-        // RESET
-        // ========================================================
+        // ------------------------------------------------------
+        // Reset
+        // ------------------------------------------------------
 
-        document
-            .getElementById("button_reset")
-            .addEventListener(
-                "click",
-                () => {
-
-                    simulacao.resetar();
-
-                    buttonPause.textContent =
-                        "Pause";
-
-
-                    // Restaurar sliders
-
-                    document
-                        .getElementById("slider_V0")
-                        .value = 20;
-
-                    document
-                        .getElementById("slider_a")
-                        .value = 0.5;
-
-                    document
-                        .getElementById("slider_x0")
-                        .value = -2.5;
-
-                    document
-                        .getElementById("slider_sigma")
-                        .value = 0.4;
-
-                    document
-                        .getElementById("slider_k0")
-                        .value = 5;
-
-
-                    // Restaurar textos
-
-                    document
-                        .getElementById("value_V0")
-                        .textContent = "20.00";
-
-                    document
-                        .getElementById("value_a")
-                        .textContent = "0.50";
-
-                    document
-                        .getElementById("value_x0")
-                        .textContent = "-2.50";
-
-                    document
-                        .getElementById("value_sigma")
-                        .textContent = "0.40";
-
-                    document
-                        .getElementById("value_k0")
-                        .textContent = "5.00";
-                }
+        const botaoReset =
+            document.getElementById(
+                "botaoReset"
             );
 
 
-        // ========================================================
-        // INICIAR
-        // ========================================================
+        botaoReset.addEventListener(
+            "click",
+            () => {
 
-        simulacao.calcularProbabilidades();
+                sliderV0.value = 20;
+                sliderA.value = 0.5;
+                sliderX0.value = -2.5;
+                sliderSigma.value = 0.4;
+                sliderK0.value = 5.0;
 
-        simulacao.draw();
+                atualizarSimulacao();
+
+                botaoPause.textContent =
+                    "Play";
+            }
+        );
+
+
+        // ------------------------------------------------------
+        // Inicia
+        // ------------------------------------------------------
+
+        atualizarSimulacao();
 
         simulacao.iniciar();
 
