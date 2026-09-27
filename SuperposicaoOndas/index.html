@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR">
+
+
+<head>
+
+    <meta charset="UTF-8">
+
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+
+    <title>
+        Superposição de Ondas
+    </title>
+
+
+    <style>
+
+
+        /* =====================================================
+           RESET
+           ===================================================== */
+
+        * {
+
+            box-sizing: border-box;
+        }
+
+
+        /* =====================================================
+           PÁGINA
+           ===================================================== */
+
+        html,
+        body {
+
+            margin: 0;
+
+            padding: 0;
+
+            width: 100%;
+
+            min-height: 100%;
+
+            background: white;
+
+            font-family:
+                Arial,
+                sans-serif;
+        }
+
+
+        body {
+
+            overflow-x: hidden;
+        }
+
+
+        /* =====================================================
+           CANVAS
+           ===================================================== */
+
+        canvas {
+
+            display: block;
+
+
+            /*
+             * O tamanho interno do Canvas continua sendo
+             * 1200 × 550.
+             *
+             * A largura visual se adapta à tela.
+             */
+
+            width: min(
+                1200px,
+                calc(100vw - 20px)
+            );
+
+
+            height: auto;
+
+
+            aspect-ratio:
+                1200 / 550;
+
+
+            margin:
+                20px auto;
+
+
+            border:
+                1px solid #ccc;
+
+
+            background: white;
+        }
+
+
+        /* =====================================================
+           CONTROLES
+           ===================================================== */
+
+        .ondas-controls {
+
+            width: min(
+                900px,
+                calc(100vw - 20px)
+            );
+
+
+            margin:
+                20px auto
+                30px auto;
+
+
+            font-family:
+                Arial,
+                sans-serif;
+        }
+
+
+        /* =====================================================
+           TÍTULO
+           ===================================================== */
+
+        .ondas-controls h2 {
+
+            margin-top: 10px;
+
+            margin-bottom: 15px;
+
+            font-size: 24px;
+        }
+
+
+        /* =====================================================
+           SUBTÍTULOS
+           ===================================================== */
+
+        .ondas-controls h3 {
+
+            margin-top: 25px;
+
+            margin-bottom: 15px;
+
+            font-size: 19px;
+        }
+
+
+        /* =====================================================
+           CONTROLE
+           ===================================================== */
+
+        .control {
+
+            width: 100%;
+
+            margin-bottom: 15px;
+        }
+
+
+        .control label {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 10px;
+
+            width: 100%;
+        }
+
+
+        .control-label {
+
+            flex:
+                0 0 70px;
+        }
+
+
+        .control input[type="range"] {
+
+            flex: 1;
+
+            min-width: 0;
+        }
+
+
+        .control span:last-child {
+
+            flex:
+                0 0 60px;
+
+            text-align: right;
+        }
+
+
+        /* =====================================================
+           CELULAR
+           ===================================================== */
+
+        @media (max-width: 600px) {
+
+
+            canvas {
+
+                width:
+                    calc(100vw - 20px);
+
+
+                margin:
+                    10px auto;
+            }
+
+
+            .ondas-controls {
+
+                width:
+                    calc(100vw - 20px);
+
+
+                margin:
+                    15px auto
+                    25px auto;
+            }
+
+
+            .ondas-controls h2 {
+
+                font-size: 20px;
+
+                margin-top: 5px;
+
+                margin-bottom: 15px;
+            }
+
+
+            .ondas-controls h3 {
+
+                font-size: 17px;
+            }
+
+
+            .control {
+
+                margin-bottom: 18px;
+            }
+
+
+            .control label {
+
+                gap: 8px;
+            }
+
+
+            .control-label {
+
+                flex:
+                    0 0 65px;
+            }
+
+
+            .control span:last-child {
+
+                flex:
+                    0 0 50px;
+
+
+                font-size: 14px;
+            }
+        }
+
+
+        /* =====================================================
+           CELULARES MUITO PEQUENOS
+           ===================================================== */
+
+        @media (max-width: 380px) {
+
+
+            .ondas-controls h2 {
+
+                font-size: 18px;
+            }
+
+
+            .ondas-controls h3 {
+
+                font-size: 16px;
+            }
+
+
+            .control label {
+
+                gap: 6px;
+            }
+
+
+            .control-label {
+
+                flex:
+                    0 0 60px;
+            }
+
+
+            .control span:last-child {
+
+                flex:
+                    0 0 48px;
+
+
+                font-size: 13px;
+            }
+        }
+
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <!-- =====================================================
+         CANVAS
+         ===================================================== -->
+
+    <canvas
+        id="canvas"
+        width="1200"
+        height="550">
+    </canvas>
+
+
+    <!-- =====================================================
+         CLASSE DA SIMULAÇÃO
+         ===================================================== -->
+
+    <script
+        src="SuperposicaoOndas.js">
+    </script>
+
+
+    <!-- =====================================================
+         INICIALIZAÇÃO
+         ===================================================== -->
+
+    <script>
+
+
+        const canvas =
+            document.getElementById(
+                "canvas"
+            );
+
+
+        const ondas =
+            new SuperposicaoOndas(
+
+                canvas,
+
+                {
+
+                    A1: 10,
+
+                    A2: 10,
+
+
+                    lambda1: 2,
+
+                    lambda2: 2,
+
+
+                    f1: 1,
+
+                    f2: 1,
+
+
+                    phi1: 0,
+
+                    phi2:
+                        Math.PI / 2
+
+                }
+
+            );
+
+
+    </script>
+
+
+</body>
+
+
+</html>
