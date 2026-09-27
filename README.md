@@ -141,9 +141,15 @@ Sistema massa mola com e sem efeitos de amortecimento
 
 Bloco em plano inclinado com atrito estático e dinâmico
 
-**[▶ Abrir simulação](https://gustavosbarroso.github.io/Physics_lab/Plano_inclinado_atrito/)**
+**[▶ Abrir simulação](https://gustavosbarroso.github.io/Physics_lab/SuperposicaoOndas/)**
 
+### XVI. [Superposição de ondas](https://gustavosbarroso.github.io/Physics_lab/SuperposicaoOndas/)
 
+<img width="1201" height="592" alt="image" src="https://github.com/user-attachments/assets/0940b8b5-b61c-4eb6-bc31-668078a8fe93" />
+
+Interferência de duas ondas senoidais
+
+**[▶ Abrir simulação](https://gustavosbarroso.github.io/Physics_lab/SuperposicaoOndas/)**
 ---
 
 ## 📄 LICENÇA
