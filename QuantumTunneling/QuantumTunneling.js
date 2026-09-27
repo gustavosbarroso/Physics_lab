@@ -1,6 +1,5 @@
 // ============================================================
 // TUNELAMENTO QUÂNTICO
-// Diferenças Finitas
 // Crank-Nicolson + Algoritmo de Thomas
 // ============================================================
 
@@ -11,12 +10,11 @@ class QuantumTunneling {
         this.canvas = canvas;
         this.ctx = canvas.getContext("2d");
 
-        // ====================================================
+        // ----------------------------------------------------
         // PARÂMETROS
-        // ====================================================
+        // ----------------------------------------------------
 
         this.params = {
-
             h_bar: 1.0,
             m: 1.0,
 
@@ -33,93 +31,93 @@ class QuantumTunneling {
             k0: 5.0,
 
             dt: 0.002,
+
             passos_por_frame: 5,
 
             ...options
         };
 
+        this.defaultParams = {
+            ...this.params
+        };
 
-        // ====================================================
-        // MALHA
-        // ====================================================
-
-        const p = this.params;
-
-        this.dx =
-            (p.x_max - p.x_min) / p.N;
-
-        // Pontos internos
-        this.M = p.N - 1;
-
-        this.x = new Float64Array(this.M);
-
-        for (let i = 0; i < this.M; i++) {
-
-            this.x[i] =
-                p.x_min + (i + 1) * this.dx;
-        }
-
-
-        // ====================================================
+        // ----------------------------------------------------
         // ESTADO
-        // ====================================================
-
-        this.psiRe = new Float64Array(this.M);
-        this.psiIm = new Float64Array(this.M);
-
-        this.V = new Float64Array(this.M);
-
-
-        // ====================================================
-        // MATRIZ CRANK-NICOLSON
-        // ====================================================
-
-        this.A_lower = new Float64Array(this.M - 1);
-        this.A_diag_re = new Float64Array(this.M);
-        this.A_diag_im = new Float64Array(this.M);
-        this.A_upper = new Float64Array(this.M - 1);
-
-        this.B_lower = new Float64Array(this.M - 1);
-        this.B_diag_re = new Float64Array(this.M);
-        this.B_diag_im = new Float64Array(this.M);
-        this.B_upper = new Float64Array(this.M - 1);
-
-
-        // ====================================================
-        // COEFICIENTES PRÉ-CALCULADOS PARA THOMAS
-        // ====================================================
-
-        this.cPrimeRe = new Float64Array(this.M - 1);
-        this.cPrimeIm = new Float64Array(this.M - 1);
-
-        this.denomRe = new Float64Array(this.M);
-        this.denomIm = new Float64Array(this.M);
-
-
-        // ====================================================
-        // PROBABILIDADES
-        // ====================================================
-
-        this.P_esquerda = 0;
-        this.P_barreira = 0;
-        this.P_direita = 0;
-        this.P_total = 0;
-
-        this.time = 0;
-
-
-        // ====================================================
-        // ANIMAÇÃO
-        // ====================================================
+        // ----------------------------------------------------
 
         this.running = false;
+
         this.frame = 0;
+        this.time = 0;
+
         this.animationId = null;
 
+        // ----------------------------------------------------
+        // GRID
+        // ----------------------------------------------------
 
-        // ====================================================
-        // CONSTRUIR SISTEMA
-        // ====================================================
+        this.x = [];
+        this.x_int = [];
+
+        this.dx = 0;
+        this.M = 0;
+
+        // ----------------------------------------------------
+        // FUNÇÃO DE ONDA
+        // Parte real e imaginária
+        // ----------------------------------------------------
+
+        this.psiRe = [];
+        this.psiIm = [];
+
+        // ----------------------------------------------------
+        // POTENCIAL
+        // ----------------------------------------------------
+
+        this.V = [];
+
+        // ----------------------------------------------------
+        // MATRIZES TRIDIAGONAIS
+        //
+        // A psi(n+1) = B psi(n)
+        //
+        // A = I + i dt/(2hbar) H
+        // B = I - i dt/(2hbar) H
+        // ----------------------------------------------------
+
+        this.A_lower_re = [];
+        this.A_lower_im = [];
+
+        this.A_diag_re = [];
+        this.A_diag_im = [];
+
+        this.A_upper_re = [];
+        this.A_upper_im = [];
+
+        this.B_lower_re = [];
+        this.B_lower_im = [];
+
+        this.B_diag_re = [];
+        this.B_diag_im = [];
+
+        this.B_upper_re = [];
+        this.B_upper_im = [];
+
+        // ----------------------------------------------------
+        // COEFICIENTES DO THOMAS
+        // ----------------------------------------------------
+
+        this.cPrimeRe = [];
+        this.cPrimeIm = [];
+
+        this.denRe = [];
+        this.denIm = [];
+
+        // ----------------------------------------------------
+        // INICIALIZAÇÃO
+        // ----------------------------------------------------
+
+        this.criarGrid();
 
         this.solve();
 
@@ -127,33 +125,57 @@ class QuantumTunneling {
     }
 
 
-    // ============================================================
-    // FUNÇÃO DE ONDA INICIAL
-    // ============================================================
+    // ========================================================
+    // GRID
+    // ========================================================
+
+    criarGrid() {
+
+        const p = this.params;
+
+        this.dx = (p.x_max - p.x_min) / p.N;
+
+        this.x = [];
+
+        for (let i = 0; i <= p.N; i++) {
+            this.x.push(p.x_min + i * this.dx);
+        }
+
+        // pontos internos
+        this.x_int = this.x.slice(1, -1);
+
+        this.M = this.x_int.length;
+    }
+
+
+    // ========================================================
+    // PACOTE DE ONDA
+    // ========================================================
 
     criarPacote() {
 
         const p = this.params;
 
+        this.psiRe = new Array(this.M);
+        this.psiIm = new Array(this.M);
+
         let norma = 0;
 
-        // --------------------------------------------
-        // Primeiro calcula o pacote
-        // --------------------------------------------
+        // ----------------------------------------------------
+        // ψ = exp[-(x-x0)^2/(4σ²)] exp(i k0 x)
+        // ----------------------------------------------------
 
         for (let i = 0; i < this.M; i++) {
 
-            const x = this.x[i];
+            const x = this.x_int[i];
 
             const envelope =
                 Math.exp(
-                    -Math.pow(x - p.x0, 2)
-                    /
+                    -Math.pow(x - p.x0, 2) /
                     (4 * Math.pow(p.sigma, 2))
                 );
 
-            const fase =
-                p.k0 * x;
+            const fase = p.k0 * x;
 
             this.psiRe[i] =
                 envelope * Math.cos(fase);
@@ -163,23 +185,14 @@ class QuantumTunneling {
 
             norma +=
                 (
-                    this.psiRe[i] ** 2
-                    +
-                    this.psiIm[i] ** 2
-                );
+                    this.psiRe[i] * this.psiRe[i] +
+                    this.psiIm[i] * this.psiIm[i]
+                ) * this.dx;
         }
 
+        norma = Math.sqrt(norma);
 
-        // --------------------------------------------
-        // Normalização
-        // --------------------------------------------
-
-        norma =
-            Math.sqrt(
-                norma * this.dx
-            );
-
-
+        // normalização
         for (let i = 0; i < this.M; i++) {
 
             this.psiRe[i] /= norma;
@@ -188,916 +201,679 @@ class QuantumTunneling {
     }
 
 
-    // ============================================================
+    // ========================================================
     // POTENCIAL
-    // ============================================================
+    // ========================================================
 
     criarPotencial() {
 
         const p = this.params;
 
+        this.V = new Array(this.M);
+
         for (let i = 0; i < this.M; i++) {
 
-            const x = this.x[i];
+            const x = this.x_int[i];
 
             if (x > 0 && x < p.a) {
-
                 this.V[i] = p.V0;
-
-            } else {
-
+            }
+            else {
                 this.V[i] = 0;
             }
         }
     }
 
 
-    // ============================================================
-    // CRANK-NICOLSON
-    // ============================================================
+    // ========================================================
+    // MATRIZES A E B
+    // ========================================================
 
     criarEvolucao() {
 
         const p = this.params;
 
-        const h = this.dx;
-
         const hbar = p.h_bar;
         const m = p.m;
         const dt = p.dt;
 
-
-        // --------------------------------------------------------
         // Hamiltoniana:
-        //
-        // H_diag =
+
+        // diagonal =
         // hbar²/(m dx²) + V
-        //
-        // H_off =
+
+        // fora =
         // -hbar²/(2m dx²)
-        // --------------------------------------------------------
 
-        const H_off =
-            -hbar ** 2
-            /
-            (2 * m * h ** 2);
+        const diagonalKinetica =
+            hbar * hbar /
+            (m * this.dx * this.dx);
 
-
-        const H_kin_diag =
-            hbar ** 2
-            /
-            (m * h ** 2);
-
-
-        // --------------------------------------------------------
-        // fator = i dt / (2 hbar)
-        // --------------------------------------------------------
+        const foraDiagonal =
+            -hbar * hbar /
+            (2 * m * this.dx * this.dx);
 
         const fator =
             dt / (2 * hbar);
 
+        // ----------------------------------------------------
+        // arrays
+        // ----------------------------------------------------
 
-        // ========================================================
-        // MATRIZ A
-        //
+        this.A_lower_re = new Array(this.M - 1);
+        this.A_lower_im = new Array(this.M - 1);
+
+        this.A_diag_re = new Array(this.M);
+        this.A_diag_im = new Array(this.M);
+
+        this.A_upper_re = new Array(this.M - 1);
+        this.A_upper_im = new Array(this.M - 1);
+
+
+        this.B_lower_re = new Array(this.M - 1);
+        this.B_lower_im = new Array(this.M - 1);
+
+        this.B_diag_re = new Array(this.M);
+        this.B_diag_im = new Array(this.M);
+
+        this.B_upper_re = new Array(this.M - 1);
+        this.B_upper_im = new Array(this.M - 1);
+
+
+        // ----------------------------------------------------
         // A = I + i dt/(2hbar) H
-        // ========================================================
-
-
-        // Fora da diagonal
-
-        for (let i = 0; i < this.M - 1; i++) {
-
-            // i * fator * H_off
-
-            const imag =
-                fator * H_off;
-
-            this.A_lower[i] = 0;
-            this.A_upper[i] = 0;
-
-            // Número puramente imaginário
-            // armazenamos apenas o valor imaginário
-
-            this.A_lower[i] = imag;
-            this.A_upper[i] = imag;
-        }
-
-
-        // Diagonal
-
-        for (let i = 0; i < this.M; i++) {
-
-            const H_diag =
-                H_kin_diag + this.V[i];
-
-            this.A_diag_re[i] = 1.0;
-
-            this.A_diag_im[i] =
-                fator * H_diag;
-        }
-
-
-        // ========================================================
-        // MATRIZ B
         //
         // B = I - i dt/(2hbar) H
-        // ========================================================
-
-        for (let i = 0; i < this.M - 1; i++) {
-
-            const imag =
-                -fator * H_off;
-
-            this.B_lower[i] = imag;
-            this.B_upper[i] = imag;
-        }
-
+        // ----------------------------------------------------
 
         for (let i = 0; i < this.M; i++) {
 
-            const H_diag =
-                H_kin_diag + this.V[i];
+            const Hdiag =
+                diagonalKinetica + this.V[i];
 
+            // diagonal A
+            this.A_diag_re[i] = 1.0;
+            this.A_diag_im[i] =
+                fator * Hdiag;
+
+            // diagonal B
             this.B_diag_re[i] = 1.0;
-
             this.B_diag_im[i] =
-                -fator * H_diag;
+                -fator * Hdiag;
         }
 
 
-        // ========================================================
-        // PRÉ-FATORAÇÃO DE A
-        //
-        // Como A não muda enquanto os parâmetros não mudarem,
-        // podemos calcular os coeficientes de Thomas uma vez.
-        // ========================================================
+        for (let i = 0; i < this.M - 1; i++) {
 
+            // A
+            this.A_lower_re[i] = 0;
+            this.A_lower_im[i] =
+                fator * foraDiagonal;
+
+            this.A_upper_re[i] = 0;
+            this.A_upper_im[i] =
+                fator * foraDiagonal;
+
+            // B
+            this.B_lower_re[i] = 0;
+            this.B_lower_im[i] =
+                -fator * foraDiagonal;
+
+            this.B_upper_re[i] = 0;
+            this.B_upper_im[i] =
+                -fator * foraDiagonal;
+        }
+
+
+        // preparar Thomas
         this.prepararThomas();
     }
 
 
-    // ============================================================
-    // OPERAÇÃO COMPLEXA
-    // ============================================================
+    // ========================================================
+    // DIVISÃO COMPLEXA
+    //
+    // (a+ib)/(c+id)
+    // ========================================================
 
-    complexoMultiplicar(
-        ar,
-        ai,
-        br,
-        bi
-    ) {
+    dividirComplexo(ar, ai, br, bi) {
 
-        return {
+        const denominador =
+            br * br + bi * bi;
 
-            re:
-                ar * br - ai * bi,
-
-            im:
-                ar * bi + ai * br
-        };
+        return [
+            (ar * br + ai * bi) / denominador,
+            (ai * br - ar * bi) / denominador
+        ];
     }
 
 
-    // ============================================================
-    // PRÉ-CÁLCULO DO ALGORITMO DE THOMAS
-    // ============================================================
+    // ========================================================
+    // MULTIPLICAÇÃO COMPLEXA
+    // ========================================================
+
+    multiplicarComplexo(ar, ai, br, bi) {
+
+        return [
+            ar * br - ai * bi,
+            ar * bi + ai * br
+        ];
+    }
+
+
+    // ========================================================
+    // THOMAS - PRÉ-CÁLCULO
+    // ========================================================
 
     prepararThomas() {
 
-        const n = this.M;
+        const M = this.M;
 
+        this.cPrimeRe = new Array(M - 1);
+        this.cPrimeIm = new Array(M - 1);
 
-        // --------------------------------------------------------
-        // Primeira linha
-        // --------------------------------------------------------
+        this.denRe = new Array(M);
+        this.denIm = new Array(M);
 
-        let denRe =
+        // ----------------------------------------------------
+        // primeiro elemento
+        // ----------------------------------------------------
+
+        this.denRe[0] =
             this.A_diag_re[0];
 
-        let denIm =
+        this.denIm[0] =
             this.A_diag_im[0];
 
-        this.denomRe[0] = denRe;
-        this.denomIm[0] = denIm;
+        let cp =
+            this.dividirComplexo(
+                this.A_upper_re[0],
+                this.A_upper_im[0],
+                this.denRe[0],
+                this.denIm[0]
+            );
+
+        this.cPrimeRe[0] = cp[0];
+        this.cPrimeIm[0] = cp[1];
 
 
-        // cPrime[0] = c[0] / denom[0]
+        // ----------------------------------------------------
+        // restante
+        // ----------------------------------------------------
 
-        {
+        for (let i = 1; i < M; i++) {
 
-            const cRe =
-                this.A_upper[0];
+            const produto =
+                this.multiplicarComplexo(
+                    this.A_lower_re[i - 1],
+                    this.A_lower_im[i - 1],
+                    this.cPrimeRe[i - 1],
+                    this.cPrimeIm[i - 1]
+                );
 
-            const cIm = 0;
+            this.denRe[i] =
+                this.A_diag_re[i] - produto[0];
 
-            const divisor =
-                denRe ** 2 +
-                denIm ** 2;
+            this.denIm[i] =
+                this.A_diag_im[i] - produto[1];
 
-            this.cPrimeRe[0] =
-                (
-                    cRe * denRe +
-                    cIm * denIm
-                )
-                /
-                divisor;
+            if (i < M - 1) {
 
-            this.cPrimeIm[0] =
-                (
-                    cIm * denRe -
-                    cRe * denIm
-                )
-                /
-                divisor;
+                const cp_i =
+                    this.dividirComplexo(
+                        this.A_upper_re[i],
+                        this.A_upper_im[i],
+                        this.denRe[i],
+                        this.denIm[i]
+                    );
+
+                this.cPrimeRe[i] = cp_i[0];
+                this.cPrimeIm[i] = cp_i[1];
+            }
         }
-
-
-        // --------------------------------------------------------
-        // Demais linhas
-        // --------------------------------------------------------
-
-        for (let i = 1; i < n - 1; i++) {
-
-            // a[i-1] * cPrime[i-1]
-
-            const aRe =
-                this.A_lower[i - 1];
-
-            const aIm = 0;
-
-            const cpRe =
-                this.cPrimeRe[i - 1];
-
-            const cpIm =
-                this.cPrimeIm[i - 1];
-
-            const produtoRe =
-                aRe * cpRe -
-                aIm * cpIm;
-
-            const produtoIm =
-                aRe * cpIm +
-                aIm * cpRe;
-
-
-            // denom = b - a*cPrime
-
-            denRe =
-                this.A_diag_re[i]
-                -
-                produtoRe;
-
-            denIm =
-                this.A_diag_im[i]
-                -
-                produtoIm;
-
-
-            this.denomRe[i] = denRe;
-            this.denomIm[i] = denIm;
-
-
-            // cPrime
-
-            const cRe =
-                this.A_upper[i];
-
-            const divisor =
-                denRe ** 2 +
-                denIm ** 2;
-
-            this.cPrimeRe[i] =
-                cRe * denRe
-                /
-                divisor;
-
-            this.cPrimeIm[i] =
-                -cRe * denIm
-                /
-                divisor;
-        }
-
-
-        // Último denominador
-
-        const i = n - 1;
-
-        const aRe =
-            this.A_lower[i - 1];
-
-        const cpRe =
-            this.cPrimeRe[i - 1];
-
-        const cpIm =
-            this.cPrimeIm[i - 1];
-
-        const produtoRe =
-            aRe * cpRe;
-
-        const produtoIm =
-            aRe * cpIm;
-
-
-        this.denomRe[i] =
-            this.A_diag_re[i]
-            -
-            produtoRe;
-
-        this.denomIm[i] =
-            this.A_diag_im[i]
-            -
-            produtoIm;
     }
 
 
-    // ============================================================
-    // MULTIPLICAÇÃO B * PSI
-    // ============================================================
+    // ========================================================
+    // CALCULAR B ψ
+    // ========================================================
 
-    multiplicarB() {
+    calcularRHS() {
 
-        const n = this.M;
+        const M = this.M;
 
-        const dRe =
-            new Float64Array(n);
+        const rhsRe = new Array(M);
+        const rhsIm = new Array(M);
 
-        const dIm =
-            new Float64Array(n);
+        for (let i = 0; i < M; i++) {
 
+            // diagonal
+            let valor =
+                this.multiplicarComplexo(
+                    this.B_diag_re[i],
+                    this.B_diag_im[i],
+                    this.psiRe[i],
+                    this.psiIm[i]
+                );
 
-        for (let i = 0; i < n; i++) {
-
-            // Diagonal
-
-            let re =
-                this.B_diag_re[i] *
-                this.psiRe[i]
-                -
-                this.B_diag_im[i] *
-                this.psiIm[i];
-
-            let im =
-                this.B_diag_re[i] *
-                this.psiIm[i]
-                +
-                this.B_diag_im[i] *
-                this.psiRe[i];
+            let re = valor[0];
+            let im = valor[1];
 
 
-            // Inferior
-
+            // inferior
             if (i > 0) {
 
-                const ar =
-                    this.B_lower[i - 1];
+                valor =
+                    this.multiplicarComplexo(
+                        this.B_lower_re[i - 1],
+                        this.B_lower_im[i - 1],
+                        this.psiRe[i - 1],
+                        this.psiIm[i - 1]
+                    );
 
-                re +=
-                    -ar *
-                    this.psiIm[i - 1];
-
-                im +=
-                    ar *
-                    this.psiRe[i - 1];
+                re += valor[0];
+                im += valor[1];
             }
 
 
-            // Superior
+            // superior
+            if (i < M - 1) {
 
-            if (i < n - 1) {
+                valor =
+                    this.multiplicarComplexo(
+                        this.B_upper_re[i],
+                        this.B_upper_im[i],
+                        this.psiRe[i + 1],
+                        this.psiIm[i + 1]
+                    );
 
-                const ar =
-                    this.B_upper[i];
-
-                re +=
-                    -ar *
-                    this.psiIm[i + 1];
-
-                im +=
-                    ar *
-                    this.psiRe[i + 1];
+                re += valor[0];
+                im += valor[1];
             }
 
-
-            dRe[i] = re;
-            dIm[i] = im;
+            rhsRe[i] = re;
+            rhsIm[i] = im;
         }
 
-
-        return {
-            re: dRe,
-            im: dIm
-        };
+        return [rhsRe, rhsIm];
     }
 
 
-    // ============================================================
-    // ALGORITMO DE THOMAS COMPLEXO
-    // ============================================================
+    // ========================================================
+    // ALGORITMO DE THOMAS
+    // ========================================================
 
-    resolverThomas(dRe, dIm) {
+    resolverThomas(rhsRe, rhsIm) {
 
-        const n = this.M;
+        const M = this.M;
 
-        const dPrimeRe =
-            new Float64Array(n);
+        const dPrimeRe = new Array(M);
+        const dPrimeIm = new Array(M);
 
-        const dPrimeIm =
-            new Float64Array(n);
-
-        const resultadoRe =
-            new Float64Array(n);
-
-        const resultadoIm =
-            new Float64Array(n);
+        const solRe = new Array(M);
+        const solIm = new Array(M);
 
 
-        // ========================================================
-        // FORWARD SWEEP
-        // ========================================================
+        // ----------------------------------------------------
+        // forward sweep
+        // ----------------------------------------------------
 
-        // Primeira linha
+        let primeiro =
+            this.dividirComplexo(
+                rhsRe[0],
+                rhsIm[0],
+                this.denRe[0],
+                this.denIm[0]
+            );
 
-        {
+        dPrimeRe[0] = primeiro[0];
+        dPrimeIm[0] = primeiro[1];
 
-            const denRe =
-                this.denomRe[0];
 
-            const denIm =
-                this.denomIm[0];
+        for (let i = 1; i < M; i++) {
 
-            const divisor =
-                denRe ** 2 +
-                denIm ** 2;
+            const produto =
+                this.multiplicarComplexo(
+                    this.A_lower_re[i - 1],
+                    this.A_lower_im[i - 1],
+                    dPrimeRe[i - 1],
+                    dPrimeIm[i - 1]
+                );
 
-            dPrimeRe[0] =
-                (
-                    dRe[0] * denRe
-                    +
-                    dIm[0] * denIm
-                )
-                /
-                divisor;
+            const numeradorRe =
+                rhsRe[i] - produto[0];
 
-            dPrimeIm[0] =
-                (
-                    dIm[0] * denRe
-                    -
-                    dRe[0] * denIm
-                )
-                /
-                divisor;
+            const numeradorIm =
+                rhsIm[i] - produto[1];
+
+
+            const resultado =
+                this.dividirComplexo(
+                    numeradorRe,
+                    numeradorIm,
+                    this.denRe[i],
+                    this.denIm[i]
+                );
+
+            dPrimeRe[i] = resultado[0];
+            dPrimeIm[i] = resultado[1];
         }
 
 
-        // Demais linhas
+        // ----------------------------------------------------
+        // back substitution
+        // ----------------------------------------------------
 
-        for (let i = 1; i < n; i++) {
+        solRe[M - 1] =
+            dPrimeRe[M - 1];
 
-            // a * dPrime anterior
-
-            const a =
-                this.A_lower[i - 1];
-
-            const prodRe =
-                a *
-                dPrimeRe[i - 1];
-
-            const prodIm =
-                a *
-                dPrimeIm[i - 1];
+        solIm[M - 1] =
+            dPrimeIm[M - 1];
 
 
-            const numRe =
-                dRe[i]
-                -
-                prodRe;
+        for (let i = M - 2; i >= 0; i--) {
 
-            const numIm =
-                dIm[i]
-                -
-                prodIm;
+            const produto =
+                this.multiplicarComplexo(
+                    this.cPrimeRe[i],
+                    this.cPrimeIm[i],
+                    solRe[i + 1],
+                    solIm[i + 1]
+                );
 
+            solRe[i] =
+                dPrimeRe[i] - produto[0];
 
-            const denRe =
-                this.denomRe[i];
-
-            const denIm =
-                this.denomIm[i];
-
-            const divisor =
-                denRe ** 2 +
-                denIm ** 2;
-
-
-            dPrimeRe[i] =
-                (
-                    numRe * denRe
-                    +
-                    numIm * denIm
-                )
-                /
-                divisor;
-
-            dPrimeIm[i] =
-                (
-                    numIm * denRe
-                    -
-                    numRe * denIm
-                )
-                /
-                divisor;
+            solIm[i] =
+                dPrimeIm[i] - produto[1];
         }
 
 
-        // ========================================================
-        // BACK SUBSTITUTION
-        // ========================================================
-
-        resultadoRe[n - 1] =
-            dPrimeRe[n - 1];
-
-        resultadoIm[n - 1] =
-            dPrimeIm[n - 1];
-
-
-        for (let i = n - 2; i >= 0; i--) {
-
-            const cRe =
-                this.cPrimeRe[i];
-
-            const cIm =
-                this.cPrimeIm[i];
-
-
-            const prodRe =
-                cRe *
-                resultadoRe[i + 1]
-                -
-                cIm *
-                resultadoIm[i + 1];
-
-            const prodIm =
-                cRe *
-                resultadoIm[i + 1]
-                +
-                cIm *
-                resultadoRe[i + 1];
-
-
-            resultadoRe[i] =
-                dPrimeRe[i]
-                -
-                prodRe;
-
-            resultadoIm[i] =
-                dPrimeIm[i]
-                -
-                prodIm;
-        }
-
-
-        return {
-            re: resultadoRe,
-            im: resultadoIm
-        };
+        return [solRe, solIm];
     }
 
 
-    // ============================================================
+    // ========================================================
     // UM PASSO DE CRANK-NICOLSON
-    // ============================================================
+    // ========================================================
 
     passoCrankNicolson() {
 
         const rhs =
-            this.multiplicarB();
+            this.calcularRHS();
 
-
-        const novoPsi =
+        const resultado =
             this.resolverThomas(
-                rhs.re,
-                rhs.im
+                rhs[0],
+                rhs[1]
             );
 
+        this.psiRe = resultado[0];
+        this.psiIm = resultado[1];
 
-        this.psiRe =
-            novoPsi.re;
-
-        this.psiIm =
-            novoPsi.im;
-
-
-        this.time +=
-            this.params.dt;
+        this.time += this.params.dt;
     }
 
 
-    // ============================================================
-    // SOLVER
-    // ============================================================
+    // ========================================================
+    // VÁRIOS PASSOS
+    // ========================================================
+
+    evoluir() {
+
+        for (
+            let i = 0;
+            i < this.params.passos_por_frame;
+            i++
+        ) {
+            this.passoCrankNicolson();
+        }
+    }
+
+
+    // ========================================================
+    // PROBABILIDADES
+    // ========================================================
+
+    calcularProbabilidades() {
+
+        const p = this.params;
+
+        let P_esquerda = 0;
+        let P_barreira = 0;
+        let P_direita = 0;
+
+        for (let i = 0; i < this.M; i++) {
+
+            const prob =
+                this.psiRe[i] * this.psiRe[i] +
+                this.psiIm[i] * this.psiIm[i];
+
+            const x = this.x_int[i];
+
+            if (x < 0) {
+
+                P_esquerda += prob * this.dx;
+
+            }
+            else if (x >= 0 && x <= p.a) {
+
+                P_barreira += prob * this.dx;
+
+            }
+            else if (x > p.a) {
+
+                P_direita += prob * this.dx;
+            }
+        }
+
+        return {
+            esquerda: P_esquerda,
+            barreira: P_barreira,
+            direita: P_direita,
+            total:
+                P_esquerda +
+                P_barreira +
+                P_direita
+        };
+    }
+
+
+    // ========================================================
+    // SOLVE
+    // ========================================================
 
     solve() {
 
+        this.criarGrid();
+
         this.criarPotencial();
 
-        this.criarEvolucao();
-
         this.criarPacote();
+
+        this.criarEvolucao();
 
         this.time = 0;
         this.frame = 0;
     }
 
 
-    // ============================================================
-    // PROBABILIDADES
-    // ============================================================
-
-    calcularProbabilidades() {
-
-        const p =
-            this.params;
-
-        let esquerda = 0;
-        let barreira = 0;
-        let direita = 0;
-
-
-        for (let i = 0; i < this.M; i++) {
-
-            const prob =
-                this.psiRe[i] ** 2
-                +
-                this.psiIm[i] ** 2;
-
-
-            if (this.x[i] < 0) {
-
-                esquerda += prob;
-
-            } else if (
-                this.x[i] >= 0 &&
-                this.x[i] <= p.a
-            ) {
-
-                barreira += prob;
-
-            } else if (
-                this.x[i] > p.a
-            ) {
-
-                direita += prob;
-            }
-        }
-
-
-        this.P_esquerda =
-            esquerda * this.dx;
-
-        this.P_barreira =
-            barreira * this.dx;
-
-        this.P_direita =
-            direita * this.dx;
-
-        this.P_total =
-            this.P_esquerda
-            +
-            this.P_barreira
-            +
-            this.P_direita;
-    }
-
-
-    // ============================================================
-    // ESCALA
-    // ============================================================
-
-    updateAxis() {
-
-        this.xMin =
-            this.params.x_min;
-
-        this.xMax =
-            this.params.x_max;
-
-        this.yMin = 0;
-
-        this.yMax = 4;
-    }
-
-
-    // ============================================================
-    // VISUALIZAÇÃO
-    // ============================================================
+    // ========================================================
+    // DESENHO
+    // ========================================================
 
     draw() {
 
         const ctx = this.ctx;
+        const canvas = this.canvas;
 
-        const width =
-            this.canvas.width;
+        const W = canvas.width;
+        const H = canvas.height;
 
-        const height =
-            this.canvas.height;
+        ctx.clearRect(0, 0, W, H);
 
 
-        ctx.clearRect(
-            0,
-            0,
-            width,
-            height
+        // ====================================================
+        // ÁREA DO GRÁFICO
+        // ====================================================
+
+        const left = 70;
+        const right = 70;
+        const top = 45;
+        const bottom = 70;
+
+        const graphW =
+            W - left - right;
+
+        const graphH =
+            H - top - bottom;
+
+
+        // ====================================================
+        // LIMITES
+        // ====================================================
+
+        const xMin = this.params.x_min;
+        const xMax = this.params.x_max;
+
+        // Escala da probabilidade
+        const probMax = 4.0;
+
+        // Escala independente do potencial
+        const VMax =
+            Math.max(
+                45,
+                this.params.V0 * 1.15
+            );
+
+
+        // ====================================================
+        // CONVERSÃO X
+        // ====================================================
+
+        const px = x => {
+
+            return left +
+                (x - xMin) /
+                (xMax - xMin) *
+                graphW;
+        };
+
+
+        // ====================================================
+        // CONVERSÃO Y - PROBABILIDADE
+        // ====================================================
+
+        const pyProb = prob => {
+
+            return top +
+                graphH -
+                (prob / probMax) *
+                graphH;
+        };
+
+
+        // ====================================================
+        // CONVERSÃO Y - POTENCIAL
+        // ====================================================
+
+        const pyV = V => {
+
+            return top +
+                graphH -
+                (V / VMax) *
+                graphH;
+        };
+
+
+        // ====================================================
+        // FUNDO
+        // ====================================================
+
+        ctx.fillStyle = "#ffffff";
+
+        ctx.fillRect(
+            left,
+            top,
+            graphW,
+            graphH
         );
 
 
-        this.updateAxis();
+        // ====================================================
+        // GRADE
+        // ====================================================
 
-
-        // ========================================================
-        // MARGENS
-        // ========================================================
-
-        const marginLeft = 60;
-        const marginRight = 30;
-        const marginTop = 30;
-        const marginBottom = 55;
-
-
-        const graphWidth =
-            width
-            - marginLeft
-            - marginRight;
-
-        const graphHeight =
-            height
-            - marginTop
-            - marginBottom;
-
-
-        // ========================================================
-        // CONVERSÃO FÍSICA → PIXELS
-        // ========================================================
-
-        const toX = x => {
-
-            return marginLeft
-                +
-                (
-                    (x - this.xMin)
-                    /
-                    (this.xMax - this.xMin)
-                )
-                * graphWidth;
-        };
-
-
-        const toY = y => {
-
-            return marginTop
-                +
-                graphHeight
-                -
-                (
-                    y / this.yMax
-                )
-                * graphHeight;
-        };
-
-
-        // ========================================================
-        // EIXOS
-        // ========================================================
-
-        ctx.strokeStyle = "black";
+        ctx.strokeStyle = "#dddddd";
         ctx.lineWidth = 1;
 
+        for (let i = 0; i <= 8; i++) {
 
-        ctx.beginPath();
+            const x =
+                left +
+                i * graphW / 8;
 
-        ctx.moveTo(
-            marginLeft,
-            toY(0)
-        );
+            ctx.beginPath();
 
-        ctx.lineTo(
-            width - marginRight,
-            toY(0)
-        );
+            ctx.moveTo(x, top);
+            ctx.lineTo(x, top + graphH);
 
-        ctx.stroke();
-
-
-        ctx.beginPath();
-
-        ctx.moveTo(
-            marginLeft,
-            marginTop
-        );
-
-        ctx.lineTo(
-            marginLeft,
-            toY(0)
-        );
-
-        ctx.stroke();
+            ctx.stroke();
+        }
 
 
-        // ========================================================
+        for (let i = 0; i <= 4; i++) {
+
+            const y =
+                top +
+                i * graphH / 4;
+
+            ctx.beginPath();
+
+            ctx.moveTo(left, y);
+            ctx.lineTo(left + graphW, y);
+
+            ctx.stroke();
+        }
+
+
+        // ====================================================
         // BARREIRA
-        // ========================================================
+        // ====================================================
 
-        const p = this.params;
+        const x1 = px(0);
+        const x2 = px(this.params.a);
+
+        const yBarrier =
+            pyV(this.params.V0);
+
+        ctx.fillStyle =
+            "rgba(200, 80, 80, 0.20)";
+
+        ctx.fillRect(
+            x1,
+            yBarrier,
+            x2 - x1,
+            top + graphH - yBarrier
+        );
 
 
-        if (p.V0 <= this.yMax) {
-
-            ctx.fillStyle =
-                "rgba(180, 180, 180, 0.35)";
-
-            ctx.fillRect(
-                toX(0),
-                toY(p.V0),
-                toX(p.a) - toX(0),
-                toY(0) - toY(p.V0)
-            );
-        }
-
-
-        // ========================================================
-        // POTENCIAL
-        // ========================================================
-
-        ctx.strokeStyle = "red";
-        ctx.lineWidth = 2;
+        // ====================================================
+        // LINHA DO POTENCIAL
+        // ====================================================
 
         ctx.beginPath();
 
-
-        let primeiro = true;
-
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = "#cc3333";
 
         for (let i = 0; i < this.M; i++) {
 
             const x =
-                this.x[i];
-
-            const V =
-                this.V[i];
+                px(this.x_int[i]);
 
             const y =
-                Math.min(
-                    V,
-                    this.yMax
-                );
-
-
-            if (primeiro) {
-
-                ctx.moveTo(
-                    toX(x),
-                    toY(y)
-                );
-
-                primeiro = false;
-
-            } else {
-
-                ctx.lineTo(
-                    toX(x),
-                    toY(y)
-                );
-            }
-        }
-
-        ctx.stroke();
-
-
-        // ========================================================
-        // PROBABILIDADE |Ψ|²
-        // ========================================================
-
-        ctx.strokeStyle = "blue";
-        ctx.lineWidth = 2;
-
-
-        ctx.beginPath();
-
-
-        for (let i = 0; i < this.M; i++) {
-
-            const prob =
-                this.psiRe[i] ** 2
-                +
-                this.psiIm[i] ** 2;
-
-
-            const x =
-                toX(this.x[i]);
-
-            const y =
-                toY(prob);
-
+                pyV(this.V[i]);
 
             if (i === 0) {
 
@@ -1112,235 +888,311 @@ class QuantumTunneling {
         ctx.stroke();
 
 
-        // ========================================================
-        // LINHA x = 0
-        // ========================================================
-
-        ctx.strokeStyle =
-            "rgba(0,0,0,0.35)";
-
-        ctx.setLineDash([5, 5]);
+        // ====================================================
+        // PROBABILIDADE
+        // ====================================================
 
         ctx.beginPath();
 
-        ctx.moveTo(
-            toX(0),
-            marginTop
-        );
+        ctx.lineWidth = 2.5;
+        ctx.strokeStyle = "#0066cc";
 
-        ctx.lineTo(
-            toX(0),
-            toY(0)
-        );
+        for (let i = 0; i < this.M; i++) {
+
+            const prob =
+                this.psiRe[i] *
+                this.psiRe[i] +
+
+                this.psiIm[i] *
+                this.psiIm[i];
+
+            const x =
+                px(this.x_int[i]);
+
+            const y =
+                pyProb(prob);
+
+            if (i === 0) {
+
+                ctx.moveTo(x, y);
+
+            } else {
+
+                ctx.lineTo(x, y);
+            }
+        }
 
         ctx.stroke();
 
 
-        // x = a
+        // ====================================================
+        // EIXOS
+        // ====================================================
+
+        ctx.strokeStyle = "#222222";
+        ctx.lineWidth = 1.5;
 
         ctx.beginPath();
 
-        ctx.moveTo(
-            toX(p.a),
-            marginTop
-        );
-
-        ctx.lineTo(
-            toX(p.a),
-            toY(0)
-        );
+        ctx.moveTo(left, top);
+        ctx.lineTo(left, top + graphH);
+        ctx.lineTo(left + graphW, top + graphH);
 
         ctx.stroke();
 
-        ctx.setLineDash([]);
+
+        // ====================================================
+        // TICKS X
+        // ====================================================
+
+        ctx.fillStyle = "#222222";
+
+        ctx.font = "13px Arial";
+        ctx.textAlign = "center";
+
+        for (let i = 0; i <= 8; i++) {
+
+            const value =
+                xMin +
+                i * (xMax - xMin) / 8;
+
+            const x =
+                px(value);
+
+            ctx.fillText(
+                value.toFixed(1),
+                x,
+                top + graphH + 20
+            );
+        }
 
 
-        // ========================================================
-        // TEXTO
-        // ========================================================
+        // ====================================================
+        // EIXO X
+        // ====================================================
 
-        ctx.fillStyle = "black";
-        ctx.font = "14px Arial";
-
+        ctx.font = "16px Arial";
 
         ctx.fillText(
-            `t = ${this.time.toFixed(3)} u.t.`,
-            20,
+            "x",
+            left + graphW / 2,
+            H - 20
+        );
+
+
+        // ====================================================
+        // EIXO Y PROBABILIDADE
+        // ====================================================
+
+        ctx.save();
+
+        ctx.translate(20, top + graphH / 2);
+
+        ctx.rotate(-Math.PI / 2);
+
+        ctx.textAlign = "center";
+
+        ctx.fillText(
+            "|Ψ(x,t)|²",
+            0,
+            0
+        );
+
+        ctx.restore();
+
+
+        // ====================================================
+        // EIXO Y POTENCIAL
+        // ====================================================
+
+        ctx.save();
+
+        ctx.translate(
+            W - 20,
+            top + graphH / 2
+        );
+
+        ctx.rotate(Math.PI / 2);
+
+        ctx.textAlign = "center";
+
+        ctx.fillText(
+            "V(x)",
+            0,
+            0
+        );
+
+        ctx.restore();
+
+
+        // ====================================================
+        // TÍTULO
+        // ====================================================
+
+        ctx.font = "bold 20px Arial";
+
+        ctx.textAlign = "center";
+
+        ctx.fillStyle = "#222222";
+
+        ctx.fillText(
+            "Tunelamento Quântico",
+            W / 2,
             25
         );
 
 
+        // ====================================================
+        // INFORMAÇÕES
+        // ====================================================
+
+        const P =
+            this.calcularProbabilidades();
+
+        ctx.textAlign = "left";
+
+        ctx.font = "14px Arial";
+
+        ctx.fillStyle = "#222222";
+
+        const infoX = left + 10;
+        const infoY = top + 20;
+
         ctx.fillText(
-            `Esquerda: ${(100 * this.P_esquerda).toFixed(1)}%`,
-            20,
-            45
+            `t = ${this.time.toFixed(3)} u.t.`,
+            infoX,
+            infoY
+        );
+
+        ctx.fillText(
+            `Esquerda: ${(100 * P.esquerda).toFixed(1)}%`,
+            infoX,
+            infoY + 20
+        );
+
+        ctx.fillText(
+            `Tunelamento: ${(100 * P.direita).toFixed(1)}%`,
+            infoX,
+            infoY + 40
+        );
+
+        ctx.fillText(
+            `Na barreira: ${(100 * P.barreira).toFixed(1)}%`,
+            infoX,
+            infoY + 60
+        );
+
+        ctx.fillText(
+            `Total: ${(100 * P.total).toFixed(1)}%`,
+            infoX,
+            infoY + 80
         );
 
 
-        ctx.fillText(
-            `Tunelamento: ${(100 * this.P_direita).toFixed(1)}%`,
-            20,
-            65
-        );
-
-
-        ctx.fillText(
-            `Barreira: ${(100 * this.P_barreira).toFixed(1)}%`,
-            20,
-            85
-        );
-
-
-        ctx.fillText(
-            `Total: ${(100 * this.P_total).toFixed(1)}%`,
-            20,
-            105
-        );
-
-
-        // ========================================================
+        // ====================================================
         // LEGENDA
-        // ========================================================
+        // ====================================================
 
-        ctx.fillStyle = "blue";
+        const legendX =
+            left + graphW - 180;
 
-        ctx.fillRect(
-            width - 190,
-            25,
-            20,
-            3
+        const legendY =
+            top + 20;
+
+        ctx.lineWidth = 3;
+
+        // probabilidade
+
+        ctx.strokeStyle = "#0066cc";
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            legendX,
+            legendY
         );
 
-        ctx.fillStyle = "black";
+        ctx.lineTo(
+            legendX + 30,
+            legendY
+        );
+
+        ctx.stroke();
+
+        ctx.fillStyle = "#222222";
+
+        ctx.font = "13px Arial";
 
         ctx.fillText(
-            "|Ψ(x,t)|²",
-            width - 160,
-            30
+            "|Ψ|²",
+            legendX + 40,
+            legendY + 5
         );
 
 
-        ctx.fillStyle = "red";
+        // potencial
 
-        ctx.fillRect(
-            width - 190,
-            48,
-            20,
-            3
+        ctx.strokeStyle = "#cc3333";
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            legendX,
+            legendY + 25
         );
 
-        ctx.fillStyle = "black";
+        ctx.lineTo(
+            legendX + 30,
+            legendY + 25
+        );
+
+        ctx.stroke();
+
+        ctx.fillStyle = "#222222";
 
         ctx.fillText(
             "V(x)",
-            width - 160,
-            53
+            legendX + 40,
+            legendY + 30
         );
-
-
-        // ========================================================
-        // EIXO X
-        // ========================================================
-
-        ctx.fillStyle = "black";
-        ctx.font = "13px Arial";
-
-
-        ctx.fillText(
-            "x",
-            width - marginRight + 5,
-            toY(0) + 5
-        );
-
-
-        // ========================================================
-        // MARCAÇÕES X
-        // ========================================================
-
-        const marcas = [-6, -4, -2, 0, 2, 4, 6];
-
-
-        for (const valor of marcas) {
-
-            const px =
-                toX(valor);
-
-            ctx.beginPath();
-
-            ctx.moveTo(
-                px,
-                toY(0)
-            );
-
-            ctx.lineTo(
-                px,
-                toY(0) + 5
-            );
-
-            ctx.stroke();
-
-
-            ctx.fillText(
-                valor.toString(),
-                px - 8,
-                toY(0) + 20
-            );
-        }
     }
 
 
-    // ============================================================
+    // ========================================================
     // ANIMAÇÃO
-    // ============================================================
+    // ========================================================
 
     iniciar() {
 
-        if (this.running)
+        if (this.running) {
             return;
-
+        }
 
         this.running = true;
 
-
         const loop = () => {
 
-            if (!this.running)
+            if (!this.running) {
                 return;
-
-
-            // --------------------------------------------
-            // Vários passos por frame
-            // --------------------------------------------
-
-            for (
-                let i = 0;
-                i < this.params.passos_por_frame;
-                i++
-            ) {
-
-                this.passoCrankNicolson();
             }
 
-
-            this.calcularProbabilidades();
-
-            this.frame++;
+            this.evoluir();
 
             this.draw();
 
+            this.frame++;
 
             this.animationId =
                 requestAnimationFrame(loop);
         };
 
-
         loop();
     }
 
 
-    // ============================================================
-    // PARAR
-    // ============================================================
+    // ========================================================
+    // PAUSAR
+    // ========================================================
 
     parar() {
 
@@ -1357,51 +1209,62 @@ class QuantumTunneling {
     }
 
 
-    // ============================================================
-    // RESETAR ANIMAÇÃO
-    // ============================================================
+    // ========================================================
+    // PLAY / PAUSE
+    // ========================================================
+
+    alternar() {
+
+        if (this.running) {
+
+            this.parar();
+
+        } else {
+
+            this.iniciar();
+        }
+    }
+
+
+    // ========================================================
+    // RESET
+    // ========================================================
 
     resetar() {
 
         this.parar();
 
-        this.solve();
+        this.params = {
+            ...this.defaultParams
+        };
 
-        this.calcularProbabilidades();
+        this.solve();
 
         this.draw();
     }
 
 
-    // ============================================================
+    // ========================================================
     // ATUALIZAR PARÂMETROS
-    // ============================================================
+    // ========================================================
 
     atualizarParametros(newParams) {
 
         const estavaRodando =
             this.running;
 
-
         this.parar();
 
-
         this.params = {
-
             ...this.params,
             ...newParams
         };
 
-
         this.solve();
-
-        this.calcularProbabilidades();
 
         this.draw();
 
-
         if (estavaRodando) {
-
             this.iniciar();
         }
     }
