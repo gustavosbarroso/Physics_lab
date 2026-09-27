@@ -152,7 +152,7 @@ Interferência de duas ondas senoidais
 **[▶ Abrir simulação](https://gustavosbarroso.github.io/Physics_lab/SuperposicaoOndas/)**
 
 
-### XVI. [Tunelamento quântico](https://gustavosbarroso.github.io/Physics_lab/QuantumTunneling/)
+### XVII. [Tunelamento quântico](https://gustavosbarroso.github.io/Physics_lab/QuantumTunneling/)
 
 <img width="907" height="555" alt="image" src="https://github.com/user-attachments/assets/c732599b-6ef7-4e35-9c81-eed07fa15a19" />
 
