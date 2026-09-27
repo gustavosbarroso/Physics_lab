@@ -2,19 +2,10 @@
 // SIMULAÇÃO DA SUPERPOSIÇÃO DE ONDAS
 // ============================================================
 //
-// Simulação da superposição de duas ondas senoidais:
-//
-// y(x,t) = A sen(kx - wt + φ)
-//
-// com:
-//
-// k = 2π / λ
-// w = 2πf
-//
-// A simulação mostra:
-//     y₁(x,t) + y₂(x,t) = y_resultante(x,t)
+// y(x,t) = A sen((2π/λ)x - (2πf)t + φ)
 //
 // ============================================================
+
 
 class SuperposicaoOndas {
 
@@ -79,6 +70,30 @@ class SuperposicaoOndas {
         // ====================================================
 
         this.t = 0;
+
+
+        // ====================================================
+        // CONTROLE DA VELOCIDADE
+        // ====================================================
+
+        /*
+         * No Python:
+         *
+         * interval = 20 ms
+         * t = frame * 0.02
+         *
+         * Portanto:
+         *
+         * Δt = 0.02 s
+         *
+         * por atualização.
+         */
+
+        this.dt = 0.02;
+
+        this.interval = 20;
+
+        this.ultimoFrame = 0;
 
 
         // ====================================================
@@ -1222,7 +1237,7 @@ class SuperposicaoOndas {
 
 
         // ====================================================
-        // GRÁFICO RESULTANTE
+        // RESULTANTE
         // ====================================================
 
         this.drawGraph(
@@ -1309,20 +1324,65 @@ class SuperposicaoOndas {
 
     iniciar() {
 
-        const animar = () => {
+        const animar = (
+            timestamp
+        ) => {
 
             // -----------------------------------------------
-            // Avanço do tempo
+            // Primeiro frame
             // -----------------------------------------------
 
-            this.t += 0.02;
+            if (
+                this.ultimoFrame === 0
+            ) {
+
+                this.ultimoFrame =
+                    timestamp;
+            }
 
 
             // -----------------------------------------------
-            // Atualiza os gráficos
+            // Tempo real desde o último frame
             // -----------------------------------------------
 
-            this.draw();
+            const decorrido =
+                timestamp -
+                this.ultimoFrame;
+
+
+            // -----------------------------------------------
+            // Aproximadamente 20 ms
+            // -----------------------------------------------
+
+            if (
+                decorrido >=
+                this.interval
+            ) {
+
+                /*
+                 * Igual ao Python:
+                 *
+                 * t = frame * 0.02
+                 */
+
+                this.t += this.dt;
+
+
+                this.draw();
+
+
+                /*
+                 * Mantemos o relógio alinhado
+                 * aos intervalos de 20 ms.
+                 */
+
+                this.ultimoFrame =
+                    timestamp -
+                    (
+                        decorrido %
+                        this.interval
+                    );
+            }
 
 
             // -----------------------------------------------
@@ -1336,7 +1396,10 @@ class SuperposicaoOndas {
         };
 
 
-        animar();
+        this.frame =
+            requestAnimationFrame(
+                animar
+            );
     }
 
 
