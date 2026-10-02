@@ -158,7 +158,7 @@ Interferência de duas ondas senoidais
 
 Pacote de onda atravessando um poço de potencial através do tunelamento quântico
 
-**[▶ Abrir simulação] (https://gustavosbarroso.github.io/Physics_lab/QuantumTunneling/)**
+**[▶ Abrir simulação](https://gustavosbarroso.github.io/Physics_lab/QuantumTunneling/)**
 
 ### XVIII. [Osciladores acoplados](https://gustavosbarroso.github.io/Physics_lab/osciladores_acoplados/)
 
@@ -166,7 +166,7 @@ Pacote de onda atravessando um poço de potencial através do tunelamento quânt
 
 Sistema de dois osciladores acoplados ligados por uma mola em comum.
 
-**[▶ Abrir simulação] (https://gustavosbarroso.github.io/Physics_lab/osciladores_acoplados/)**
+**[▶ Abrir simulação](https://gustavosbarroso.github.io/Physics_lab/osciladores_acoplados/)**
 
 ---
 
