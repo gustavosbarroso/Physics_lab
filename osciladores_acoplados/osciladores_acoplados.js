@@ -45,7 +45,7 @@ class CoupledOscillators {
         this.tf = 20;
         this.N = 400;
 
-        this.animationSpeed = 1.0;
+        this.animationSpeed = 0.5;
 
         // =====================================================
         // GEOMETRIA
