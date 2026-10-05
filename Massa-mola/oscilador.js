@@ -514,8 +514,8 @@ createControls() {
         {
             name: "v0",
             label: "v₀ (m/s)",
-            min: -0.9,
-            max: 0.9,
+            min: -0.15,
+            max: 0.15,
             step: 0.1
         }
 
