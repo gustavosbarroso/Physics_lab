@@ -168,6 +168,14 @@ Sistema de dois osciladores acoplados ligados por uma mola em comum.
 
 **[▶ Abrir simulação](https://gustavosbarroso.github.io/Physics_lab/osciladores_acoplados/)**
 
+### XIX. [Gerador AC](https://gustavosbarroso.github.io/Physics_lab/GeradorAC/)
+
+<img width="1205" height="555" alt="image" src="https://github.com/user-attachments/assets/e2aab12e-f2b0-4036-8018-9716065f88b8" />
+
+Gerador Senoidal de Corrente alternada.
+
+**[▶ Abrir simulação](https://gustavosbarroso.github.io/Physics_lab/GeradorAC/)**
+
 ---
 
 ## 📄 LICENÇA
