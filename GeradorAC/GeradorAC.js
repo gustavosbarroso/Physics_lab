@@ -30,7 +30,6 @@ class GeradorAC {
         // CORES DO GRÁFICO
         // ============================================================
 
-        // Cores padrão do Matplotlib
         this.corV = "#1f77b4";
         this.corI = "#ff7f0e";
 
@@ -100,6 +99,7 @@ class GeradorAC {
             label.textContent = texto;
 
             const input = document.createElement("input");
+
             input.type = "range";
             input.min = min;
             input.max = max;
@@ -209,13 +209,6 @@ class GeradorAC {
 
         const ctx = this.ctx;
 
-        const largura = this.canvas.width;
-        const altura = 330;
-
-        // ========================================================
-        // ÁREA DO GERADOR
-        // ========================================================
-
         const centroX = 330;
         const centroY = 175;
 
@@ -242,8 +235,6 @@ class GeradorAC {
             26,
             260
         );
-
-        // Letras
 
         ctx.fillStyle = "white";
         ctx.font = "22px Arial";
@@ -304,7 +295,8 @@ class GeradorAC {
         // CAMPO MAGNÉTICO
         // ========================================================
 
-        let sentido = this.params.B >= 0 ? 1 : -1;
+        const sentido =
+            this.params.B >= 0 ? 1 : -1;
 
         ctx.strokeStyle = "rgba(0, 0, 0, 0.5)";
         ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
@@ -312,7 +304,8 @@ class GeradorAC {
 
         for (let i = 0; i < 5; i++) {
 
-            const y = centroY - 98 + i * 49;
+            const y =
+                centroY - 98 + i * 49;
 
             const x1 =
                 sentido === 1
@@ -330,10 +323,6 @@ class GeradorAC {
             ctx.lineTo(x2, y);
 
             ctx.stroke();
-
-            // ----------------------------------------------------
-            // Ponta da seta
-            // ----------------------------------------------------
 
             const tamanho = 9;
 
@@ -375,10 +364,11 @@ class GeradorAC {
 
 
         // ========================================================
-        // BOBINA
+        // BOBINA RETANGULAR
         // ========================================================
 
-        const angulo = this.params.w * this.t;
+        const angulo =
+            this.params.w * this.t;
 
         const larguraBobina =
             1.5 * Math.cos(angulo);
@@ -396,7 +386,6 @@ class GeradorAC {
 
         const baixo =
             centroY + alturaBobina * escala;
-
 
         ctx.strokeStyle = "black";
         ctx.lineWidth = 3;
@@ -584,12 +573,11 @@ class GeradorAC {
         // EIXOS
         // ========================================================
 
-        const eixoX = y0 + altura / 2;
+        const eixoX =
+            y0 + altura / 2;
 
         ctx.strokeStyle = "#666666";
         ctx.lineWidth = 1;
-
-        // eixo horizontal
 
         ctx.beginPath();
 
@@ -605,8 +593,6 @@ class GeradorAC {
 
         ctx.stroke();
 
-
-        // eixo vertical
 
         ctx.beginPath();
 
@@ -671,7 +657,7 @@ class GeradorAC {
 
 
         // ========================================================
-        // FUNÇÕES DE COORDENADAS
+        // COORDENADAS
         // ========================================================
 
         const converterX = (tempo) => {
@@ -691,17 +677,11 @@ class GeradorAC {
 
 
         // ========================================================
-        // CURVAS
+        // CURVA V(t)
         // ========================================================
 
-        ctx.lineWidth = 2.5;
-
-
-        // --------------------------------------------------------
-        // V(t)
-        // --------------------------------------------------------
-
         ctx.strokeStyle = this.corV;
+        ctx.lineWidth = 2;
 
         ctx.beginPath();
 
@@ -735,11 +715,12 @@ class GeradorAC {
         ctx.stroke();
 
 
-        // --------------------------------------------------------
-        // I(t)
-        // --------------------------------------------------------
+        // ========================================================
+        // CURVA I(t)
+        // ========================================================
 
         ctx.strokeStyle = this.corI;
+        ctx.lineWidth = 2;
 
         ctx.beginPath();
 
@@ -808,9 +789,9 @@ class GeradorAC {
             converterX(tempo);
 
 
-        // --------------------------------------------------------
-        // Ponto V
-        // --------------------------------------------------------
+        // ========================================================
+        // PONTO V(t)
+        // ========================================================
 
         const pyV =
             converterY(V);
@@ -830,9 +811,9 @@ class GeradorAC {
         ctx.fill();
 
 
-        // --------------------------------------------------------
-        // Ponto I
-        // --------------------------------------------------------
+        // ========================================================
+        // PONTO I(t)
+        // ========================================================
 
         const pyI =
             converterY(corrente);
@@ -1061,7 +1042,11 @@ class GeradorAC {
 
                 this.t += this.dt;
 
-                if (this.t >= 10) {
+                // ==================================================
+                // REINICIA COMO FuncAnimation(frames=100)
+                // ==================================================
+
+                if (this.t >= 2) {
                     this.t = 0;
                 }
 
