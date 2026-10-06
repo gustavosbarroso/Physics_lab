@@ -1,30 +1,35 @@
 // ============================================================
-// PARÂMETROS INICIAIS
+// GERADOR AC
 // ============================================================
 
+const canvas = document.getElementById("geradorCanvas");
+const ctx = canvas.getContext("2d");
+
+// ============================================================
+// PARÂMETROS
+// ============================================================
+
+const t = [];
+
+for (let i = 0; i < 1000; i++) {
+    t.push(10 * i / 999);
+}
+
+let N = 100;
 let A = 2.0;
 let B = 0.5;
 let w = 10;
-let N = 100;
 let R = 10;
 
-
 // ============================================================
-// TENSÃO INDUZIDA (DDP)
+// FUNÇÕES
 // ============================================================
 
 function ddp(N, A, B, w, t) {
-
     return N * A * B * Math.sin(w * t);
 }
 
-
-// ============================================================
-// CORRENTE INDUZIDA
-// ============================================================
-
-function I(ddp, R) {
-
+function corrente(ddp, R) {
     if (R === 0) {
         return 0;
     }
@@ -32,543 +37,348 @@ function I(ddp, R) {
     return ddp / R;
 }
 
-
 // ============================================================
-// CANVAS
-// ============================================================
-
-const canvas =
-    document.getElementById("geradorCanvas");
-
-const ctx =
-    canvas.getContext("2d");
-
-
-// ============================================================
-// CONTROLES
+// ELEMENTOS DOS SLIDERS
 // ============================================================
 
-const slider_N =
-    document.getElementById("slider_N");
+const sliderN = document.getElementById("slider_N");
+const sliderA = document.getElementById("slider_A");
+const sliderB = document.getElementById("slider_B");
+const sliderW = document.getElementById("slider_w");
+const sliderR = document.getElementById("slider_R");
 
-const slider_A =
-    document.getElementById("slider_A");
-
-const slider_B =
-    document.getElementById("slider_B");
-
-const slider_w =
-    document.getElementById("slider_w");
-
-const slider_R =
-    document.getElementById("slider_R");
-
+const valorN = document.getElementById("valor_N");
+const valorA = document.getElementById("valor_A");
+const valorB = document.getElementById("valor_B");
+const valorW = document.getElementById("valor_w");
+const valorR = document.getElementById("valor_R");
 
 // ============================================================
-// VALORES DOS CONTROLES
+// TAMANHO DA ÁREA DO GERADOR
 // ============================================================
 
-const valor_N =
-    document.getElementById("valor_N");
-
-const valor_A =
-    document.getElementById("valor_A");
-
-const valor_B =
-    document.getElementById("valor_B");
-
-const valor_w =
-    document.getElementById("valor_w");
-
-const valor_R =
-    document.getElementById("valor_R");
-
+const gerador = {
+    x: 170,
+    y: 90,
+    largura: 360,
+    altura: 310
+};
 
 // ============================================================
-// TEMPO
+// FUNÇÃO PARA MAPEAR COORDENADAS DO GERADOR
+// Equivalente aproximado ao:
+// ax.set_xlim(-3,3)
+// ax.set_ylim(-2.5,2.5)
 // ============================================================
 
-let frame = 0;
-
-
-// ============================================================
-// ATUALIZAÇÃO DOS SLIDERS
-// ============================================================
-
-function update_sliders() {
-
-    N = Number(slider_N.value);
-    A = Number(slider_A.value);
-    B = Number(slider_B.value);
-    w = Number(slider_w.value);
-    R = Number(slider_R.value);
-
-    valor_N.textContent = N;
-    valor_A.textContent = A;
-    valor_B.textContent = B;
-    valor_w.textContent = w;
-    valor_R.textContent = R;
-
-    desenhar();
+function mapX(x) {
+    return gerador.x + ((x + 3) / 6) * gerador.largura;
 }
 
+function mapY(y) {
+    return gerador.y + ((2.5 - y) / 5) * gerador.altura;
+}
 
 // ============================================================
-// CONECTA SLIDERS
+// DESENHO DO GERADOR
 // ============================================================
 
-slider_N.addEventListener(
-    "input",
-    update_sliders
-);
+function desenharGerador() {
 
-slider_A.addEventListener(
-    "input",
-    update_sliders
-);
+    // --------------------------------------------------------
+    // ÁREA DO GERADOR
+    // --------------------------------------------------------
 
-slider_B.addEventListener(
-    "input",
-    update_sliders
-);
+    ctx.strokeStyle = "black";
+    ctx.lineWidth = 1;
 
-slider_w.addEventListener(
-    "input",
-    update_sliders
-);
+    ctx.strokeRect(
+        gerador.x,
+        gerador.y,
+        gerador.largura,
+        gerador.altura
+    );
 
-slider_R.addEventListener(
-    "input",
-    update_sliders
-);
-
-
-// ============================================================
-// DESENHA GERADOR
-// ============================================================
-
-function desenharGerador(tempo) {
-
-    // ========================================================
-    // LIMITES DO GERADOR
-    // ========================================================
-
-    const x0 = 40;
-    const x1 = 570;
-
-    const y0 = 40;
-    const y1 = 290;
-
-    const centroX = 305;
-    const centroY = 165;
-
-
-    // ========================================================
+    // --------------------------------------------------------
     // TÍTULO
-    // ========================================================
+    // --------------------------------------------------------
+
+    ctx.font = "18px Arial";
+    ctx.fillStyle = "black";
+    ctx.textAlign = "center";
+
+    ctx.fillText(
+        "Gerador AC",
+        gerador.x + gerador.largura / 2,
+        gerador.y - 10
+    );
+
+    // --------------------------------------------------------
+    // ÍMÃS
+    // --------------------------------------------------------
+
+    // Esquerda - S
+    ctx.fillStyle = "blue";
+
+    ctx.fillRect(
+        mapX(-2.7),
+        mapY(2),
+        mapX(-2.3) - mapX(-2.7),
+        mapY(-2) - mapY(2)
+    );
+
+    // Esquerda - N
+    ctx.fillStyle = "red";
+
+    ctx.fillRect(
+        mapX(-2.3),
+        mapY(2),
+        mapX(-1.9) - mapX(-2.3),
+        mapY(-2) - mapY(2)
+    );
+
+    // Direita - S
+    ctx.fillStyle = "blue";
+
+    ctx.fillRect(
+        mapX(1.9),
+        mapY(2),
+        mapX(2.3) - mapX(1.9),
+        mapY(-2) - mapY(2)
+    );
+
+    // Direita - N
+    ctx.fillStyle = "red";
+
+    ctx.fillRect(
+        mapX(2.3),
+        mapY(2),
+        mapX(2.7) - mapX(2.3),
+        mapY(-2) - mapY(2)
+    );
+
+    // --------------------------------------------------------
+    // LETRAS DOS ÍMÃS
+    // --------------------------------------------------------
+
+    ctx.fillStyle = "white";
+    ctx.font = "28px Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    ctx.fillText("S", mapX(-2.5), mapY(0));
+    ctx.fillText("N", mapX(-2.1), mapY(0));
+
+    ctx.fillText("S", mapX(2.1), mapY(0));
+    ctx.fillText("N", mapX(2.5), mapY(0));
+
+    // --------------------------------------------------------
+    // CAMPO MAGNÉTICO
+    // --------------------------------------------------------
+
+    const ys = [-1.5, -0.75, 0, 0.75, 1.5];
+
+    ctx.strokeStyle = "gray";
+    ctx.fillStyle = "gray";
+    ctx.lineWidth = 1.5;
+
+    for (let i = 0; i < ys.length; i++) {
+
+        const y = mapY(ys[i]);
+
+        let xInicio;
+        let xFim;
+
+        if (B >= 0) {
+            xInicio = mapX(-1.7);
+            xFim = mapX(1.3);
+        } else {
+            xInicio = mapX(1.3);
+            xFim = mapX(-1.7);
+        }
+
+        const ponta = 8;
+
+        ctx.beginPath();
+        ctx.moveTo(xInicio, y);
+        ctx.lineTo(xFim, y);
+        ctx.stroke();
+
+        // ponta da seta
+        ctx.beginPath();
+
+        if (B >= 0) {
+            ctx.moveTo(xFim, y);
+            ctx.lineTo(xFim - ponta, y - 3);
+            ctx.lineTo(xFim - ponta, y + 3);
+        } else {
+            ctx.moveTo(xFim, y);
+            ctx.lineTo(xFim + ponta, y - 3);
+            ctx.lineTo(xFim + ponta, y + 3);
+        }
+
+        ctx.closePath();
+        ctx.fill();
+    }
+
+    // --------------------------------------------------------
+    // ESPIRA
+    // --------------------------------------------------------
+
+    const cx = mapX(0);
+
+    const larguraEspira = mapX(1.5) - mapX(0);
+    const alturaEspira = mapY(-1.2) - mapY(1.2);
+
+    const x1 = cx - larguraEspira;
+    const x2 = cx + larguraEspira;
+
+    const y1 = mapY(1.2);
+    const y2 = mapY(-1.2);
+
+    // Espira retangular fechada
+    ctx.beginPath();
+
+    ctx.moveTo(x1, y2);
+    ctx.lineTo(x2, y2);
+    ctx.lineTo(x2, y1);
+    ctx.lineTo(x1, y1);
+    ctx.closePath();
+
+    ctx.strokeStyle = "black";
+    ctx.lineWidth = 4;
+    ctx.stroke();
+
+    // --------------------------------------------------------
+    // LÂMPADA
+    // --------------------------------------------------------
+
+    const lampX = cx;
+    const lampY = mapY(-1.7);
+    const lampRaio = 21;
+
+    // fio entre a espira e a lâmpada
+    //
+    // IMPORTANTE:
+    // começa exatamente na parte inferior da espira.
+    // Não atravessa o interior dela.
+    ctx.beginPath();
+
+    ctx.moveTo(cx, y2);
+    ctx.lineTo(cx, lampY - lampRaio);
+
+    ctx.strokeStyle = "black";
+    ctx.lineWidth = 4;
+    ctx.stroke();
+
+    // lâmpada
+    ctx.beginPath();
+    ctx.arc(
+        lampX,
+        lampY,
+        lampRaio,
+        0,
+        2 * Math.PI
+    );
+
+    ctx.fillStyle = "gray";
+    ctx.fill();
+
+    ctx.strokeStyle = "black";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // nome
+    ctx.fillStyle = "black";
+    ctx.font = "14px Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "alphabetic";
+
+    ctx.fillText(
+        "Lâmpada",
+        lampX,
+        mapY(-2.2)
+    );
+}
+
+// ============================================================
+// CÁLCULO DOS DADOS
+// ============================================================
+
+function calcularDados() {
+
+    const V = [];
+    const I = [];
+
+    for (let i = 0; i < t.length; i++) {
+
+        const v = ddp(
+            N,
+            A,
+            B,
+            w,
+            t[i]
+        );
+
+        V.push(v);
+        I.push(corrente(v, R));
+    }
+
+    return {
+        V: V,
+        I: I
+    };
+}
+
+// ============================================================
+// GRÁFICO
+// ============================================================
+
+function desenharGrafico(dados, tempoAtual) {
+
+    const x = 624;
+    const y = 80;
+    const largura = 660;
+    const altura = 350;
+
+    // --------------------------------------------------------
+    // TÍTULO
+    // --------------------------------------------------------
 
     ctx.fillStyle = "black";
     ctx.font = "18px Arial";
     ctx.textAlign = "center";
 
     ctx.fillText(
-        "Gerador AC",
-        centroX,
-        25
+        "Gerador AC - Tensão e Corrente x Tempo",
+        x + largura / 2,
+        y - 10
     );
 
+    // --------------------------------------------------------
+    // LIMITES Y
+    // --------------------------------------------------------
 
-    // ========================================================
-    // ÍMÃ ESQUERDO
-    // ========================================================
+    let Vmax = 0;
+    let Imax = 0;
 
-    ctx.fillStyle = "blue";
+    for (let i = 0; i < t.length; i++) {
 
-    ctx.fillRect(
-        centroX - 175,
-        centroY - 100,
-        26,
-        200
-    );
+        if (t[i] <= 2) {
 
-    ctx.fillStyle = "red";
-
-    ctx.fillRect(
-        centroX - 149,
-        centroY - 100,
-        26,
-        200
-    );
-
-
-    // ========================================================
-    // LETRAS ÍMÃ ESQUERDO
-    // ========================================================
-
-    ctx.fillStyle = "white";
-    ctx.font = "22px Arial";
-
-    ctx.fillText(
-        "S",
-        centroX - 162,
-        centroY + 7
-    );
-
-    ctx.fillText(
-        "N",
-        centroX - 136,
-        centroY + 7
-    );
-
-
-    // ========================================================
-    // ÍMÃ DIREITO
-    // ========================================================
-
-    ctx.fillStyle = "blue";
-
-    ctx.fillRect(
-        centroX + 124,
-        centroY - 100,
-        26,
-        200
-    );
-
-    ctx.fillStyle = "red";
-
-    ctx.fillRect(
-        centroX + 150,
-        centroY - 100,
-        26,
-        200
-    );
-
-
-    // ========================================================
-    // LETRAS ÍMÃ DIREITO
-    // ========================================================
-
-    ctx.fillStyle = "white";
-
-    ctx.fillText(
-        "S",
-        centroX + 137,
-        centroY + 7
-    );
-
-    ctx.fillText(
-        "N",
-        centroX + 163,
-        centroY + 7
-    );
-
-
-    // ========================================================
-    // CAMPO MAGNÉTICO
-    // ========================================================
-
-    const sentido =
-        B >= 0 ? 1 : -1;
-
-    ctx.strokeStyle =
-        "rgba(0,0,0,0.5)";
-
-    ctx.fillStyle =
-        "rgba(0,0,0,0.5)";
-
-    ctx.lineWidth = 1.5;
-
-    for (let i = 0; i < 5; i++) {
-
-        const y =
-            centroY - 75 + i * 37.5;
-
-        let inicio;
-        let fim;
-
-        if (sentido === 1) {
-
-            inicio = centroX - 110;
-            fim = centroX + 85;
-
-        } else {
-
-            inicio = centroX + 85;
-            fim = centroX - 110;
-        }
-
-
-        // ----------------------------------------------------
-        // Linha
-        // ----------------------------------------------------
-
-        ctx.beginPath();
-
-        ctx.moveTo(
-            inicio,
-            y
-        );
-
-        ctx.lineTo(
-            fim,
-            y
-        );
-
-        ctx.stroke();
-
-
-        // ----------------------------------------------------
-        // Ponta da seta
-        // ----------------------------------------------------
-
-        const tamanho = 8;
-
-        ctx.beginPath();
-
-        if (sentido === 1) {
-
-            ctx.moveTo(
-                fim,
-                y
+            Vmax = Math.max(
+                Vmax,
+                Math.abs(dados.V[i])
             );
 
-            ctx.lineTo(
-                fim - tamanho,
-                y - tamanho / 2
-            );
-
-            ctx.lineTo(
-                fim - tamanho,
-                y + tamanho / 2
-            );
-
-        } else {
-
-            ctx.moveTo(
-                fim,
-                y
-            );
-
-            ctx.lineTo(
-                fim + tamanho,
-                y - tamanho / 2
-            );
-
-            ctx.lineTo(
-                fim + tamanho,
-                y + tamanho / 2
+            Imax = Math.max(
+                Imax,
+                Math.abs(dados.I[i])
             );
         }
-
-        ctx.closePath();
-
-        ctx.fill();
     }
 
-
-    // ========================================================
-    // ÂNGULO DA BOBINA
-    // ========================================================
-
-    const angulo =
-        w * tempo;
-
-
-    // ========================================================
-    // BOBINA RETANGULAR
-    // ========================================================
-
-    const largura =
-        1.5 * Math.cos(angulo);
-
-    const altura =
-        1.2;
-
-    const escala = 65;
-
-    const xEsquerda =
-        centroX - largura * escala;
-
-    const xDireita =
-        centroX + largura * escala;
-
-    const yBaixo =
-        centroY + altura * escala;
-
-    const yTopo =
-        centroY - altura * escala;
-
-
-    ctx.strokeStyle = "black";
-    ctx.lineWidth = 3;
-
-    ctx.beginPath();
-
-    ctx.moveTo(
-        xEsquerda,
-        yBaixo
-    );
-
-    ctx.lineTo(
-        xDireita,
-        yBaixo
-    );
-
-    ctx.lineTo(
-        xDireita,
-        yTopo
-    );
-
-    ctx.lineTo(
-        xEsquerda,
-        yTopo
-    );
-
-    ctx.closePath();
-
-    ctx.stroke();
-
-
-    // ========================================================
-    // EIXO / FIO ÚNICO
-    // ========================================================
-
-    ctx.beginPath();
-
-    ctx.moveTo(
-        centroX,
-        centroY + 1.7 * escala
-    );
-
-    ctx.lineTo(
-        centroX,
-        yTopo
-    );
-
-    ctx.stroke();
-
-
-    // ========================================================
-    // TENSÃO INSTANTÂNEA
-    // ========================================================
-
-    const V =
-        ddp(
-            N,
-            A,
-            B,
-            w,
-            tempo
-        );
-
-
-    // ========================================================
-    // BRILHO DA LÂMPADA
-    // ========================================================
-
-    const Vmax_lampada =
-        Math.abs(
-            N * A * B * w
-        );
-
-    let brilho = 0;
-
-    if (Vmax_lampada > 0) {
-
-        brilho = Math.min(
-            Math.abs(V) / Vmax_lampada,
-            1
-        );
-    }
-
-
-    // ========================================================
-    // LÂMPADA
-    // ========================================================
-
-    const vermelho =
-        0.35 + 0.65 * brilho;
-
-    const verde =
-        0.35 + 0.65 * brilho;
-
-    const azul =
-        0.35 * (1 - brilho);
-
-    ctx.fillStyle =
-        `rgb(
-            ${vermelho * 255},
-            ${verde * 255},
-            ${azul * 255}
-        )`;
-
-    ctx.strokeStyle = "black";
-    ctx.lineWidth = 2;
-
-    ctx.beginPath();
-
-    ctx.arc(
-        centroX,
-        centroY + 1.7 * escala,
-        0.35 * escala,
-        0,
-        2 * Math.PI
-    );
-
-    ctx.fill();
-    ctx.stroke();
-
-
-    // ========================================================
-    // TEXTO LÂMPADA
-    // ========================================================
-
-    ctx.fillStyle = "black";
-    ctx.font = "10px Arial";
-
-    ctx.fillText(
-        "Lâmpada",
-        centroX,
-        centroY + 2.2 * escala
-    );
-}
-
-
-// ============================================================
-// GRÁFICO V(t) E I(t)
-// ============================================================
-
-function desenharGrafico(tempo) {
-
-    const x0 = 625;
-    const y0 = 50;
-
-    const largura = 500;
-    const altura = 235;
-
-
-    // ========================================================
-    // SIMULAÇÃO INICIAL
-    // ========================================================
-
-    const Vmax =
-        Math.abs(
-            N * A * B
-        );
-
-    const Imax =
-        Math.abs(
-            I(
-                N * A * B,
-                R
-            )
-        );
-
-    let ymax =
-        Math.max(
-            Vmax,
-            Imax
-        );
+    let ymax = Math.max(Vmax, Imax);
 
     if (ymax === 0) {
         ymax = 1;
@@ -576,438 +386,111 @@ function desenharGrafico(tempo) {
 
     ymax *= 1.1;
 
-
-    // ========================================================
+    // --------------------------------------------------------
     // ÁREA DO GRÁFICO
-    // ========================================================
+    // --------------------------------------------------------
 
-    ctx.strokeStyle = "#cccccc";
+    ctx.strokeStyle = "black";
     ctx.lineWidth = 1;
 
     ctx.strokeRect(
-        x0,
-        y0,
+        x,
+        y,
         largura,
         altura
     );
 
-
-    // ========================================================
-    // TÍTULO
-    // ========================================================
-
-    ctx.fillStyle = "black";
-    ctx.font = "bold 16px Arial";
-    ctx.textAlign = "center";
-
-    ctx.fillText(
-        "Gerador AC - Tensão e Corrente x Tempo",
-        x0 + largura / 2,
-        y0 - 15
-    );
-
-
-    // ========================================================
-    // EIXO X
-    // ========================================================
-
-    const eixoX =
-        y0 + altura / 2;
-
-    ctx.strokeStyle = "#666666";
-
-    ctx.beginPath();
-
-    ctx.moveTo(
-        x0,
-        eixoX
-    );
-
-    ctx.lineTo(
-        x0 + largura,
-        eixoX
-    );
-
-    ctx.stroke();
-
-
-    // ========================================================
+    // --------------------------------------------------------
     // GRADE
-    // ========================================================
+    // --------------------------------------------------------
 
-    ctx.strokeStyle = "#dddddd";
+    ctx.strokeStyle = "#b0b0b0";
+    ctx.lineWidth = 1;
 
-    for (let i = 1; i < 5; i++) {
+    // linhas verticais
+    for (let i = 0; i <= 8; i++) {
 
-        const x =
-            x0 + largura * i / 5;
+        const px = x + (i / 8) * largura;
 
         ctx.beginPath();
-
-        ctx.moveTo(
-            x,
-            y0
-        );
-
-        ctx.lineTo(
-            x,
-            y0 + altura
-        );
-
+        ctx.moveTo(px, y);
+        ctx.lineTo(px, y + altura);
         ctx.stroke();
     }
 
-    for (let i = 1; i < 5; i++) {
+    // linhas horizontais
+    for (let i = 0; i <= 8; i++) {
 
-        const y =
-            y0 + altura * i / 5;
+        const py = y + (i / 8) * altura;
 
         ctx.beginPath();
-
-        ctx.moveTo(
-            x0,
-            y
-        );
-
-        ctx.lineTo(
-            x0 + largura,
-            y
-        );
-
+        ctx.moveTo(x, py);
+        ctx.lineTo(x + largura, py);
         ctx.stroke();
     }
 
-
-    // ========================================================
-    // CONVERSÃO DE COORDENADAS
-    // ========================================================
-
-    function converterX(t) {
-
-        return x0 +
-            (t / 2) * largura;
-    }
-
-    function converterY(valor) {
-
-        return eixoX -
-            (valor / ymax) *
-            (altura / 2);
-    }
-
-
-    // ========================================================
-    // CURVA V(t)
-    // ========================================================
-
-    ctx.strokeStyle = "#1f77b4";
-    ctx.lineWidth = 2;
-
-    ctx.beginPath();
-
-    for (let i = 0; i <= 500; i++) {
-
-        const t =
-            2 * i / 500;
-
-        const V =
-            ddp(
-                N,
-                A,
-                B,
-                w,
-                t
-            );
-
-        const x =
-            converterX(t);
-
-        const y =
-            converterY(V);
-
-        if (i === 0) {
-
-            ctx.moveTo(
-                x,
-                y
-            );
-
-        } else {
-
-            ctx.lineTo(
-                x,
-                y
-            );
-        }
-    }
-
-    ctx.stroke();
-
-
-    // ========================================================
-    // CURVA I(t)
-    // ========================================================
-
-    ctx.strokeStyle = "#ff7f0e";
-    ctx.lineWidth = 2;
-
-    ctx.beginPath();
-
-    for (let i = 0; i <= 500; i++) {
-
-        const t =
-            2 * i / 500;
-
-        const V =
-            ddp(
-                N,
-                A,
-                B,
-                w,
-                t
-            );
-
-        const corrente =
-            I(
-                V,
-                R
-            );
-
-        const x =
-            converterX(t);
-
-        const y =
-            converterY(corrente);
-
-        if (i === 0) {
-
-            ctx.moveTo(
-                x,
-                y
-            );
-
-        } else {
-
-            ctx.lineTo(
-                x,
-                y
-            );
-        }
-    }
-
-    ctx.stroke();
-
-
-    // ========================================================
-    // PONTO INSTANTÂNEO
-    // ========================================================
-
-    if (tempo <= 2) {
-
-        const V =
-            ddp(
-                N,
-                A,
-                B,
-                w,
-                tempo
-            );
-
-        const corrente =
-            I(
-                V,
-                R
-            );
-
-        const x =
-            converterX(tempo);
-
-
-        // ----------------------------------------------------
-        // Ponto V(t)
-        // ----------------------------------------------------
-
-        ctx.fillStyle = "#1f77b4";
-
-        ctx.beginPath();
-
-        ctx.arc(
-            x,
-            converterY(V),
-            5,
-            0,
-            2 * Math.PI
-        );
-
-        ctx.fill();
-
-
-        // ----------------------------------------------------
-        // Ponto I(t)
-        // ----------------------------------------------------
-
-        ctx.fillStyle = "#ff7f0e";
-
-        ctx.beginPath();
-
-        ctx.arc(
-            x,
-            converterY(corrente),
-            5,
-            0,
-            2 * Math.PI
-        );
-
-        ctx.fill();
-
-
-        // ----------------------------------------------------
-        // Linha do tempo
-        // ----------------------------------------------------
-
-        ctx.strokeStyle =
-            "rgba(0,0,0,0.6)";
-
-        ctx.setLineDash([
-            6,
-            5
-        ]);
-
-        ctx.beginPath();
-
-        ctx.moveTo(
-            x,
-            y0
-        );
-
-        ctx.lineTo(
-            x,
-            y0 + altura
-        );
-
-        ctx.stroke();
-
-        ctx.setLineDash([]);
-    }
-
-
-    // ========================================================
-    // LEGENDA
-    // ========================================================
-
-    ctx.textAlign = "left";
-    ctx.font = "14px Arial";
-
-    ctx.fillStyle = "#1f77b4";
-
-    ctx.fillText(
-        "V(t)",
-        x0 + 15,
-        y0 + 22
-    );
-
-    ctx.fillStyle = "#ff7f0e";
-
-    ctx.fillText(
-        "I(t)",
-        x0 + 65,
-        y0 + 22
-    );
-
-
-    // ========================================================
-    // EIXO X — TEMPO
-    // ========================================================
+    // --------------------------------------------------------
+    // EIXO X
+    // --------------------------------------------------------
 
     ctx.fillStyle = "black";
-    ctx.font = "12px Arial";
+    ctx.font = "13px Arial";
     ctx.textAlign = "center";
+    ctx.textBaseline = "top";
 
-    ctx.fillText(
-        "0",
-        x0,
-        y0 + altura + 18
-    );
+    for (let i = 0; i <= 8; i++) {
 
-    ctx.fillText(
-        "0.5",
-        x0 + largura * 0.25,
-        y0 + altura + 18
-    );
+        const valor = i * 0.25;
+        const px = x + (i / 8) * largura;
 
-    ctx.fillText(
-        "1.0",
-        x0 + largura * 0.5,
-        y0 + altura + 18
-    );
+        ctx.fillText(
+            valor.toFixed(2),
+            px,
+            y + altura + 8
+        );
+    }
 
-    ctx.fillText(
-        "1.5",
-        x0 + largura * 0.75,
-        y0 + altura + 18
-    );
+    // --------------------------------------------------------
+    // EIXO Y
+    // --------------------------------------------------------
 
-    ctx.fillText(
-        "2.0",
-        x0 + largura,
-        y0 + altura + 18
-    );
+    ctx.textAlign = "right";
+    ctx.textBaseline = "middle";
 
+    for (let i = 0; i <= 8; i++) {
 
-    // ========================================================
-    // UNIDADE DO EIXO X
-    // ========================================================
+        const valor = ymax - (i / 8) * 2 * ymax;
 
-    ctx.font = "12px Arial";
+        const py = y + (i / 8) * altura;
+
+        ctx.fillText(
+            valor.toFixed(0),
+            x - 8,
+            py
+        );
+    }
+
+    // --------------------------------------------------------
+    // RÓTULOS DOS EIXOS
+    // --------------------------------------------------------
+
+    ctx.textAlign = "center";
+    ctx.textBaseline = "alphabetic";
 
     ctx.fillText(
         "Tempo (s)",
-        x0 + largura / 2,
-        y0 + altura + 38
+        x + largura / 2,
+        y + altura + 40
     );
-
-
-    // ========================================================
-    // EIXO Y
-    // ========================================================
-
-    ctx.textAlign = "right";
-
-    ctx.fillText(
-        ymax.toFixed(0),
-        x0 - 8,
-        y0 + 5
-    );
-
-    ctx.fillText(
-        "0",
-        x0 - 8,
-        eixoX + 4
-    );
-
-    ctx.fillText(
-        (-ymax).toFixed(0),
-        x0 - 8,
-        y0 + altura
-    );
-
-
-    // ========================================================
-    // UNIDADE DO EIXO Y
-    // ========================================================
 
     ctx.save();
 
     ctx.translate(
-        x0 - 42,
-        y0 + altura / 2
+        x - 55,
+        y + altura / 2
     );
 
-    ctx.rotate(
-        -Math.PI / 2
-    );
-
-    ctx.textAlign = "center";
+    ctx.rotate(-Math.PI / 2);
 
     ctx.fillText(
         "V(t), I(t)",
@@ -1016,14 +499,201 @@ function desenharGrafico(tempo) {
     );
 
     ctx.restore();
+
+    // --------------------------------------------------------
+    // TRANSFORMAÇÃO DAS COORDENADAS
+    // --------------------------------------------------------
+
+    function pxTempo(tempo) {
+        return x + (tempo / 2) * largura;
+    }
+
+    function pyValor(valor) {
+        return y + altura / 2 - (valor / ymax) * (altura / 2);
+    }
+
+    // --------------------------------------------------------
+    // CURVA V(t)
+    // --------------------------------------------------------
+
+    ctx.beginPath();
+
+    let iniciou = false;
+
+    for (let i = 0; i < t.length; i++) {
+
+        if (t[i] > 2) {
+            break;
+        }
+
+        const px = pxTempo(t[i]);
+        const py = pyValor(dados.V[i]);
+
+        if (!iniciou) {
+            ctx.moveTo(px, py);
+            iniciou = true;
+        } else {
+            ctx.lineTo(px, py);
+        }
+    }
+
+    ctx.strokeStyle = "#1f77b4";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // --------------------------------------------------------
+    // CURVA I(t)
+    // --------------------------------------------------------
+
+    ctx.beginPath();
+
+    iniciou = false;
+
+    for (let i = 0; i < t.length; i++) {
+
+        if (t[i] > 2) {
+            break;
+        }
+
+        const px = pxTempo(t[i]);
+        const py = pyValor(dados.I[i]);
+
+        if (!iniciou) {
+            ctx.moveTo(px, py);
+            iniciou = true;
+        } else {
+            ctx.lineTo(px, py);
+        }
+    }
+
+    ctx.strokeStyle = "#ff7f0e";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // --------------------------------------------------------
+    // LINHA DO TEMPO
+    // --------------------------------------------------------
+
+    if (tempoAtual <= 2) {
+
+        const px = pxTempo(tempoAtual);
+
+        ctx.beginPath();
+
+        ctx.moveTo(px, y);
+        ctx.lineTo(px, y + altura);
+
+        ctx.strokeStyle = "rgba(31,119,180,0.6)";
+        ctx.lineWidth = 2;
+
+        ctx.setLineDash([6, 4]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+    }
+
+    // --------------------------------------------------------
+    // PONTO V(t)
+    // --------------------------------------------------------
+
+    if (tempoAtual <= 2) {
+
+        const VAtual = ddp(
+            N,
+            A,
+            B,
+            w,
+            tempoAtual
+        );
+
+        const px = pxTempo(tempoAtual);
+        const py = pyValor(VAtual);
+
+        ctx.beginPath();
+        ctx.arc(px, py, 6, 0, 2 * Math.PI);
+
+        ctx.fillStyle = "#1f77b4";
+        ctx.fill();
+    }
+
+    // --------------------------------------------------------
+    // PONTO I(t)
+    // --------------------------------------------------------
+
+    if (tempoAtual <= 2) {
+
+        const VAtual = ddp(
+            N,
+            A,
+            B,
+            w,
+            tempoAtual
+        );
+
+        const IAtual = corrente(
+            VAtual,
+            R
+        );
+
+        const px = pxTempo(tempoAtual);
+        const py = pyValor(IAtual);
+
+        ctx.beginPath();
+        ctx.arc(px, py, 6, 0, 2 * Math.PI);
+
+        ctx.fillStyle = "#ff7f0e";
+        ctx.fill();
+    }
+
+    // --------------------------------------------------------
+    // LEGENDA
+    // --------------------------------------------------------
+
+    const legendaX = x + 10;
+    const legendaY = y + altura - 35;
+
+    // V(t)
+    ctx.beginPath();
+    ctx.moveTo(legendaX, legendaY);
+    ctx.lineTo(legendaX + 30, legendaY);
+
+    ctx.strokeStyle = "#1f77b4";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.fillStyle = "black";
+    ctx.font = "13px Arial";
+    ctx.textAlign = "left";
+
+    ctx.fillText(
+        "V(t)",
+        legendaX + 40,
+        legendaY + 4
+    );
+
+    // I(t)
+    ctx.beginPath();
+
+    ctx.moveTo(legendaX, legendaY + 22);
+    ctx.lineTo(legendaX + 30, legendaY + 22);
+
+    ctx.strokeStyle = "#ff7f0e";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.fillStyle = "black";
+
+    ctx.fillText(
+        "I(t)",
+        legendaX + 40,
+        legendaY + 26
+    );
 }
 
-
 // ============================================================
-// DESENHA TUDO
+// DESENHO COMPLETO
 // ============================================================
 
-function desenhar() {
+function desenhar(tempoAtual = 0) {
 
     ctx.clearRect(
         0,
@@ -1032,45 +702,100 @@ function desenhar() {
         canvas.height
     );
 
-    const tempo =
-        frame * 0.02;
+    const dados = calcularDados();
 
-    desenharGerador(tempo);
+    desenharGerador();
 
-    desenharGrafico(tempo);
+    desenharGrafico(
+        dados,
+        tempoAtual
+    );
 }
 
+// ============================================================
+// ATUALIZAÇÃO DOS SLIDERS
+// ============================================================
+
+function atualizarParametros() {
+
+    N = Number(sliderN.value);
+    A = Number(sliderA.value);
+    B = Number(sliderB.value);
+    w = Number(sliderW.value);
+    R = Number(sliderR.value);
+
+    valorN.textContent = N;
+    valorA.textContent = A.toFixed(1);
+    valorB.textContent = B.toFixed(1);
+    valorW.textContent = w.toFixed(1);
+    valorR.textContent = R;
+
+    desenhar(tempoAtual);
+}
+
+// ============================================================
+// EVENTOS DOS SLIDERS
+// ============================================================
+
+sliderN.addEventListener(
+    "input",
+    atualizarParametros
+);
+
+sliderA.addEventListener(
+    "input",
+    atualizarParametros
+);
+
+sliderB.addEventListener(
+    "input",
+    atualizarParametros
+);
+
+sliderW.addEventListener(
+    "input",
+    atualizarParametros
+);
+
+sliderR.addEventListener(
+    "input",
+    atualizarParametros
+);
 
 // ============================================================
 // ANIMAÇÃO
+// Equivalente a:
+// FuncAnimation(... frames=100,
+//                interval=20,
+//                repeat=True)
 // ============================================================
+
+let frame = 0;
+let tempoAtual = 0;
 
 function animar() {
 
-    const tempo =
-        frame * 0.02;
+    // equivalente a:
+    // tempo = frame * 0.02
+    tempoAtual = frame * 0.02;
 
-    desenhar();
+    desenhar(tempoAtual);
 
     frame++;
 
-    // ========================================================
-    // EQUIVALENTE A frames=100, repeat=True
-    // ========================================================
-
+    // equivalente ao repeat=True
     if (frame >= 100) {
         frame = 0;
     }
 
-    setTimeout(
-        () => requestAnimationFrame(animar),
-        20
-    );
+    setTimeout(() => {
+        requestAnimationFrame(animar);
+    }, 20);
 }
 
-
 // ============================================================
-// INICIA ANIMAÇÃO
+// INÍCIO
 // ============================================================
 
+desenhar(0);
 animar();
