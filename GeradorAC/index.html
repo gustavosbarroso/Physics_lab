@@ -36,6 +36,13 @@
             margin: 10px auto 30px auto;
         }
 
+        .titulo-controles {
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 12px;
+        }
+
         .control {
             display: flex;
             align-items: center;
@@ -63,21 +70,80 @@
 
     <canvas id="geradorCanvas" width="1200" height="550"></canvas>
 
-    <div id="controls"></div>
+    <div id="controls">
+
+        <div class="titulo-controles">
+            Parâmetros do gerador
+        </div>
+
+        <div class="control">
+            <label for="slider_N">N</label>
+            <input
+                id="slider_N"
+                type="range"
+                min="1"
+                max="500"
+                step="1"
+                value="100"
+            >
+            <span id="valor_N">100</span>
+        </div>
+
+        <div class="control">
+            <label for="slider_A">A</label>
+            <input
+                id="slider_A"
+                type="range"
+                min="0.1"
+                max="5"
+                step="0.1"
+                value="2"
+            >
+            <span id="valor_A">2</span>
+        </div>
+
+        <div class="control">
+            <label for="slider_B">B</label>
+            <input
+                id="slider_B"
+                type="range"
+                min="-2"
+                max="2"
+                step="0.1"
+                value="0.5"
+            >
+            <span id="valor_B">0.5</span>
+        </div>
+
+        <div class="control">
+            <label for="slider_w">ω (rad/s)</label>
+            <input
+                id="slider_w"
+                type="range"
+                min="0"
+                max="20"
+                step="0.1"
+                value="10"
+            >
+            <span id="valor_w">10</span>
+        </div>
+
+        <div class="control">
+            <label for="slider_R">R (Ω)</label>
+            <input
+                id="slider_R"
+                type="range"
+                min="1"
+                max="100"
+                step="1"
+                value="10"
+            >
+            <span id="valor_R">10</span>
+        </div>
+
+    </div>
 
     <script src="GeradorAC.js"></script>
-
-    <script>
-        const canvas = document.getElementById("geradorCanvas");
-
-        const gerador = new GeradorAC(canvas, {
-            N: 100,
-            A: 2.0,
-            B: 0.5,
-            w: 10,
-            R: 10
-        });
-    </script>
 
 </body>
 
