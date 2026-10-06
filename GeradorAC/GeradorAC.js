@@ -5,66 +5,44 @@ class GeradorAC {
         this.canvas = canvas;
         this.ctx = canvas.getContext("2d");
 
-        // ========================================================
+        // ============================================================
         // PARÂMETROS
-        // ========================================================
+        // ============================================================
 
         this.params = {
-
             N: options.N ?? 100,
-
             A: options.A ?? 2.0,
-
             B: options.B ?? 0.5,
-
             w: options.w ?? 10,
-
             R: options.R ?? 10
-
         };
 
-
-        // ========================================================
-        // TEMPO
-        // ========================================================
+        // ============================================================
+        // ANIMAÇÃO
+        // ============================================================
 
         this.t = 0;
-
         this.dt = 0.02;
-
         this.interval = 20;
-
         this.ultimoFrame = 0;
 
+        // ============================================================
+        // CORES DO GRÁFICO
+        // ============================================================
 
-        // ========================================================
-        // CORES DO MATPLOTLIB
-        // ========================================================
-
-        // Primeira curva do Python
+        // Cores padrão do Matplotlib
         this.corV = "#1f77b4";
-
-        // Segunda curva do Python
         this.corI = "#ff7f0e";
 
-
-        // ========================================================
+        // ============================================================
         // CONTROLES
-        // ========================================================
+        // ============================================================
 
         this.createControls();
 
-
-        // ========================================================
-        // DESENHO INICIAL
-        // ========================================================
-
-        this.draw();
-
-
-        // ========================================================
-        // ANIMAÇÃO
-        // ========================================================
+        // ============================================================
+        // INICIA
+        // ============================================================
 
         this.iniciar();
     }
@@ -76,12 +54,7 @@ class GeradorAC {
 
     ddp(N, A, B, w, t) {
 
-        return (
-            N *
-            A *
-            B *
-            Math.sin(w * t)
-        );
+        return N * A * B * Math.sin(w * t);
     }
 
 
@@ -92,7 +65,6 @@ class GeradorAC {
     corrente(ddp, R) {
 
         if (R === 0) {
-
             return 0;
         }
 
@@ -106,117 +78,55 @@ class GeradorAC {
 
     createControls() {
 
-        const controls =
-            document.getElementById("controls");
+        const controls = document.getElementById("controls");
 
         controls.innerHTML = "";
 
+        this.controles = {};
 
-        const criarSlider = (
+        const criarControle = (
             nome,
+            texto,
             min,
             max,
-            step,
-            valor,
-            casas = 1
+            passo,
+            valor
         ) => {
 
-            const div =
-                document.createElement("div");
-
+            const div = document.createElement("div");
             div.className = "control";
 
+            const label = document.createElement("label");
+            label.textContent = texto;
 
-            const label =
-                document.createElement("label");
-
-            label.textContent = nome;
-
-
-            const input =
-                document.createElement("input");
-
+            const input = document.createElement("input");
             input.type = "range";
-
             input.min = min;
-
             input.max = max;
-
-            input.step = step;
-
+            input.step = passo;
             input.value = valor;
 
+            const span = document.createElement("span");
+            span.textContent = valor;
 
-            const span =
-                document.createElement("span");
+            input.addEventListener("input", () => {
 
-            span.textContent =
-                Number(valor).toFixed(casas);
+                const novoValor = Number(input.value);
 
+                this.params[nome] = novoValor;
 
-            input.addEventListener(
-                "input",
-                () => {
+                span.textContent = novoValor;
 
-                    span.textContent =
-                        Number(input.value)
-                            .toFixed(casas);
-
-
-                    const novosParametros = {
-                        ...this.params
-                    };
-
-
-                    if (nome === "N") {
-
-                        novosParametros.N =
-                            Number(input.value);
-                    }
-
-
-                    if (nome === "A") {
-
-                        novosParametros.A =
-                            Number(input.value);
-                    }
-
-
-                    if (nome === "B") {
-
-                        novosParametros.B =
-                            Number(input.value);
-                    }
-
-
-                    if (nome === "ω (rad/s)") {
-
-                        novosParametros.w =
-                            Number(input.value);
-                    }
-
-
-                    if (nome === "R (Ω)") {
-
-                        novosParametros.R =
-                            Number(input.value);
-                    }
-
-
-                    this.atualizarParametros(
-                        novosParametros
-                    );
-                }
-            );
-
+                this.atualizarParametros();
+            });
 
             div.appendChild(label);
-
             div.appendChild(input);
-
             div.appendChild(span);
 
             controls.appendChild(div);
+
+            this.controles[nome] = input;
         };
 
 
@@ -224,13 +134,13 @@ class GeradorAC {
         // SLIDER N
         // ========================================================
 
-        criarSlider(
+        criarControle(
+            "N",
             "N",
             1,
             500,
             1,
-            this.params.N,
-            0
+            this.params.N
         );
 
 
@@ -238,13 +148,13 @@ class GeradorAC {
         // SLIDER A
         // ========================================================
 
-        criarSlider(
+        criarControle(
+            "A",
             "A",
             0.1,
             5,
             0.1,
-            this.params.A,
-            1
+            this.params.A
         );
 
 
@@ -252,13 +162,13 @@ class GeradorAC {
         // SLIDER B
         // ========================================================
 
-        criarSlider(
+        criarControle(
+            "B",
             "B",
             -2,
             2,
             0.1,
-            this.params.B,
-            1
+            this.params.B
         );
 
 
@@ -266,13 +176,13 @@ class GeradorAC {
         // SLIDER ω
         // ========================================================
 
-        criarSlider(
+        criarControle(
+            "w",
             "ω (rad/s)",
             0,
             20,
             0.1,
-            this.params.w,
-            1
+            this.params.w
         );
 
 
@@ -280,234 +190,183 @@ class GeradorAC {
         // SLIDER R
         // ========================================================
 
-        criarSlider(
+        criarControle(
+            "R",
             "R (Ω)",
             1,
             100,
             1,
-            this.params.R,
-            0
+            this.params.R
         );
     }
 
 
     // ============================================================
-    // GERADOR
+    // DESENHA GERADOR
     // ============================================================
 
     drawGenerator() {
 
         const ctx = this.ctx;
 
+        const largura = this.canvas.width;
+        const altura = 330;
 
-        // --------------------------------------------------------
-        // CENTRO DO GERADOR
-        // --------------------------------------------------------
+        // ========================================================
+        // ÁREA DO GERADOR
+        // ========================================================
 
-        const centroX = 250;
+        const centroX = 330;
+        const centroY = 175;
 
-        const centroY = 165;
+        const escala = 65;
 
-
-        // --------------------------------------------------------
-        // TÍTULO
-        // --------------------------------------------------------
-
-        ctx.fillStyle = "black";
-
-        ctx.font =
-            "bold 20px Arial";
-
-        ctx.textAlign = "center";
-
-        ctx.fillText(
-            "Gerador AC",
-            centroX,
-            25
-        );
-
-
-        // --------------------------------------------------------
+        // ========================================================
         // ÍMÃ ESQUERDO
-        // --------------------------------------------------------
+        // ========================================================
 
         ctx.fillStyle = "blue";
 
         ctx.fillRect(
-            25,
-            centroY - 100,
-            40,
-            200
+            centroX - 175,
+            centroY - 130,
+            26,
+            260
         );
-
 
         ctx.fillStyle = "red";
 
         ctx.fillRect(
-            65,
-            centroY - 100,
-            40,
-            200
+            centroX - 149,
+            centroY - 130,
+            26,
+            260
         );
 
+        // Letras
 
         ctx.fillStyle = "white";
-
-        ctx.font =
-            "22px Arial";
-
+        ctx.font = "22px Arial";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
 
         ctx.fillText(
             "S",
-            45,
-            centroY + 8
+            centroX - 162,
+            centroY
         );
-
 
         ctx.fillText(
             "N",
-            85,
-            centroY + 8
+            centroX - 136,
+            centroY
         );
 
 
-        // --------------------------------------------------------
+        // ========================================================
         // ÍMÃ DIREITO
-        // --------------------------------------------------------
+        // ========================================================
 
         ctx.fillStyle = "blue";
 
         ctx.fillRect(
-            395,
-            centroY - 100,
-            40,
-            200
+            centroX + 124,
+            centroY - 130,
+            26,
+            260
         );
-
 
         ctx.fillStyle = "red";
 
         ctx.fillRect(
-            435,
-            centroY - 100,
-            40,
-            200
+            centroX + 150,
+            centroY - 130,
+            26,
+            260
         );
-
 
         ctx.fillStyle = "white";
 
-
         ctx.fillText(
             "S",
-            415,
-            centroY + 8
+            centroX + 137,
+            centroY
         );
-
 
         ctx.fillText(
             "N",
-            455,
-            centroY + 8
+            centroX + 163,
+            centroY
         );
 
 
-        // --------------------------------------------------------
+        // ========================================================
         // CAMPO MAGNÉTICO
-        // --------------------------------------------------------
+        // ========================================================
 
-        ctx.strokeStyle =
-            "rgba(0,0,0,0.5)";
+        let sentido = this.params.B >= 0 ? 1 : -1;
 
-        ctx.fillStyle =
-            "rgba(0,0,0,0.5)";
+        ctx.strokeStyle = "rgba(0, 0, 0, 0.5)";
+        ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+        ctx.lineWidth = 1.5;
 
-        ctx.lineWidth = 2;
+        for (let i = 0; i < 5; i++) {
 
+            const y = centroY - 98 + i * 49;
 
-        const sentido =
-            this.params.B >= 0
-                ? 1
-                : -1;
-
-
-        for (
-            let i = 0;
-            i < 5;
-            i++
-        ) {
-
-            const y =
-                centroY -
-                75 +
-                i * 37.5;
-
-
-            const xInicial =
+            const x1 =
                 sentido === 1
-                    ? 120
-                    : 380;
+                    ? centroX - 110
+                    : centroX + 110;
 
-
-            const xFinal =
+            const x2 =
                 sentido === 1
-                    ? 380
-                    : 120;
-
+                    ? centroX + 85
+                    : centroX - 85;
 
             ctx.beginPath();
 
-            ctx.moveTo(
-                xInicial,
-                y
-            );
-
-            ctx.lineTo(
-                xFinal,
-                y
-            );
+            ctx.moveTo(x1, y);
+            ctx.lineTo(x2, y);
 
             ctx.stroke();
 
+            // ----------------------------------------------------
+            // Ponta da seta
+            // ----------------------------------------------------
+
+            const tamanho = 9;
 
             ctx.beginPath();
 
-
             if (sentido === 1) {
 
-                ctx.moveTo(
-                    xFinal,
-                    y
+                ctx.moveTo(x2, y);
+
+                ctx.lineTo(
+                    x2 - tamanho,
+                    y - tamanho / 2
                 );
 
                 ctx.lineTo(
-                    xFinal - 10,
-                    y - 5
-                );
-
-                ctx.lineTo(
-                    xFinal - 10,
-                    y + 5
+                    x2 - tamanho,
+                    y + tamanho / 2
                 );
 
             } else {
 
-                ctx.moveTo(
-                    xFinal,
-                    y
+                ctx.moveTo(x2, y);
+
+                ctx.lineTo(
+                    x2 + tamanho,
+                    y - tamanho / 2
                 );
 
                 ctx.lineTo(
-                    xFinal + 10,
-                    y - 5
-                );
-
-                ctx.lineTo(
-                    xFinal + 10,
-                    y + 5
+                    x2 + tamanho,
+                    y + tamanho / 2
                 );
             }
-
 
             ctx.closePath();
 
@@ -515,261 +374,198 @@ class GeradorAC {
         }
 
 
-        // --------------------------------------------------------
+        // ========================================================
         // BOBINA
-        // --------------------------------------------------------
+        // ========================================================
 
-        const angulo =
-            this.params.w * this.t;
+        const angulo = this.params.w * this.t;
 
+        const larguraBobina =
+            1.5 * Math.cos(angulo);
 
-        const largura =
-            125 *
-            Math.cos(angulo);
+        const alturaBobina = 1.2;
 
+        const esquerda =
+            centroX - larguraBobina * escala;
 
-        const altura = 100;
+        const direita =
+            centroX + larguraBobina * escala;
+
+        const topo =
+            centroY - alturaBobina * escala;
+
+        const baixo =
+            centroY + alturaBobina * escala;
 
 
         ctx.strokeStyle = "black";
-
         ctx.lineWidth = 3;
 
-
         ctx.beginPath();
 
-
-        ctx.moveTo(
-            centroX - largura,
-            centroY - altura
-        );
-
-
-        ctx.lineTo(
-            centroX + largura,
-            centroY - altura
-        );
-
-
-        ctx.lineTo(
-            centroX + largura,
-            centroY + altura
-        );
-
-
-        ctx.lineTo(
-            centroX - largura,
-            centroY + altura
-        );
-
-
+        ctx.moveTo(esquerda, baixo);
+        ctx.lineTo(direita, baixo);
+        ctx.lineTo(direita, topo);
+        ctx.lineTo(esquerda, topo);
         ctx.closePath();
 
-
         ctx.stroke();
 
 
-        // --------------------------------------------------------
+        // ========================================================
         // EIXO / FIO ÚNICO
-        // --------------------------------------------------------
+        // ========================================================
 
         ctx.beginPath();
 
-
         ctx.moveTo(
             centroX,
-            centroY - altura
+            centroY + 1.7 * escala
         );
-
 
         ctx.lineTo(
             centroX,
-            centroY + 130
+            topo
         );
-
 
         ctx.stroke();
 
 
-        // --------------------------------------------------------
+        // ========================================================
         // LÂMPADA
-        // --------------------------------------------------------
+        // ========================================================
 
-        const V =
-            this.ddp(
-                this.params.N,
-                this.params.A,
-                this.params.B,
-                this.params.w,
-                this.t
-            );
+        const V = this.ddp(
+            this.params.N,
+            this.params.A,
+            this.params.B,
+            this.params.w,
+            this.t
+        );
 
-
-        const Vmax =
-            Math.abs(
-                this.params.N *
-                this.params.A *
-                this.params.B *
-                this.params.w
-            );
-
+        const VmaxLampada = Math.abs(
+            this.params.N *
+            this.params.A *
+            this.params.B *
+            this.params.w
+        );
 
         let brilho = 0;
 
+        if (VmaxLampada > 0) {
 
-        if (Vmax > 0) {
-
-            brilho =
-                Math.min(
-                    Math.abs(V) / Vmax,
-                    1
-                );
+            brilho = Math.min(
+                Math.abs(V) / VmaxLampada,
+                1
+            );
         }
 
+        const r =
+            0.35 + 0.65 * brilho;
 
-        const lampX = centroX;
+        const g =
+            0.35 + 0.65 * brilho;
 
-        const lampY =
-            centroY + 135;
+        const b =
+            0.35 * (1 - brilho);
 
+        ctx.fillStyle =
+            `rgb(${r * 255}, ${g * 255}, ${b * 255})`;
 
-        const raio = 35;
-
+        ctx.strokeStyle = "black";
+        ctx.lineWidth = 2;
 
         ctx.beginPath();
 
-
         ctx.arc(
-            lampX,
-            lampY,
-            raio,
+            centroX,
+            centroY + 1.7 * escala,
+            0.35 * escala,
             0,
             2 * Math.PI
         );
 
-
-        ctx.fillStyle =
-            `rgb(
-                ${Math.round(
-                    128 + 127 * brilho
-                )},
-                ${Math.round(
-                    128 + 127 * brilho
-                )},
-                ${Math.round(
-                    128 * (1 - brilho)
-                )}
-            )`;
-
-
         ctx.fill();
-
-
-        ctx.strokeStyle = "black";
-
-        ctx.lineWidth = 2;
-
         ctx.stroke();
 
 
-        // --------------------------------------------------------
-        // TEXTO DA LÂMPADA
-        // --------------------------------------------------------
+        // ========================================================
+        // TEXTO LÂMPADA
+        // ========================================================
 
         ctx.fillStyle = "black";
-
-        ctx.font =
-            "10px Arial";
-
+        ctx.font = "14px Arial";
         ctx.textAlign = "center";
-
 
         ctx.fillText(
             "Lâmpada",
-            lampX,
-            lampY + 50
+            centroX,
+            centroY + 2.35 * escala
         );
 
 
-        // --------------------------------------------------------
-        // VALORES INSTANTÂNEOS
-        // --------------------------------------------------------
+        // ========================================================
+        // TÍTULO
+        // ========================================================
 
-        const corrente =
-            this.corrente(
-                V,
-                this.params.R
-            );
-
-
-        ctx.font =
-            "13px Arial";
-
-        ctx.textAlign = "left";
-
+        ctx.font = "bold 18px Arial";
 
         ctx.fillText(
-            `V(t) = ${V.toFixed(2)} V`,
-            20,
-            305
-        );
-
-
-        ctx.fillText(
-            `I(t) = ${corrente.toFixed(2)} A`,
-            20,
-            323
+            "Gerador AC",
+            centroX,
+            25
         );
     }
 
 
     // ============================================================
-    // GRÁFICO V(t) E I(t)
+    // DESENHA GRÁFICO
     // ============================================================
 
     drawGraph() {
 
         const ctx = this.ctx;
 
+        const x0 = 620;
+        const y0 = 45;
 
-        // --------------------------------------------------------
+        const largura = 500;
+        const altura = 235;
+
+        // ========================================================
         // ÁREA DO GRÁFICO
-        // --------------------------------------------------------
+        // ========================================================
 
-        const x0 = 570;
+        ctx.strokeStyle = "#cccccc";
+        ctx.lineWidth = 1;
 
-        const x1 = 1170;
-
-        const y0 = 65;
-
-        const y1 = 430;
-
-
-        const largura =
-            x1 - x0;
-
-        const altura =
-            y1 - y0;
+        ctx.strokeRect(
+            x0,
+            y0,
+            largura,
+            altura
+        );
 
 
-        // --------------------------------------------------------
-        // ESCALA
-        // --------------------------------------------------------
+        // ========================================================
+        // DADOS
+        // ========================================================
 
-        const Vmax =
-            Math.abs(
-                this.params.N *
-                this.params.A *
-                this.params.B *
-                this.params.w
-            );
+        const N = this.params.N;
+        const A = this.params.A;
+        const B = this.params.B;
+        const w = this.params.w;
+        const R = this.params.R;
 
+        const Vmax = Math.abs(
+            N * A * B
+        );
 
-        const Imax =
-            this.params.R === 0
+        const Imax = Math.abs(
+            R === 0
                 ? 0
-                : Vmax / this.params.R;
-
+                : N * A * B / R
+        );
 
         let ymax =
             Math.max(
@@ -777,44 +573,40 @@ class GeradorAC {
                 Imax
             );
 
-
         if (ymax === 0) {
-
             ymax = 1;
         }
 
-
-        const limite =
-            1.1 * ymax;
+        ymax *= 1.1;
 
 
-        // --------------------------------------------------------
-        // TÍTULO
-        // --------------------------------------------------------
+        // ========================================================
+        // EIXOS
+        // ========================================================
 
-        ctx.fillStyle = "black";
+        const eixoX = y0 + altura / 2;
 
-        ctx.font =
-            "bold 18px Arial";
+        ctx.strokeStyle = "#666666";
+        ctx.lineWidth = 1;
 
-        ctx.textAlign = "center";
+        // eixo horizontal
 
+        ctx.beginPath();
 
-        ctx.fillText(
-            "Gerador AC - Tensão e Corrente × Tempo",
-            (x0 + x1) / 2,
-            35
+        ctx.moveTo(
+            x0,
+            eixoX
         );
 
+        ctx.lineTo(
+            x0 + largura,
+            eixoX
+        );
 
-        // --------------------------------------------------------
-        // EIXOS
-        // --------------------------------------------------------
+        ctx.stroke();
 
-        ctx.strokeStyle = "black";
 
-        ctx.lineWidth = 1.5;
-
+        // eixo vertical
 
         ctx.beginPath();
 
@@ -825,253 +617,170 @@ class GeradorAC {
 
         ctx.lineTo(
             x0,
-            y1
-        );
-
-        ctx.lineTo(
-            x1,
-            y1
+            y0 + altura
         );
 
         ctx.stroke();
 
 
-        // --------------------------------------------------------
+        // ========================================================
         // GRADE
-        // --------------------------------------------------------
+        // ========================================================
 
-        ctx.strokeStyle =
-            "#dddddd";
+        ctx.strokeStyle = "#dddddd";
 
-        ctx.lineWidth = 1;
+        for (let i = 1; i < 5; i++) {
 
+            const xx =
+                x0 + largura * i / 5;
 
-        for (
-            let i = 1;
-            i < 5;
-            i++
-        ) {
+            ctx.beginPath();
 
-            const y =
-                y0 +
-                i *
-                altura / 5;
+            ctx.moveTo(
+                xx,
+                y0
+            );
 
+            ctx.lineTo(
+                xx,
+                y0 + altura
+            );
+
+            ctx.stroke();
+        }
+
+        for (let i = 1; i < 5; i++) {
+
+            const yy =
+                y0 + altura * i / 5;
 
             ctx.beginPath();
 
             ctx.moveTo(
                 x0,
-                y
+                yy
             );
 
             ctx.lineTo(
-                x1,
-                y
+                x0 + largura,
+                yy
             );
 
             ctx.stroke();
         }
 
 
-        for (
-            let i = 1;
-            i < 5;
-            i++
-        ) {
-
-            const x =
-                x0 +
-                i *
-                largura / 5;
-
-
-            ctx.beginPath();
-
-            ctx.moveTo(
-                x,
-                y0
-            );
-
-            ctx.lineTo(
-                x,
-                y1
-            );
-
-            ctx.stroke();
-        }
-
-
-        // --------------------------------------------------------
-        // EIXO ZERO
-        // --------------------------------------------------------
-
-        const yZero =
-            y0 +
-            altura / 2;
-
-
-        ctx.strokeStyle =
-            "#999999";
-
-
-        ctx.beginPath();
-
-        ctx.moveTo(
-            x0,
-            yZero
-        );
-
-        ctx.lineTo(
-            x1,
-            yZero
-        );
-
-        ctx.stroke();
-
-
         // ========================================================
-        // CURVA V(t)
+        // FUNÇÕES DE COORDENADAS
         // ========================================================
 
-        ctx.strokeStyle =
-            this.corV;
+        const converterX = (tempo) => {
 
-        ctx.lineWidth = 2;
-
-
-        ctx.beginPath();
-
-
-        const pontos = 500;
-
-
-        for (
-            let i = 0;
-            i <= pontos;
-            i++
-        ) {
-
-            const tempo =
-                2 * i / pontos;
-
-
-            const V =
-                this.ddp(
-                    this.params.N,
-                    this.params.A,
-                    this.params.B,
-                    this.params.w,
-                    tempo
-                );
-
-
-            const x =
-                x0 +
+            return x0 +
                 (tempo / 2) *
                 largura;
+        };
 
 
-            const y =
-                yZero -
-                (V / limite) *
+        const converterY = (valor) => {
+
+            return eixoX -
+                (valor / ymax) *
                 (altura / 2);
-
-
-            if (i === 0) {
-
-                ctx.moveTo(
-                    x,
-                    y
-                );
-
-            } else {
-
-                ctx.lineTo(
-                    x,
-                    y
-                );
-            }
-        }
-
-
-        ctx.stroke();
+        };
 
 
         // ========================================================
-        // CURVA I(t)
+        // CURVAS
         // ========================================================
-
-        ctx.strokeStyle =
-            this.corI;
 
         ctx.lineWidth = 2.5;
 
 
+        // --------------------------------------------------------
+        // V(t)
+        // --------------------------------------------------------
+
+        ctx.strokeStyle = this.corV;
+
         ctx.beginPath();
 
-
-        for (
-            let i = 0;
-            i <= pontos;
-            i++
-        ) {
+        for (let i = 0; i <= 500; i++) {
 
             const tempo =
-                2 * i / pontos;
-
+                2 * i / 500;
 
             const V =
                 this.ddp(
-                    this.params.N,
-                    this.params.A,
-                    this.params.B,
-                    this.params.w,
+                    N,
+                    A,
+                    B,
+                    w,
                     tempo
                 );
 
+            const px =
+                converterX(tempo);
 
-            const I =
-                this.corrente(
-                    V,
-                    this.params.R
-                );
-
-
-            const x =
-                x0 +
-                (tempo / 2) *
-                largura;
-
-
-            const y =
-                yZero -
-                (I / limite) *
-                (altura / 2);
-
+            const py =
+                converterY(V);
 
             if (i === 0) {
-
-                ctx.moveTo(
-                    x,
-                    y
-                );
-
+                ctx.moveTo(px, py);
             } else {
-
-                ctx.lineTo(
-                    x,
-                    y
-                );
+                ctx.lineTo(px, py);
             }
         }
 
+        ctx.stroke();
+
+
+        // --------------------------------------------------------
+        // I(t)
+        // --------------------------------------------------------
+
+        ctx.strokeStyle = this.corI;
+
+        ctx.beginPath();
+
+        for (let i = 0; i <= 500; i++) {
+
+            const tempo =
+                2 * i / 500;
+
+            const V =
+                this.ddp(
+                    N,
+                    A,
+                    B,
+                    w,
+                    tempo
+                );
+
+            const corrente =
+                this.corrente(
+                    V,
+                    R
+                );
+
+            const px =
+                converterX(tempo);
+
+            const py =
+                converterY(corrente);
+
+            if (i === 0) {
+                ctx.moveTo(px, py);
+            } else {
+                ctx.lineTo(px, py);
+            }
+        }
 
         ctx.stroke();
 
 
         // ========================================================
-        // VALORES INSTANTÂNEOS
+        // PONTO INSTANTÂNEO
         // ========================================================
 
         const tempo =
@@ -1080,218 +789,218 @@ class GeradorAC {
                 2
             );
 
-
         const V =
             this.ddp(
-                this.params.N,
-                this.params.A,
-                this.params.B,
-                this.params.w,
+                N,
+                A,
+                B,
+                w,
                 tempo
             );
 
-
-        const I =
+        const corrente =
             this.corrente(
                 V,
-                this.params.R
+                R
             );
 
-
-        const xAtual =
-            x0 +
-            (tempo / 2) *
-            largura;
-
-
-        const yV =
-            yZero -
-            (V / limite) *
-            (altura / 2);
-
-
-        const yI =
-            yZero -
-            (I / limite) *
-            (altura / 2);
+        const px =
+            converterX(tempo);
 
 
         // --------------------------------------------------------
-        // PONTO V(t)
+        // Ponto V
         // --------------------------------------------------------
+
+        const pyV =
+            converterY(V);
+
+        ctx.fillStyle = this.corV;
 
         ctx.beginPath();
 
         ctx.arc(
-            xAtual,
-            yV,
-            6,
+            px,
+            pyV,
+            5,
             0,
             2 * Math.PI
         );
-
-        ctx.fillStyle =
-            this.corV;
 
         ctx.fill();
 
 
         // --------------------------------------------------------
-        // PONTO I(t)
+        // Ponto I
         // --------------------------------------------------------
+
+        const pyI =
+            converterY(corrente);
+
+        ctx.fillStyle = this.corI;
 
         ctx.beginPath();
 
         ctx.arc(
-            xAtual,
-            yI,
-            6,
+            px,
+            pyI,
+            5,
             0,
             2 * Math.PI
         );
 
-        ctx.fillStyle =
-            this.corI;
-
         ctx.fill();
 
 
-        // --------------------------------------------------------
+        // ========================================================
         // LINHA DO TEMPO
-        // --------------------------------------------------------
+        // ========================================================
 
         ctx.strokeStyle =
-            "#777777";
+            "rgba(0, 0, 0, 0.6)";
 
         ctx.lineWidth = 1;
 
-        ctx.setLineDash([
-            5,
-            5
-        ]);
-
+        ctx.setLineDash([6, 5]);
 
         ctx.beginPath();
 
         ctx.moveTo(
-            xAtual,
+            px,
             y0
         );
 
         ctx.lineTo(
-            xAtual,
-            y1
+            px,
+            y0 + altura
         );
 
         ctx.stroke();
 
-
         ctx.setLineDash([]);
 
 
-        // --------------------------------------------------------
-        // ESCALA Y
-        // --------------------------------------------------------
+        // ========================================================
+        // LEGENDA
+        // ========================================================
+
+        ctx.font = "14px Arial";
+        ctx.textAlign = "left";
+
+        ctx.fillStyle = this.corV;
+
+        ctx.fillText(
+            "V(t)",
+            x0 + 15,
+            y0 + 22
+        );
+
+        ctx.fillStyle = this.corI;
+
+        ctx.fillText(
+            "I(t)",
+            x0 + 65,
+            y0 + 22
+        );
+
+
+        // ========================================================
+        // TÍTULO
+        // ========================================================
 
         ctx.fillStyle = "black";
-
-        ctx.font =
-            "12px Arial";
-
-        ctx.textAlign = "right";
-
-
-        ctx.fillText(
-            `${limite.toFixed(1)}`,
-            x0 - 8,
-            y0 + 4
-        );
-
-
-        ctx.fillText(
-            "0",
-            x0 - 8,
-            yZero + 4
-        );
-
-
-        ctx.fillText(
-            `${(-limite).toFixed(1)}`,
-            x0 - 8,
-            y1
-        );
-
-
-        // --------------------------------------------------------
-        // ESCALA X
-        // --------------------------------------------------------
-
+        ctx.font = "bold 16px Arial";
         ctx.textAlign = "center";
 
+        ctx.fillText(
+            "Gerador AC - Tensão e Corrente x Tempo",
+            x0 + largura / 2,
+            y0 - 15
+        );
+
+
+        // ========================================================
+        // EIXO X
+        // ========================================================
+
+        ctx.font = "12px Arial";
 
         ctx.fillText(
             "0",
             x0,
-            y1 + 18
+            y0 + altura + 18
         );
 
-
         ctx.fillText(
-            "0,5",
+            "0.5",
             x0 + largura * 0.25,
-            y1 + 18
+            y0 + altura + 18
         );
 
-
         ctx.fillText(
-            "1",
-            x0 + largura * 0.50,
-            y1 + 18
+            "1.0",
+            x0 + largura * 0.5,
+            y0 + altura + 18
         );
 
-
         ctx.fillText(
-            "1,5",
+            "1.5",
             x0 + largura * 0.75,
-            y1 + 18
+            y0 + altura + 18
         );
-
 
         ctx.fillText(
-            "2",
-            x1,
-            y1 + 18
+            "2.0",
+            x0 + largura,
+            y0 + altura + 18
         );
 
 
-        // --------------------------------------------------------
-        // EIXO X
-        // --------------------------------------------------------
+        // ========================================================
+        // EIXO Y
+        // ========================================================
+
+        ctx.textAlign = "right";
+
+        ctx.fillText(
+            ymax.toFixed(0),
+            x0 - 8,
+            y0 + 5
+        );
+
+        ctx.fillText(
+            "0",
+            x0 - 8,
+            eixoX + 4
+        );
+
+        ctx.fillText(
+            (-ymax).toFixed(0),
+            x0 - 8,
+            y0 + altura
+        );
+
+
+        // ========================================================
+        // LABEL DOS EIXOS
+        // ========================================================
+
+        ctx.textAlign = "center";
 
         ctx.fillText(
             "Tempo (s)",
-            (x0 + x1) / 2,
-            y1 + 38
+            x0 + largura / 2,
+            y0 + altura + 38
         );
-
-
-        // --------------------------------------------------------
-        // EIXO Y
-        // --------------------------------------------------------
 
         ctx.save();
 
-
         ctx.translate(
-            x0 - 45,
-            (y0 + y1) / 2
+            x0 - 42,
+            y0 + altura / 2
         );
 
-
-        ctx.rotate(
-            -Math.PI / 2
-        );
-
+        ctx.rotate(-Math.PI / 2);
 
         ctx.fillText(
             "V(t), I(t)",
@@ -1299,96 +1008,22 @@ class GeradorAC {
             0
         );
 
-
         ctx.restore();
-
-
-        // ========================================================
-        // LEGENDA
-        // ========================================================
-
-        const legendaX =
-            x1 - 125;
-
-        const legendaY =
-            y0 + 20;
-
-
-        ctx.textAlign =
-            "left";
-
-
-        // --------------------------------------------------------
-        // V(t)
-        // --------------------------------------------------------
-
-        ctx.strokeStyle =
-            this.corV;
-
-        ctx.lineWidth = 3;
-
-
-        ctx.beginPath();
-
-        ctx.moveTo(
-            legendaX,
-            legendaY
-        );
-
-        ctx.lineTo(
-            legendaX + 25,
-            legendaY
-        );
-
-        ctx.stroke();
-
-
-        ctx.fillStyle =
-            this.corV;
-
-        ctx.fillText(
-            "V(t)",
-            legendaX + 35,
-            legendaY + 4
-        );
-
-
-        // --------------------------------------------------------
-        // I(t)
-        // --------------------------------------------------------
-
-        ctx.strokeStyle =
-            this.corI;
-
-
-        ctx.beginPath();
-
-        ctx.moveTo(
-            legendaX,
-            legendaY + 22
-        );
-
-        ctx.lineTo(
-            legendaX + 25,
-            legendaY + 22
-        );
-
-        ctx.stroke();
-
-
-        ctx.fillStyle =
-            this.corI;
-
-        ctx.fillText(
-            "I(t)",
-            legendaX + 35,
-            legendaY + 26
-        );
     }
 
 
     // ============================================================
-    // DESENHO COMPLETO
+    // ATUALIZA PARÂMETROS
+    // ============================================================
+
+    atualizarParametros() {
+
+        this.draw();
+    }
+
+
+    // ============================================================
+    // DESENHA TUDO
     // ============================================================
 
     draw() {
@@ -1399,7 +1034,6 @@ class GeradorAC {
             this.canvas.width,
             this.canvas.height
         );
-
 
         this.drawGenerator();
 
@@ -1413,45 +1047,32 @@ class GeradorAC {
 
     iniciar() {
 
-        const agora =
-            performance.now();
+        const animar = (timestamp) => {
 
+            if (!this.ultimoFrame) {
+                this.ultimoFrame = timestamp;
+            }
 
-        if (
-            agora -
-            this.ultimoFrame >=
-            this.interval
-        ) {
+            const diferenca =
+                timestamp -
+                this.ultimoFrame;
 
-            this.t += this.dt;
+            if (diferenca >= this.interval) {
+
+                this.t += this.dt;
+
+                if (this.t >= 10) {
+                    this.t = 0;
+                }
+
+                this.ultimoFrame = timestamp;
+            }
 
             this.draw();
 
-            this.ultimoFrame =
-                agora;
-        }
-
-
-        requestAnimationFrame(
-            () => this.iniciar()
-        );
-    }
-
-
-    // ============================================================
-    // ATUALIZA PARÂMETROS
-    // ============================================================
-
-    atualizarParametros(
-        newParams
-    ) {
-
-        this.params = {
-            ...this.params,
-            ...newParams
+            requestAnimationFrame(animar);
         };
 
-
-        this.draw();
+        requestAnimationFrame(animar);
     }
 }
