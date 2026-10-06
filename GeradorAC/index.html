@@ -1,303 +1,113 @@
 <!DOCTYPE html>
-
 <html lang="pt-BR">
-
-
 <head>
-
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-
-    <title>
-        Gerador AC
-    </title>
-
+    <title>Gerador AC</title>
 
     <style>
 
-
-        /* =====================================================
-           RESET
-           ===================================================== */
-
         * {
-
             box-sizing: border-box;
         }
 
-
-        /* =====================================================
-           PÁGINA
-           ===================================================== */
-
-        html,
-        body {
-
+        html, body {
             margin: 0;
-
             padding: 0;
-
-            width: 100%;
-
-            min-height: 100%;
-
             background: white;
-
-            font-family:
-                Arial,
-                sans-serif;
-        }
-
-
-        body {
-
+            font-family: Arial, sans-serif;
+            width: 100%;
             overflow-x: hidden;
         }
 
-
-        /* =====================================================
-           CANVAS
-           ===================================================== */
-
         canvas {
-
             display: block;
-
 
             width: min(
                 1200px,
                 calc(100vw - 20px)
             );
 
-
             height: auto;
 
+            aspect-ratio: 1200 / 550;
 
-            aspect-ratio:
-                1200 / 550;
+            margin: 20px auto;
 
-
-            margin:
-                20px auto;
-
-
-            border:
-                1px solid #ccc;
-
-
-            background: white;
+            border: 1px solid #ccc;
         }
 
-
-        /* =====================================================
-           CONTROLES
-           ===================================================== */
-
-        .gerador-controls {
+        #controls {
 
             width: min(
                 900px,
                 calc(100vw - 20px)
             );
 
-
-            margin:
-                20px auto
-                30px auto;
-
-
-            font-family:
-                Arial,
-                sans-serif;
+            margin: 10px auto 30px auto;
         }
-
-
-        /* =====================================================
-           TÍTULO
-           ===================================================== */
-
-        .gerador-controls h2 {
-
-            margin-top: 10px;
-
-            margin-bottom: 15px;
-
-            font-size: 24px;
-        }
-
-
-        /* =====================================================
-           CONTROLE
-           ===================================================== */
 
         .control {
-
-            width: 100%;
-
-            margin-bottom: 15px;
-        }
-
-
-        .control label {
 
             display: flex;
 
             align-items: center;
 
+            margin: 8px 0;
+
             gap: 10px;
-
-            width: 100%;
         }
 
+        .control label {
 
-        .control-label {
+            width: 180px;
 
-            flex:
-                0 0 70px;
+            flex-shrink: 0;
         }
-
 
         .control input[type="range"] {
 
             flex: 1;
-
-            min-width: 0;
         }
 
+        .control span {
 
-        .control span:last-child {
-
-            flex:
-                0 0 60px;
+            width: 70px;
 
             text-align: right;
         }
 
-
-        /* =====================================================
-           CELULAR
-           ===================================================== */
-
         @media (max-width: 600px) {
-
-
-            canvas {
-
-                width:
-                    calc(100vw - 20px);
-
-
-                margin:
-                    10px auto;
-            }
-
-
-            .gerador-controls {
-
-                width:
-                    calc(100vw - 20px);
-
-
-                margin:
-                    15px auto
-                    25px auto;
-            }
-
-
-            .gerador-controls h2 {
-
-                font-size: 20px;
-
-                margin-top: 5px;
-
-                margin-bottom: 15px;
-            }
-
 
             .control {
 
-                margin-bottom: 18px;
+                flex-wrap: wrap;
             }
-
 
             .control label {
 
-                gap: 8px;
+                width: 100%;
             }
 
+            .control input[type="range"] {
 
-            .control-label {
-
-                flex:
-                    0 0 65px;
-            }
-
-
-            .control span:last-child {
-
-                flex:
-                    0 0 50px;
-
-
-                font-size: 14px;
+                width: calc(100% - 80px);
             }
         }
-
-
-        /* =====================================================
-           CELULARES MUITO PEQUENOS
-           ===================================================== */
 
         @media (max-width: 380px) {
 
+            canvas {
 
-            .gerador-controls h2 {
-
-                font-size: 18px;
-            }
-
-
-            .control label {
-
-                gap: 6px;
-            }
-
-
-            .control-label {
-
-                flex:
-                    0 0 60px;
-            }
-
-
-            .control span:last-child {
-
-                flex:
-                    0 0 48px;
-
-
-                font-size: 13px;
+                margin-top: 10px;
             }
         }
 
-
     </style>
-
 </head>
 
-
 <body>
-
-
-    <!-- =====================================================
-         CANVAS
-         ===================================================== -->
 
     <canvas
         id="canvas"
@@ -306,51 +116,31 @@
     </canvas>
 
 
-    <!-- =====================================================
-         CLASSE DA SIMULAÇÃO
-         ===================================================== -->
-
-    <script
-        src="GeradorAC.js">
-    </script>
+    <div id="controls"></div>
 
 
-    <!-- =====================================================
-         INICIALIZAÇÃO
-         ===================================================== -->
+    <script src="GeradorAC.js"></script>
+
 
     <script>
 
-
         const canvas =
-            document.getElementById(
-                "canvas"
-            );
+            document.getElementById("canvas");
 
 
         const gerador =
             new GeradorAC(
-
                 canvas,
-
                 {
-
                     N: 100,
-
                     A: 2.0,
-
                     B: 0.5,
-
-                    w: 10
-
+                    w: 10,
+                    R: 10
                 }
-
             );
-
 
     </script>
 
-
 </body>
-
 </html>
