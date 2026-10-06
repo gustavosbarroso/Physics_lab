@@ -30,7 +30,6 @@ function ddp(N, A, B, w, t) {
 }
 
 function I(ddp, R) {
-
     if (R === 0) {
         return 0;
     }
@@ -39,7 +38,7 @@ function I(ddp, R) {
 }
 
 // ============================================================
-// ELEMENTOS DOS SLIDERS
+// SLIDERS
 // ============================================================
 
 const sliderN = document.getElementById("slider_N");
@@ -67,29 +66,47 @@ const gerador = {
 
 // ============================================================
 // MAPA DE COORDENADAS
-// Equivalente a:
-// xlim(-3, 3)
-// ylim(-2.5, 2.5)
 // ============================================================
 
 function mapX(x) {
-
-    return (
-        gerador.x +
-        ((x + 3) / 6) * gerador.largura
-    );
+    return gerador.x + ((x + 3) / 6) * gerador.largura;
 }
 
 function mapY(y) {
-
-    return (
-        gerador.y +
-        ((2.5 - y) / 5) * gerador.altura
-    );
+    return gerador.y + ((2.5 - y) / 5) * gerador.altura;
 }
 
 // ============================================================
-// DESENHO DO GERADOR
+// DADOS
+// ============================================================
+
+function calcularDados() {
+
+    const V = [];
+    const corrente = [];
+
+    for (let i = 0; i < t.length; i++) {
+
+        const v = ddp(
+            N,
+            A,
+            B,
+            w,
+            t[i]
+        );
+
+        V.push(v);
+        corrente.push(I(v, R));
+    }
+
+    return {
+        V: V,
+        I: corrente
+    };
+}
+
+// ============================================================
+// DESENHA GERADOR
 // ============================================================
 
 function desenharGerador() {
@@ -218,19 +235,15 @@ function desenharGerador() {
         let xFim;
 
         if (B >= 0) {
-
             xInicio = mapX(-1.7);
             xFim = mapX(1.3);
-
         } else {
-
             xInicio = mapX(1.3);
             xFim = mapX(-1.7);
         }
 
         const ponta = 8;
 
-        // linha
         ctx.beginPath();
 
         ctx.moveTo(
@@ -245,7 +258,6 @@ function desenharGerador() {
 
         ctx.stroke();
 
-        // ponta da seta
         ctx.beginPath();
 
         if (B >= 0) {
@@ -286,88 +298,13 @@ function desenharGerador() {
         ctx.closePath();
         ctx.fill();
     }
-
-    // ========================================================
-    // LÂMPADA
-    // ========================================================
-
-    const lampX = mapX(0);
-    const lampY = mapY(-1.7);
-    const lampRaio = 21;
-
-    ctx.beginPath();
-
-    ctx.arc(
-        lampX,
-        lampY,
-        lampRaio,
-        0,
-        2 * Math.PI
-    );
-
-    ctx.fillStyle = "gray";
-    ctx.fill();
-
-    ctx.strokeStyle = "black";
-    ctx.lineWidth = 2;
-    ctx.stroke();
-
-    // ========================================================
-    // NOME DA LÂMPADA
-    // ========================================================
-
-    ctx.fillStyle = "black";
-    ctx.font = "14px Arial";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "alphabetic";
-
-    ctx.fillText(
-        "Lâmpada",
-        mapX(0),
-        mapY(-2.2)
-    );
-}
-
-// ============================================================
-// CÁLCULO DOS DADOS
-// ============================================================
-
-function calcularDados() {
-
-    const V = [];
-    const corrente = [];
-
-    for (let i = 0; i < t.length; i++) {
-
-        const v = ddp(
-            N,
-            A,
-            B,
-            w,
-            t[i]
-        );
-
-        V.push(v);
-
-        corrente.push(
-            I(v, R)
-        );
-    }
-
-    return {
-        V: V,
-        I: corrente
-    };
 }
 
 // ============================================================
 // GRÁFICO
 // ============================================================
 
-function desenharGrafico(
-    dados,
-    tempoAtual
-) {
+function desenharGrafico(dados, tempoAtual) {
 
     const x = 624;
     const y = 80;
@@ -420,7 +357,7 @@ function desenharGrafico(
         ymax = 1;
     }
 
-    ymax = 1.1 * ymax;
+    ymax *= 1.1;
 
     // ========================================================
     // ÁREA DO GRÁFICO
@@ -443,46 +380,28 @@ function desenharGrafico(
     ctx.strokeStyle = "#b0b0b0";
     ctx.lineWidth = 1;
 
-    // linhas verticais
     for (let i = 0; i <= 8; i++) {
 
         const px =
-            x +
-            (i / 8) * largura;
+            x + (i / 8) * largura;
 
         ctx.beginPath();
 
-        ctx.moveTo(
-            px,
-            y
-        );
-
-        ctx.lineTo(
-            px,
-            y + altura
-        );
+        ctx.moveTo(px, y);
+        ctx.lineTo(px, y + altura);
 
         ctx.stroke();
     }
 
-    // linhas horizontais
     for (let i = 0; i <= 8; i++) {
 
         const py =
-            y +
-            (i / 8) * altura;
+            y + (i / 8) * altura;
 
         ctx.beginPath();
 
-        ctx.moveTo(
-            x,
-            py
-        );
-
-        ctx.lineTo(
-            x + largura,
-            py
-        );
+        ctx.moveTo(x, py);
+        ctx.lineTo(x + largura, py);
 
         ctx.stroke();
     }
@@ -501,8 +420,7 @@ function desenharGrafico(
         const valor = i * 0.25;
 
         const px =
-            x +
-            (i / 8) * largura;
+            x + (i / 8) * largura;
 
         ctx.fillText(
             valor.toFixed(2),
@@ -521,12 +439,10 @@ function desenharGrafico(
     for (let i = 0; i <= 8; i++) {
 
         const valor =
-            ymax -
-            (i / 8) * 2 * ymax;
+            ymax - (i / 8) * 2 * ymax;
 
         const py =
-            y +
-            (i / 8) * altura;
+            y + (i / 8) * altura;
 
         ctx.fillText(
             valor.toFixed(0),
@@ -566,15 +482,12 @@ function desenharGrafico(
     ctx.restore();
 
     // ========================================================
-    // CONVERSÃO DE COORDENADAS
+    // COORDENADAS DO GRÁFICO
     // ========================================================
 
     function pxTempo(tempo) {
 
-        return (
-            x +
-            (tempo / 2) * largura
-        );
+        return x + (tempo / 2) * largura;
     }
 
     function pyValor(valor) {
@@ -588,7 +501,7 @@ function desenharGrafico(
     }
 
     // ========================================================
-    // CURVA V(t)
+    // V(t)
     // ========================================================
 
     ctx.beginPath();
@@ -606,19 +519,12 @@ function desenharGrafico(
 
         if (!iniciou) {
 
-            ctx.moveTo(
-                px,
-                py
-            );
-
+            ctx.moveTo(px, py);
             iniciou = true;
 
         } else {
 
-            ctx.lineTo(
-                px,
-                py
-            );
+            ctx.lineTo(px, py);
         }
     }
 
@@ -627,7 +533,7 @@ function desenharGrafico(
     ctx.stroke();
 
     // ========================================================
-    // CURVA I(t)
+    // I(t)
     // ========================================================
 
     ctx.beginPath();
@@ -645,19 +551,12 @@ function desenharGrafico(
 
         if (!iniciou) {
 
-            ctx.moveTo(
-                px,
-                py
-            );
-
+            ctx.moveTo(px, py);
             iniciou = true;
 
         } else {
 
-            ctx.lineTo(
-                px,
-                py
-            );
+            ctx.lineTo(px, py);
         }
     }
 
@@ -671,21 +570,13 @@ function desenharGrafico(
 
     if (tempoAtual <= 2) {
 
-        const px = pxTempo(
-            tempoAtual
-        );
+        const px =
+            pxTempo(tempoAtual);
 
         ctx.beginPath();
 
-        ctx.moveTo(
-            px,
-            y
-        );
-
-        ctx.lineTo(
-            px,
-            y + altura
-        );
+        ctx.moveTo(px, y);
+        ctx.lineTo(px, y + altura);
 
         ctx.strokeStyle =
             "rgba(31,119,180,0.6)";
@@ -716,19 +607,11 @@ function desenharGrafico(
             tempoAtual
         );
 
-        const px = pxTempo(
-            tempoAtual
-        );
-
-        const py = pyValor(
-            VAtual
-        );
-
         ctx.beginPath();
 
         ctx.arc(
-            px,
-            py,
+            pxTempo(tempoAtual),
+            pyValor(VAtual),
             6,
             0,
             2 * Math.PI
@@ -757,19 +640,11 @@ function desenharGrafico(
             R
         );
 
-        const px = pxTempo(
-            tempoAtual
-        );
-
-        const py = pyValor(
-            IAtual
-        );
-
         ctx.beginPath();
 
         ctx.arc(
-            px,
-            py,
+            pxTempo(tempoAtual),
+            pyValor(IAtual),
             6,
             0,
             2 * Math.PI
@@ -784,10 +659,8 @@ function desenharGrafico(
     // ========================================================
 
     const legendaX = x + 10;
-    const legendaY =
-        y + altura - 35;
+    const legendaY = y + altura - 35;
 
-    // V(t)
     ctx.beginPath();
 
     ctx.moveTo(
@@ -814,7 +687,6 @@ function desenharGrafico(
         legendaY + 4
     );
 
-    // I(t)
     ctx.beginPath();
 
     ctx.moveTo(
@@ -831,8 +703,6 @@ function desenharGrafico(
     ctx.lineWidth = 2;
     ctx.stroke();
 
-    ctx.fillStyle = "black";
-
     ctx.fillText(
         "I(t)",
         legendaX + 40,
@@ -844,9 +714,7 @@ function desenharGrafico(
 // DESENHO COMPLETO
 // ============================================================
 
-function desenhar(
-    tempoAtual = 0
-) {
+function desenhar(tempoAtual) {
 
     ctx.clearRect(
         0,
@@ -855,26 +723,32 @@ function desenhar(
         canvas.height
     );
 
-    const dados =
-        calcularDados();
+    const dados = calcularDados();
+
+    // ========================================================
+    // GERADOR FIXO
+    // ========================================================
 
     desenharGerador();
 
     // ========================================================
-    // BOBINA RETANGULAR
-    // Diretamente equivalente ao Python
+    // BOBINA
+    // Python:
+    //
+    // angulo = w * tempo
+    // largura = 1.5 * np.cos(angulo)
+    // altura = 1.2
     // ========================================================
 
-    const tempo = tempoAtual;
-
-    const angulo = w * tempo;
+    const angulo =
+        w * tempoAtual;
 
     const largura =
         1.5 * Math.cos(angulo);
 
     const altura = 1.2;
 
-    const x = [
+    const xBobina = [
         -largura,
         largura,
         largura,
@@ -882,7 +756,7 @@ function desenhar(
         -largura
     ];
 
-    const y = [
+    const yBobina = [
         -altura,
         -altura,
         altura,
@@ -891,21 +765,21 @@ function desenhar(
     ];
 
     // ========================================================
-    // DESENHA A BOBINA
+    // ESPIRA
     // ========================================================
 
     ctx.beginPath();
 
     ctx.moveTo(
-        mapX(x[0]),
-        mapY(y[0])
+        mapX(xBobina[0]),
+        mapY(yBobina[0])
     );
 
-    for (let i = 1; i < x.length; i++) {
+    for (let i = 1; i < xBobina.length; i++) {
 
         ctx.lineTo(
-            mapX(x[i]),
-            mapY(y[i])
+            mapX(xBobina[i]),
+            mapY(yBobina[i])
         );
     }
 
@@ -914,8 +788,9 @@ function desenhar(
     ctx.stroke();
 
     // ========================================================
-    // EIXO / FIO ÚNICO
-    // Diretamente equivalente ao Python:
+    // EIXO / FIO
+    //
+    // Python:
     //
     // eixo_fio.set_data(
     //     [0, 0],
@@ -947,18 +822,12 @@ function desenhar(
     const lampY = mapY(-1.7);
     const lampRaio = 0.35;
 
-    // brilho
     const V = ddp(
         N,
         A,
         B,
         w,
-        tempo
-    );
-
-    const corrente = I(
-        V,
-        R
+        tempoAtual
     );
 
     const VmaxLampada =
@@ -971,24 +840,27 @@ function desenhar(
     if (VmaxLampada > 0) {
 
         brilho = Math.min(
-            Math.abs(V) / VmaxLampada,
+            Math.abs(V) /
+            VmaxLampada,
             1
         );
     }
 
     // ========================================================
-    // LÂMPADA
-    // Cinza -> amarelo
+    // COR DA LÂMPADA
     // ========================================================
 
     const r =
-        0.35 + 0.65 * brilho;
+        0.35 +
+        0.65 * brilho;
 
     const g =
-        0.35 + 0.65 * brilho;
+        0.35 +
+        0.65 * brilho;
 
     const b =
-        0.35 * (1 - brilho);
+        0.35 *
+        (1 - brilho);
 
     ctx.beginPath();
 
@@ -1010,6 +882,21 @@ function desenhar(
     ctx.stroke();
 
     // ========================================================
+    // TEXTO DA LÂMPADA
+    // ========================================================
+
+    ctx.fillStyle = "black";
+    ctx.font = "14px Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "alphabetic";
+
+    ctx.fillText(
+        "Lâmpada",
+        mapX(0),
+        mapY(-2.2)
+    );
+
+    // ========================================================
     // GRÁFICO
     // ========================================================
 
@@ -1020,51 +907,30 @@ function desenhar(
 }
 
 // ============================================================
-// ATUALIZA SLIDERS
+// SLIDERS
 // ============================================================
 
 function atualizarParametros() {
 
-    N = Number(
-        sliderN.value
-    );
-
-    A = Number(
-        sliderA.value
-    );
-
-    B = Number(
-        sliderB.value
-    );
-
-    w = Number(
-        sliderW.value
-    );
-
-    R = Number(
-        sliderR.value
-    );
+    N = Number(sliderN.value);
+    A = Number(sliderA.value);
+    B = Number(sliderB.value);
+    w = Number(sliderW.value);
+    R = Number(sliderR.value);
 
     valorN.textContent = N;
-
-    valorA.textContent =
-        A.toFixed(1);
-
-    valorB.textContent =
-        B.toFixed(1);
-
-    valorW.textContent =
-        w.toFixed(1);
-
+    valorA.textContent = A.toFixed(1);
+    valorB.textContent = B.toFixed(1);
+    valorW.textContent = w.toFixed(1);
     valorR.textContent = R;
 
-    desenhar(
-        tempoAtual
-    );
+    // Apenas redesenha com o tempo atual.
+    // A animação continua rodando.
+    desenhar(tempoAtual);
 }
 
 // ============================================================
-// EVENTOS
+// EVENTOS DOS SLIDERS
 // ============================================================
 
 sliderN.addEventListener(
@@ -1097,52 +963,52 @@ sliderR.addEventListener(
 //
 // Equivalente a:
 //
-// FuncAnimation(
-//     fig,
-//     animar,
-//     frames=100,
-//     interval=20,
-//     repeat=True
-// )
+// tempo = frame * 0.02
+//
+// frames = 100
+// interval = 20 ms
+// repeat = True
 // ============================================================
 
 let frame = 0;
 let tempoAtual = 0;
 
-function animar() {
+let ultimoFrame = performance.now();
 
-    // ========================================================
-    // TEMPO
-    // Python:
-    // tempo = frame * 0.02
-    // ========================================================
+function animar(agora) {
 
-    tempoAtual =
-        frame * 0.02;
+    // Mantém aproximadamente 20 ms entre os frames
+    if (agora - ultimoFrame >= 20) {
 
-    desenhar(
-        tempoAtual
-    );
+        tempoAtual =
+            frame * 0.02;
 
-    frame++;
+        desenhar(
+            tempoAtual
+        );
 
-    // repeat=True
-    if (frame >= 100) {
-        frame = 0;
+        frame++;
+
+        // ====================================================
+        // repeat=True
+        // ====================================================
+
+        if (frame >= 100) {
+            frame = 0;
+        }
+
+        ultimoFrame = agora;
     }
 
-    setTimeout(
-        () => {
-            requestAnimationFrame(animar);
-        },
-        20
-    );
+    // Continua chamando a animação
+    requestAnimationFrame(animar);
 }
 
 // ============================================================
-// INÍCIO
+// INICIALIZAÇÃO
 // ============================================================
 
 desenhar(0);
 
-animar();
+// Inicia a animação
+requestAnimationFrame(animar);
