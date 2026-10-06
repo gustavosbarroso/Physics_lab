@@ -29,7 +29,8 @@ function ddp(N, A, B, w, t) {
     return N * A * B * Math.sin(w * t);
 }
 
-function corrente(ddp, R) {
+function I(ddp, R) {
+
     if (R === 0) {
         return 0;
     }
@@ -54,7 +55,7 @@ const valorW = document.getElementById("valor_w");
 const valorR = document.getElementById("valor_R");
 
 // ============================================================
-// TAMANHO DA ÁREA DO GERADOR
+// ÁREA DO GERADOR
 // ============================================================
 
 const gerador = {
@@ -65,18 +66,26 @@ const gerador = {
 };
 
 // ============================================================
-// FUNÇÃO PARA MAPEAR COORDENADAS DO GERADOR
-// Equivalente aproximado ao:
-// ax.set_xlim(-3,3)
-// ax.set_ylim(-2.5,2.5)
+// MAPA DE COORDENADAS
+// Equivalente a:
+// xlim(-3, 3)
+// ylim(-2.5, 2.5)
 // ============================================================
 
 function mapX(x) {
-    return gerador.x + ((x + 3) / 6) * gerador.largura;
+
+    return (
+        gerador.x +
+        ((x + 3) / 6) * gerador.largura
+    );
 }
 
 function mapY(y) {
-    return gerador.y + ((2.5 - y) / 5) * gerador.altura;
+
+    return (
+        gerador.y +
+        ((2.5 - y) / 5) * gerador.altura
+    );
 }
 
 // ============================================================
@@ -85,9 +94,9 @@ function mapY(y) {
 
 function desenharGerador() {
 
-    // --------------------------------------------------------
-    // ÁREA DO GERADOR
-    // --------------------------------------------------------
+    // ========================================================
+    // ÁREA
+    // ========================================================
 
     ctx.strokeStyle = "black";
     ctx.lineWidth = 1;
@@ -99,13 +108,14 @@ function desenharGerador() {
         gerador.altura
     );
 
-    // --------------------------------------------------------
+    // ========================================================
     // TÍTULO
-    // --------------------------------------------------------
+    // ========================================================
 
-    ctx.font = "18px Arial";
     ctx.fillStyle = "black";
+    ctx.font = "18px Arial";
     ctx.textAlign = "center";
+    ctx.textBaseline = "alphabetic";
 
     ctx.fillText(
         "Gerador AC",
@@ -113,11 +123,10 @@ function desenharGerador() {
         gerador.y - 10
     );
 
-    // --------------------------------------------------------
-    // ÍMÃS
-    // --------------------------------------------------------
+    // ========================================================
+    // ÍMÃ ESQUERDO
+    // ========================================================
 
-    // Esquerda - S
     ctx.fillStyle = "blue";
 
     ctx.fillRect(
@@ -127,7 +136,6 @@ function desenharGerador() {
         mapY(-2) - mapY(2)
     );
 
-    // Esquerda - N
     ctx.fillStyle = "red";
 
     ctx.fillRect(
@@ -137,7 +145,10 @@ function desenharGerador() {
         mapY(-2) - mapY(2)
     );
 
-    // Direita - S
+    // ========================================================
+    // ÍMÃ DIREITO
+    // ========================================================
+
     ctx.fillStyle = "blue";
 
     ctx.fillRect(
@@ -147,7 +158,6 @@ function desenharGerador() {
         mapY(-2) - mapY(2)
     );
 
-    // Direita - N
     ctx.fillStyle = "red";
 
     ctx.fillRect(
@@ -157,24 +167,42 @@ function desenharGerador() {
         mapY(-2) - mapY(2)
     );
 
-    // --------------------------------------------------------
-    // LETRAS DOS ÍMÃS
-    // --------------------------------------------------------
+    // ========================================================
+    // LETRAS
+    // ========================================================
 
     ctx.fillStyle = "white";
     ctx.font = "28px Arial";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
 
-    ctx.fillText("S", mapX(-2.5), mapY(0));
-    ctx.fillText("N", mapX(-2.1), mapY(0));
+    ctx.fillText(
+        "S",
+        mapX(-2.5),
+        mapY(0)
+    );
 
-    ctx.fillText("S", mapX(2.1), mapY(0));
-    ctx.fillText("N", mapX(2.5), mapY(0));
+    ctx.fillText(
+        "N",
+        mapX(-2.1),
+        mapY(0)
+    );
 
-    // --------------------------------------------------------
+    ctx.fillText(
+        "S",
+        mapX(2.1),
+        mapY(0)
+    );
+
+    ctx.fillText(
+        "N",
+        mapX(2.5),
+        mapY(0)
+    );
+
+    // ========================================================
     // CAMPO MAGNÉTICO
-    // --------------------------------------------------------
+    // ========================================================
 
     const ys = [-1.5, -0.75, 0, 0.75, 1.5];
 
@@ -190,89 +218,85 @@ function desenharGerador() {
         let xFim;
 
         if (B >= 0) {
+
             xInicio = mapX(-1.7);
             xFim = mapX(1.3);
+
         } else {
+
             xInicio = mapX(1.3);
             xFim = mapX(-1.7);
         }
 
         const ponta = 8;
 
+        // linha
         ctx.beginPath();
-        ctx.moveTo(xInicio, y);
-        ctx.lineTo(xFim, y);
+
+        ctx.moveTo(
+            xInicio,
+            y
+        );
+
+        ctx.lineTo(
+            xFim,
+            y
+        );
+
         ctx.stroke();
 
         // ponta da seta
         ctx.beginPath();
 
         if (B >= 0) {
-            ctx.moveTo(xFim, y);
-            ctx.lineTo(xFim - ponta, y - 3);
-            ctx.lineTo(xFim - ponta, y + 3);
+
+            ctx.moveTo(
+                xFim,
+                y
+            );
+
+            ctx.lineTo(
+                xFim - ponta,
+                y - 3
+            );
+
+            ctx.lineTo(
+                xFim - ponta,
+                y + 3
+            );
+
         } else {
-            ctx.moveTo(xFim, y);
-            ctx.lineTo(xFim + ponta, y - 3);
-            ctx.lineTo(xFim + ponta, y + 3);
+
+            ctx.moveTo(
+                xFim,
+                y
+            );
+
+            ctx.lineTo(
+                xFim + ponta,
+                y - 3
+            );
+
+            ctx.lineTo(
+                xFim + ponta,
+                y + 3
+            );
         }
 
         ctx.closePath();
         ctx.fill();
     }
 
-    // --------------------------------------------------------
-    // ESPIRA
-    // --------------------------------------------------------
-
-    const cx = mapX(0);
-
-    const larguraEspira = mapX(1.5) - mapX(0);
-    const alturaEspira = mapY(-1.2) - mapY(1.2);
-
-    const x1 = cx - larguraEspira;
-    const x2 = cx + larguraEspira;
-
-    const y1 = mapY(1.2);
-    const y2 = mapY(-1.2);
-
-    // Espira retangular fechada
-    ctx.beginPath();
-
-    ctx.moveTo(x1, y2);
-    ctx.lineTo(x2, y2);
-    ctx.lineTo(x2, y1);
-    ctx.lineTo(x1, y1);
-    ctx.closePath();
-
-    ctx.strokeStyle = "black";
-    ctx.lineWidth = 4;
-    ctx.stroke();
-
-    // --------------------------------------------------------
+    // ========================================================
     // LÂMPADA
-    // --------------------------------------------------------
+    // ========================================================
 
-    const lampX = cx;
+    const lampX = mapX(0);
     const lampY = mapY(-1.7);
     const lampRaio = 21;
 
-    // fio entre a espira e a lâmpada
-    //
-    // IMPORTANTE:
-    // começa exatamente na parte inferior da espira.
-    // Não atravessa o interior dela.
     ctx.beginPath();
 
-    ctx.moveTo(cx, y2);
-    ctx.lineTo(cx, lampY - lampRaio);
-
-    ctx.strokeStyle = "black";
-    ctx.lineWidth = 4;
-    ctx.stroke();
-
-    // lâmpada
-    ctx.beginPath();
     ctx.arc(
         lampX,
         lampY,
@@ -288,7 +312,10 @@ function desenharGerador() {
     ctx.lineWidth = 2;
     ctx.stroke();
 
-    // nome
+    // ========================================================
+    // NOME DA LÂMPADA
+    // ========================================================
+
     ctx.fillStyle = "black";
     ctx.font = "14px Arial";
     ctx.textAlign = "center";
@@ -296,7 +323,7 @@ function desenharGerador() {
 
     ctx.fillText(
         "Lâmpada",
-        lampX,
+        mapX(0),
         mapY(-2.2)
     );
 }
@@ -308,7 +335,7 @@ function desenharGerador() {
 function calcularDados() {
 
     const V = [];
-    const I = [];
+    const corrente = [];
 
     for (let i = 0; i < t.length; i++) {
 
@@ -321,12 +348,15 @@ function calcularDados() {
         );
 
         V.push(v);
-        I.push(corrente(v, R));
+
+        corrente.push(
+            I(v, R)
+        );
     }
 
     return {
         V: V,
-        I: I
+        I: corrente
     };
 }
 
@@ -334,16 +364,19 @@ function calcularDados() {
 // GRÁFICO
 // ============================================================
 
-function desenharGrafico(dados, tempoAtual) {
+function desenharGrafico(
+    dados,
+    tempoAtual
+) {
 
     const x = 624;
     const y = 80;
     const largura = 660;
     const altura = 350;
 
-    // --------------------------------------------------------
+    // ========================================================
     // TÍTULO
-    // --------------------------------------------------------
+    // ========================================================
 
     ctx.fillStyle = "black";
     ctx.font = "18px Arial";
@@ -355,9 +388,9 @@ function desenharGrafico(dados, tempoAtual) {
         y - 10
     );
 
-    // --------------------------------------------------------
-    // LIMITES Y
-    // --------------------------------------------------------
+    // ========================================================
+    // ESCALA
+    // ========================================================
 
     let Vmax = 0;
     let Imax = 0;
@@ -378,17 +411,20 @@ function desenharGrafico(dados, tempoAtual) {
         }
     }
 
-    let ymax = Math.max(Vmax, Imax);
+    let ymax = Math.max(
+        Vmax,
+        Imax
+    );
 
     if (ymax === 0) {
         ymax = 1;
     }
 
-    ymax *= 1.1;
+    ymax = 1.1 * ymax;
 
-    // --------------------------------------------------------
+    // ========================================================
     // ÁREA DO GRÁFICO
-    // --------------------------------------------------------
+    // ========================================================
 
     ctx.strokeStyle = "black";
     ctx.lineWidth = 1;
@@ -400,9 +436,9 @@ function desenharGrafico(dados, tempoAtual) {
         altura
     );
 
-    // --------------------------------------------------------
+    // ========================================================
     // GRADE
-    // --------------------------------------------------------
+    // ========================================================
 
     ctx.strokeStyle = "#b0b0b0";
     ctx.lineWidth = 1;
@@ -410,28 +446,50 @@ function desenharGrafico(dados, tempoAtual) {
     // linhas verticais
     for (let i = 0; i <= 8; i++) {
 
-        const px = x + (i / 8) * largura;
+        const px =
+            x +
+            (i / 8) * largura;
 
         ctx.beginPath();
-        ctx.moveTo(px, y);
-        ctx.lineTo(px, y + altura);
+
+        ctx.moveTo(
+            px,
+            y
+        );
+
+        ctx.lineTo(
+            px,
+            y + altura
+        );
+
         ctx.stroke();
     }
 
     // linhas horizontais
     for (let i = 0; i <= 8; i++) {
 
-        const py = y + (i / 8) * altura;
+        const py =
+            y +
+            (i / 8) * altura;
 
         ctx.beginPath();
-        ctx.moveTo(x, py);
-        ctx.lineTo(x + largura, py);
+
+        ctx.moveTo(
+            x,
+            py
+        );
+
+        ctx.lineTo(
+            x + largura,
+            py
+        );
+
         ctx.stroke();
     }
 
-    // --------------------------------------------------------
+    // ========================================================
     // EIXO X
-    // --------------------------------------------------------
+    // ========================================================
 
     ctx.fillStyle = "black";
     ctx.font = "13px Arial";
@@ -441,7 +499,10 @@ function desenharGrafico(dados, tempoAtual) {
     for (let i = 0; i <= 8; i++) {
 
         const valor = i * 0.25;
-        const px = x + (i / 8) * largura;
+
+        const px =
+            x +
+            (i / 8) * largura;
 
         ctx.fillText(
             valor.toFixed(2),
@@ -450,18 +511,22 @@ function desenharGrafico(dados, tempoAtual) {
         );
     }
 
-    // --------------------------------------------------------
+    // ========================================================
     // EIXO Y
-    // --------------------------------------------------------
+    // ========================================================
 
     ctx.textAlign = "right";
     ctx.textBaseline = "middle";
 
     for (let i = 0; i <= 8; i++) {
 
-        const valor = ymax - (i / 8) * 2 * ymax;
+        const valor =
+            ymax -
+            (i / 8) * 2 * ymax;
 
-        const py = y + (i / 8) * altura;
+        const py =
+            y +
+            (i / 8) * altura;
 
         ctx.fillText(
             valor.toFixed(0),
@@ -470,9 +535,9 @@ function desenharGrafico(dados, tempoAtual) {
         );
     }
 
-    // --------------------------------------------------------
-    // RÓTULOS DOS EIXOS
-    // --------------------------------------------------------
+    // ========================================================
+    // RÓTULOS
+    // ========================================================
 
     ctx.textAlign = "center";
     ctx.textBaseline = "alphabetic";
@@ -500,21 +565,31 @@ function desenharGrafico(dados, tempoAtual) {
 
     ctx.restore();
 
-    // --------------------------------------------------------
-    // TRANSFORMAÇÃO DAS COORDENADAS
-    // --------------------------------------------------------
+    // ========================================================
+    // CONVERSÃO DE COORDENADAS
+    // ========================================================
 
     function pxTempo(tempo) {
-        return x + (tempo / 2) * largura;
+
+        return (
+            x +
+            (tempo / 2) * largura
+        );
     }
 
     function pyValor(valor) {
-        return y + altura / 2 - (valor / ymax) * (altura / 2);
+
+        return (
+            y +
+            altura / 2 -
+            (valor / ymax) *
+            (altura / 2)
+        );
     }
 
-    // --------------------------------------------------------
+    // ========================================================
     // CURVA V(t)
-    // --------------------------------------------------------
+    // ========================================================
 
     ctx.beginPath();
 
@@ -530,10 +605,20 @@ function desenharGrafico(dados, tempoAtual) {
         const py = pyValor(dados.V[i]);
 
         if (!iniciou) {
-            ctx.moveTo(px, py);
+
+            ctx.moveTo(
+                px,
+                py
+            );
+
             iniciou = true;
+
         } else {
-            ctx.lineTo(px, py);
+
+            ctx.lineTo(
+                px,
+                py
+            );
         }
     }
 
@@ -541,9 +626,9 @@ function desenharGrafico(dados, tempoAtual) {
     ctx.lineWidth = 2;
     ctx.stroke();
 
-    // --------------------------------------------------------
+    // ========================================================
     // CURVA I(t)
-    // --------------------------------------------------------
+    // ========================================================
 
     ctx.beginPath();
 
@@ -559,10 +644,20 @@ function desenharGrafico(dados, tempoAtual) {
         const py = pyValor(dados.I[i]);
 
         if (!iniciou) {
-            ctx.moveTo(px, py);
+
+            ctx.moveTo(
+                px,
+                py
+            );
+
             iniciou = true;
+
         } else {
-            ctx.lineTo(px, py);
+
+            ctx.lineTo(
+                px,
+                py
+            );
         }
     }
 
@@ -570,30 +665,46 @@ function desenharGrafico(dados, tempoAtual) {
     ctx.lineWidth = 2;
     ctx.stroke();
 
-    // --------------------------------------------------------
+    // ========================================================
     // LINHA DO TEMPO
-    // --------------------------------------------------------
+    // ========================================================
 
     if (tempoAtual <= 2) {
 
-        const px = pxTempo(tempoAtual);
+        const px = pxTempo(
+            tempoAtual
+        );
 
         ctx.beginPath();
 
-        ctx.moveTo(px, y);
-        ctx.lineTo(px, y + altura);
+        ctx.moveTo(
+            px,
+            y
+        );
 
-        ctx.strokeStyle = "rgba(31,119,180,0.6)";
+        ctx.lineTo(
+            px,
+            y + altura
+        );
+
+        ctx.strokeStyle =
+            "rgba(31,119,180,0.6)";
+
         ctx.lineWidth = 2;
 
-        ctx.setLineDash([6, 4]);
+        ctx.setLineDash([
+            6,
+            4
+        ]);
+
         ctx.stroke();
+
         ctx.setLineDash([]);
     }
 
-    // --------------------------------------------------------
+    // ========================================================
     // PONTO V(t)
-    // --------------------------------------------------------
+    // ========================================================
 
     if (tempoAtual <= 2) {
 
@@ -605,19 +716,31 @@ function desenharGrafico(dados, tempoAtual) {
             tempoAtual
         );
 
-        const px = pxTempo(tempoAtual);
-        const py = pyValor(VAtual);
+        const px = pxTempo(
+            tempoAtual
+        );
+
+        const py = pyValor(
+            VAtual
+        );
 
         ctx.beginPath();
-        ctx.arc(px, py, 6, 0, 2 * Math.PI);
+
+        ctx.arc(
+            px,
+            py,
+            6,
+            0,
+            2 * Math.PI
+        );
 
         ctx.fillStyle = "#1f77b4";
         ctx.fill();
     }
 
-    // --------------------------------------------------------
+    // ========================================================
     // PONTO I(t)
-    // --------------------------------------------------------
+    // ========================================================
 
     if (tempoAtual <= 2) {
 
@@ -629,32 +752,53 @@ function desenharGrafico(dados, tempoAtual) {
             tempoAtual
         );
 
-        const IAtual = corrente(
+        const IAtual = I(
             VAtual,
             R
         );
 
-        const px = pxTempo(tempoAtual);
-        const py = pyValor(IAtual);
+        const px = pxTempo(
+            tempoAtual
+        );
+
+        const py = pyValor(
+            IAtual
+        );
 
         ctx.beginPath();
-        ctx.arc(px, py, 6, 0, 2 * Math.PI);
+
+        ctx.arc(
+            px,
+            py,
+            6,
+            0,
+            2 * Math.PI
+        );
 
         ctx.fillStyle = "#ff7f0e";
         ctx.fill();
     }
 
-    // --------------------------------------------------------
+    // ========================================================
     // LEGENDA
-    // --------------------------------------------------------
+    // ========================================================
 
     const legendaX = x + 10;
-    const legendaY = y + altura - 35;
+    const legendaY =
+        y + altura - 35;
 
     // V(t)
     ctx.beginPath();
-    ctx.moveTo(legendaX, legendaY);
-    ctx.lineTo(legendaX + 30, legendaY);
+
+    ctx.moveTo(
+        legendaX,
+        legendaY
+    );
+
+    ctx.lineTo(
+        legendaX + 30,
+        legendaY
+    );
 
     ctx.strokeStyle = "#1f77b4";
     ctx.lineWidth = 2;
@@ -673,8 +817,15 @@ function desenharGrafico(dados, tempoAtual) {
     // I(t)
     ctx.beginPath();
 
-    ctx.moveTo(legendaX, legendaY + 22);
-    ctx.lineTo(legendaX + 30, legendaY + 22);
+    ctx.moveTo(
+        legendaX,
+        legendaY + 22
+    );
+
+    ctx.lineTo(
+        legendaX + 30,
+        legendaY + 22
+    );
 
     ctx.strokeStyle = "#ff7f0e";
     ctx.lineWidth = 2;
@@ -693,7 +844,9 @@ function desenharGrafico(dados, tempoAtual) {
 // DESENHO COMPLETO
 // ============================================================
 
-function desenhar(tempoAtual = 0) {
+function desenhar(
+    tempoAtual = 0
+) {
 
     ctx.clearRect(
         0,
@@ -702,9 +855,163 @@ function desenhar(tempoAtual = 0) {
         canvas.height
     );
 
-    const dados = calcularDados();
+    const dados =
+        calcularDados();
 
     desenharGerador();
+
+    // ========================================================
+    // BOBINA RETANGULAR
+    // Diretamente equivalente ao Python
+    // ========================================================
+
+    const tempo = tempoAtual;
+
+    const angulo = w * tempo;
+
+    const largura =
+        1.5 * Math.cos(angulo);
+
+    const altura = 1.2;
+
+    const x = [
+        -largura,
+        largura,
+        largura,
+        -largura,
+        -largura
+    ];
+
+    const y = [
+        -altura,
+        -altura,
+        altura,
+        altura,
+        -altura
+    ];
+
+    // ========================================================
+    // DESENHA A BOBINA
+    // ========================================================
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        mapX(x[0]),
+        mapY(y[0])
+    );
+
+    for (let i = 1; i < x.length; i++) {
+
+        ctx.lineTo(
+            mapX(x[i]),
+            mapY(y[i])
+        );
+    }
+
+    ctx.strokeStyle = "black";
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    // ========================================================
+    // EIXO / FIO ÚNICO
+    // Diretamente equivalente ao Python:
+    //
+    // eixo_fio.set_data(
+    //     [0, 0],
+    //     [-1.7, -altura]
+    // )
+    // ========================================================
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        mapX(0),
+        mapY(-1.7)
+    );
+
+    ctx.lineTo(
+        mapX(0),
+        mapY(-altura)
+    );
+
+    ctx.strokeStyle = "black";
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    // ========================================================
+    // LÂMPADA
+    // ========================================================
+
+    const lampX = mapX(0);
+    const lampY = mapY(-1.7);
+    const lampRaio = 0.35;
+
+    // brilho
+    const V = ddp(
+        N,
+        A,
+        B,
+        w,
+        tempo
+    );
+
+    const corrente = I(
+        V,
+        R
+    );
+
+    const VmaxLampada =
+        Math.abs(
+            N * A * B * w
+        );
+
+    let brilho = 0;
+
+    if (VmaxLampada > 0) {
+
+        brilho = Math.min(
+            Math.abs(V) / VmaxLampada,
+            1
+        );
+    }
+
+    // ========================================================
+    // LÂMPADA
+    // Cinza -> amarelo
+    // ========================================================
+
+    const r =
+        0.35 + 0.65 * brilho;
+
+    const g =
+        0.35 + 0.65 * brilho;
+
+    const b =
+        0.35 * (1 - brilho);
+
+    ctx.beginPath();
+
+    ctx.arc(
+        lampX,
+        lampY,
+        lampRaio * 60,
+        0,
+        2 * Math.PI
+    );
+
+    ctx.fillStyle =
+        `rgb(${r * 255}, ${g * 255}, ${b * 255})`;
+
+    ctx.fill();
+
+    ctx.strokeStyle = "black";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // ========================================================
+    // GRÁFICO
+    // ========================================================
 
     desenharGrafico(
         dados,
@@ -713,28 +1020,51 @@ function desenhar(tempoAtual = 0) {
 }
 
 // ============================================================
-// ATUALIZAÇÃO DOS SLIDERS
+// ATUALIZA SLIDERS
 // ============================================================
 
 function atualizarParametros() {
 
-    N = Number(sliderN.value);
-    A = Number(sliderA.value);
-    B = Number(sliderB.value);
-    w = Number(sliderW.value);
-    R = Number(sliderR.value);
+    N = Number(
+        sliderN.value
+    );
+
+    A = Number(
+        sliderA.value
+    );
+
+    B = Number(
+        sliderB.value
+    );
+
+    w = Number(
+        sliderW.value
+    );
+
+    R = Number(
+        sliderR.value
+    );
 
     valorN.textContent = N;
-    valorA.textContent = A.toFixed(1);
-    valorB.textContent = B.toFixed(1);
-    valorW.textContent = w.toFixed(1);
+
+    valorA.textContent =
+        A.toFixed(1);
+
+    valorB.textContent =
+        B.toFixed(1);
+
+    valorW.textContent =
+        w.toFixed(1);
+
     valorR.textContent = R;
 
-    desenhar(tempoAtual);
+    desenhar(
+        tempoAtual
+    );
 }
 
 // ============================================================
-// EVENTOS DOS SLIDERS
+// EVENTOS
 // ============================================================
 
 sliderN.addEventListener(
@@ -764,10 +1094,16 @@ sliderR.addEventListener(
 
 // ============================================================
 // ANIMAÇÃO
+//
 // Equivalente a:
-// FuncAnimation(... frames=100,
-//                interval=20,
-//                repeat=True)
+//
+// FuncAnimation(
+//     fig,
+//     animar,
+//     frames=100,
+//     interval=20,
+//     repeat=True
+// )
 // ============================================================
 
 let frame = 0;
@@ -775,22 +1111,32 @@ let tempoAtual = 0;
 
 function animar() {
 
-    // equivalente a:
+    // ========================================================
+    // TEMPO
+    // Python:
     // tempo = frame * 0.02
-    tempoAtual = frame * 0.02;
+    // ========================================================
 
-    desenhar(tempoAtual);
+    tempoAtual =
+        frame * 0.02;
+
+    desenhar(
+        tempoAtual
+    );
 
     frame++;
 
-    // equivalente ao repeat=True
+    // repeat=True
     if (frame >= 100) {
         frame = 0;
     }
 
-    setTimeout(() => {
-        requestAnimationFrame(animar);
-    }, 20);
+    setTimeout(
+        () => {
+            requestAnimationFrame(animar);
+        },
+        20
+    );
 }
 
 // ============================================================
@@ -798,4 +1144,5 @@ function animar() {
 // ============================================================
 
 desenhar(0);
+
 animar();
