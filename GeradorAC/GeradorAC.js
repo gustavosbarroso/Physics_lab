@@ -5,7 +5,6 @@ class GeradorAC {
         this.canvas = canvas;
         this.ctx = canvas.getContext("2d");
 
-
         // ========================================================
         // PARÂMETROS
         // ========================================================
@@ -36,6 +35,17 @@ class GeradorAC {
         this.interval = 20;
 
         this.ultimoFrame = 0;
+
+
+        // ========================================================
+        // CORES DO MATPLOTLIB
+        // ========================================================
+
+        // Primeira curva do Python
+        this.corV = "#1f77b4";
+
+        // Segunda curva do Python
+        this.corI = "#ff7f0e";
 
 
         // ========================================================
@@ -98,7 +108,6 @@ class GeradorAC {
 
         const controls =
             document.getElementById("controls");
-
 
         controls.innerHTML = "";
 
@@ -207,7 +216,6 @@ class GeradorAC {
 
             div.appendChild(span);
 
-
             controls.appendChild(div);
         };
 
@@ -293,19 +301,12 @@ class GeradorAC {
 
 
         // --------------------------------------------------------
-        // ÁREA DO GERADOR
+        // CENTRO DO GERADOR
         // --------------------------------------------------------
 
-        const x0 = 0;
+        const centroX = 250;
 
-        const x1 = 500;
-
-        const y0 = 0;
-
-        const y1 = 330;
-
-
-        ctx.save();
+        const centroY = 165;
 
 
         // --------------------------------------------------------
@@ -319,21 +320,11 @@ class GeradorAC {
 
         ctx.textAlign = "center";
 
-
         ctx.fillText(
             "Gerador AC",
-            250,
+            centroX,
             25
         );
-
-
-        // --------------------------------------------------------
-        // CENTRO
-        // --------------------------------------------------------
-
-        const centroX = 250;
-
-        const centroY = 165;
 
 
         // --------------------------------------------------------
@@ -364,8 +355,6 @@ class GeradorAC {
 
         ctx.font =
             "22px Arial";
-
-        ctx.textAlign = "center";
 
 
         ctx.fillText(
@@ -449,7 +438,9 @@ class GeradorAC {
         ) {
 
             const y =
-                centroY - 75 + i * 37.5;
+                centroY -
+                75 +
+                i * 37.5;
 
 
             const xInicial =
@@ -478,8 +469,6 @@ class GeradorAC {
 
             ctx.stroke();
 
-
-            // ponta da seta
 
             ctx.beginPath();
 
@@ -581,7 +570,7 @@ class GeradorAC {
 
 
         // --------------------------------------------------------
-        // EIXO / FIO
+        // EIXO / FIO ÚNICO
         // --------------------------------------------------------
 
         ctx.beginPath();
@@ -703,7 +692,7 @@ class GeradorAC {
 
 
         // --------------------------------------------------------
-        // PARÂMETROS
+        // VALORES INSTANTÂNEOS
         // --------------------------------------------------------
 
         const corrente =
@@ -731,9 +720,6 @@ class GeradorAC {
             20,
             323
         );
-
-
-        ctx.restore();
     }
 
 
@@ -767,7 +753,7 @@ class GeradorAC {
 
 
         // --------------------------------------------------------
-        // VALORES MÁXIMOS
+        // ESCALA
         // --------------------------------------------------------
 
         const Vmax =
@@ -832,24 +818,20 @@ class GeradorAC {
 
         ctx.beginPath();
 
-
         ctx.moveTo(
             x0,
             y0
         );
 
-
         ctx.lineTo(
             x0,
             y1
         );
 
-
         ctx.lineTo(
             x1,
             y1
         );
-
 
         ctx.stroke();
 
@@ -921,7 +903,7 @@ class GeradorAC {
 
 
         // --------------------------------------------------------
-        // EIXO V = 0
+        // EIXO ZERO
         // --------------------------------------------------------
 
         const yZero =
@@ -948,12 +930,12 @@ class GeradorAC {
         ctx.stroke();
 
 
-        // --------------------------------------------------------
+        // ========================================================
         // CURVA V(t)
-        // --------------------------------------------------------
+        // ========================================================
 
         ctx.strokeStyle =
-            "#000000";
+            this.corV;
 
         ctx.lineWidth = 2;
 
@@ -1016,14 +998,14 @@ class GeradorAC {
         ctx.stroke();
 
 
-        // --------------------------------------------------------
+        // ========================================================
         // CURVA I(t)
-        // --------------------------------------------------------
+        // ========================================================
 
         ctx.strokeStyle =
-            "#555555";
+            this.corI;
 
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 2.5;
 
 
         ctx.beginPath();
@@ -1088,9 +1070,9 @@ class GeradorAC {
         ctx.stroke();
 
 
-        // --------------------------------------------------------
-        // TEMPO ATUAL
-        // --------------------------------------------------------
+        // ========================================================
+        // VALORES INSTANTÂNEOS
+        // ========================================================
 
         const tempo =
             Math.min(
@@ -1135,11 +1117,10 @@ class GeradorAC {
 
 
         // --------------------------------------------------------
-        // PONTO V
+        // PONTO V(t)
         // --------------------------------------------------------
 
         ctx.beginPath();
-
 
         ctx.arc(
             xAtual,
@@ -1149,20 +1130,17 @@ class GeradorAC {
             2 * Math.PI
         );
 
-
         ctx.fillStyle =
-            "#000000";
-
+            this.corV;
 
         ctx.fill();
 
 
         // --------------------------------------------------------
-        // PONTO I
+        // PONTO I(t)
         // --------------------------------------------------------
 
         ctx.beginPath();
-
 
         ctx.arc(
             xAtual,
@@ -1172,10 +1150,8 @@ class GeradorAC {
             2 * Math.PI
         );
 
-
         ctx.fillStyle =
-            "#555555";
-
+            this.corI;
 
         ctx.fill();
 
@@ -1187,6 +1163,8 @@ class GeradorAC {
         ctx.strokeStyle =
             "#777777";
 
+        ctx.lineWidth = 1;
+
         ctx.setLineDash([
             5,
             5
@@ -1195,18 +1173,15 @@ class GeradorAC {
 
         ctx.beginPath();
 
-
         ctx.moveTo(
             xAtual,
             y0
         );
 
-
         ctx.lineTo(
             xAtual,
             y1
         );
-
 
         ctx.stroke();
 
@@ -1251,8 +1226,7 @@ class GeradorAC {
         // ESCALA X
         // --------------------------------------------------------
 
-        ctx.textAlign =
-            "center";
+        ctx.textAlign = "center";
 
 
         ctx.fillText(
@@ -1291,7 +1265,7 @@ class GeradorAC {
 
 
         // --------------------------------------------------------
-        // RÓTULO X
+        // EIXO X
         // --------------------------------------------------------
 
         ctx.fillText(
@@ -1302,7 +1276,7 @@ class GeradorAC {
 
 
         // --------------------------------------------------------
-        // RÓTULO Y
+        // EIXO Y
         // --------------------------------------------------------
 
         ctx.save();
@@ -1329,12 +1303,12 @@ class GeradorAC {
         ctx.restore();
 
 
-        // --------------------------------------------------------
+        // ========================================================
         // LEGENDA
-        // --------------------------------------------------------
+        // ========================================================
 
         const legendaX =
-            x1 - 120;
+            x1 - 125;
 
         const legendaY =
             y0 + 20;
@@ -1344,10 +1318,12 @@ class GeradorAC {
             "left";
 
 
+        // --------------------------------------------------------
         // V(t)
+        // --------------------------------------------------------
 
         ctx.strokeStyle =
-            "#000000";
+            this.corV;
 
         ctx.lineWidth = 3;
 
@@ -1368,7 +1344,7 @@ class GeradorAC {
 
 
         ctx.fillStyle =
-            "black";
+            this.corV;
 
         ctx.fillText(
             "V(t)",
@@ -1377,10 +1353,12 @@ class GeradorAC {
         );
 
 
+        // --------------------------------------------------------
         // I(t)
+        // --------------------------------------------------------
 
         ctx.strokeStyle =
-            "#555555";
+            this.corI;
 
 
         ctx.beginPath();
@@ -1399,7 +1377,7 @@ class GeradorAC {
 
 
         ctx.fillStyle =
-            "#555555";
+            this.corI;
 
         ctx.fillText(
             "I(t)",
@@ -1447,9 +1425,7 @@ class GeradorAC {
 
             this.t += this.dt;
 
-
             this.draw();
-
 
             this.ultimoFrame =
                 agora;
