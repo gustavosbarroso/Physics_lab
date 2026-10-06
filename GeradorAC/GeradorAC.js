@@ -1099,7 +1099,7 @@ class GeradorAC {
         );
 
         ctx.fillText(
-            "V(t), I(t)",
+            "V(t)-Volts, I(t)-A",
             0,
             0
         );
