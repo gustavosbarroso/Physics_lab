@@ -1199,14 +1199,14 @@ class CoupledOscillators {
 
 
         ctx.fillText(
-            "m₁",
+            "m",
             X1,
             y - 32
         );
 
 
         ctx.fillText(
-            "m₂",
+            "m",
             X2,
             y - 32
         );
