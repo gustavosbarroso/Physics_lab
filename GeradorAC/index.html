@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,12 +8,12 @@
     <title>Gerador AC</title>
 
     <style>
-
         * {
             box-sizing: border-box;
         }
 
-        html, body {
+        html,
+        body {
             margin: 0;
             padding: 0;
             background: white;
@@ -23,116 +24,61 @@
 
         canvas {
             display: block;
-
-            width: min(
-                1200px,
-                calc(100vw - 20px)
-            );
-
+            width: min(1200px, calc(100vw - 20px));
             height: auto;
-
             aspect-ratio: 1200 / 550;
-
             margin: 20px auto;
-
             border: 1px solid #ccc;
         }
 
         #controls {
-
-            width: min(
-                900px,
-                calc(100vw - 20px)
-            );
-
+            width: min(900px, calc(100vw - 20px));
             margin: 10px auto 30px auto;
         }
 
         .control {
-
             display: flex;
-
             align-items: center;
-
             margin: 8px 0;
-
             gap: 10px;
         }
 
         .control label {
-
             width: 180px;
-
             flex-shrink: 0;
         }
 
         .control input[type="range"] {
-
             flex: 1;
         }
 
         .control span {
-
             width: 70px;
-
             text-align: right;
         }
-
-        @media (max-width: 600px) {
-
-            .control {
-                flex-wrap: wrap;
-            }
-
-            .control label {
-                width: 100%;
-            }
-
-            .control input[type="range"] {
-                width: calc(100% - 80px);
-            }
-        }
-
-        @media (max-width: 380px) {
-
-            canvas {
-                margin-top: 10px;
-            }
-        }
-
     </style>
 </head>
 
 <body>
 
-    <canvas
-        id="canvas"
-        width="1200"
-        height="550">
-    </canvas>
+    <canvas id="geradorCanvas" width="1200" height="550"></canvas>
 
     <div id="controls"></div>
 
     <script src="GeradorAC.js"></script>
 
     <script>
+        const canvas = document.getElementById("geradorCanvas");
 
-        const canvas =
-            document.getElementById("canvas");
-
-        const gerador =
-            new GeradorAC(
-                canvas,
-                {
-                    N: 100,
-                    A: 2.0,
-                    B: 0.5,
-                    w: 10,
-                    R: 10
-                }
-            );
-
+        const gerador = new GeradorAC(canvas, {
+            N: 100,
+            A: 2.0,
+            B: 0.5,
+            w: 10,
+            R: 10
+        });
     </script>
 
 </body>
+
 </html>
