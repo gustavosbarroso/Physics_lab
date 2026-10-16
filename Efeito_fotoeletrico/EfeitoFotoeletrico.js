@@ -1,12 +1,9 @@
 // ============================================================
 // SIMULAÇÃO DO EFEITO FOTOELÉTRICO
+// Proporção inspirada na implementação original em Matplotlib
 // ============================================================
 
 class EfeitoFotoeletrico {
-
-    // ========================================================
-    // CONSTRUTOR
-    // ========================================================
 
     constructor(canvas, options = {}) {
 
@@ -14,26 +11,29 @@ class EfeitoFotoeletrico {
         this.ctx = canvas.getContext("2d");
 
         // Parâmetros
-
         this.params = {
-
             frequencia: options.frequencia ?? 1.2,
             phi: options.phi ?? 4.1,
             intensidade: options.intensidade ?? 5.0
-
         };
 
         // Constante de Planck
-
         this.h = 4.15e-15; // eV s
 
-        // Quantidade de elétrons
+        // Proporções da figura original: [3.2, 1.2]
+        this.sceneRatio = 3.2;
+        this.graphRatio = 1.2;
+        this.totalRatio = this.sceneRatio + this.graphRatio;
 
+        // Região superior destinada à cena física
+        this.sceneHeight =
+            this.canvas.height * this.sceneRatio / this.totalRatio;
+
+        // Elétrons
         this.N_METAL = 9;
         this.N = 16;
 
         // Estado temporal
-
         this.tempo = 0;
         this.ultimaEmissao = 0;
         this.indice = 0;
@@ -42,12 +42,12 @@ class EfeitoFotoeletrico {
         this.interval = 40;
         this.dt = 0.04;
 
-        // Partículas
+        this.paused = false;
 
+        // Partículas
         this.particulas = Array.from(
             { length: this.N },
             () => ({
-
                 ativa: false,
                 x0: 0,
                 y0: 1.28,
@@ -55,18 +55,13 @@ class EfeitoFotoeletrico {
                 vy: 0,
                 nascimento: 0,
                 vida: 0
-
             })
         );
 
         this.createControls();
-
         this.draw();
-
         this.iniciar();
-
     }
-
 
     // ========================================================
     // ENERGIA CINÉTICA MÁXIMA
@@ -81,20 +76,15 @@ class EfeitoFotoeletrico {
         }
 
         return this.h * f - phi;
-
     }
-
 
     // ========================================================
     // NÚMEROS ALEATÓRIOS
     // ========================================================
 
     random(min, max) {
-
         return min + Math.random() * (max - min);
-
     }
-
 
     // ========================================================
     // CONVERSÃO DE COORDENADAS
@@ -103,17 +93,17 @@ class EfeitoFotoeletrico {
     px(x) {
 
         return x * this.canvas.width / 10;
-
     }
-
 
     py(y) {
 
-        return this.canvas.height
-            - y * this.canvas.height / 6;
+        // ATENÇÃO:
+        // A transformação vertical usa somente a altura da cena.
+        // O gráfico de energia ocupa uma região separada abaixo.
 
+        return this.sceneHeight
+            - y * this.sceneHeight / 6;
     }
-
 
     // ========================================================
     // CONTROLES
@@ -132,9 +122,7 @@ class EfeitoFotoeletrico {
             <h2>Efeito fotoelétrico</h2>
 
             <div class="control">
-
                 <label>
-
                     <span class="control-label">
                         Frequência (10¹⁵ Hz)
                     </span>
@@ -151,16 +139,11 @@ class EfeitoFotoeletrico {
                     <span id="foto-f-value">
                         ${this.params.frequencia.toFixed(2)}
                     </span>
-
                 </label>
-
             </div>
 
-
             <div class="control">
-
                 <label>
-
                     <span class="control-label">
                         Função trabalho (eV)
                     </span>
@@ -177,16 +160,11 @@ class EfeitoFotoeletrico {
                     <span id="foto-phi-value">
                         ${this.params.phi.toFixed(2)}
                     </span>
-
                 </label>
-
             </div>
 
-
             <div class="control">
-
                 <label>
-
                     <span class="control-label">
                         Intensidade relativa
                     </span>
@@ -203,67 +181,41 @@ class EfeitoFotoeletrico {
                     <span id="foto-I-value">
                         ${this.params.intensidade.toFixed(1)}
                     </span>
-
                 </label>
-
             </div>
-
 
             <div class="actions">
-
-                <button
-                    type="button"
-                    id="foto-pause">
-
+                <button type="button" id="foto-pause">
                     Pausar animação
-
                 </button>
 
-                <button
-                    type="button"
-                    id="foto-reset">
-
+                <button type="button" id="foto-reset">
                     Reiniciar partículas
-
                 </button>
-
             </div>
 
-
             <p class="hint">
-
                 A frequência e a função trabalho determinam
                 se há emissão. A intensidade altera a taxa
                 visual de emissão, não a energia cinética
                 máxima. As velocidades das partículas são
                 ilustrativas e não estão em escala física.
-
             </p>
-
         `;
-
 
         this.canvas.insertAdjacentElement(
             "afterend",
             this.controlsContainer
         );
 
-
-        // ----------------------------------------------------
-        // Associação dos sliders aos parâmetros
-        // ----------------------------------------------------
-
+        // Sliders
         const bindSlider = (id, key, format) => {
 
             const input =
-                this.controlsContainer.querySelector(
-                    `#${id}`
-                );
+                this.controlsContainer.querySelector(`#${id}`);
 
             const output =
-                this.controlsContainer.querySelector(
-                    `#${id}-value`
-                );
+                this.controlsContainer.querySelector(`#${id}-value`);
 
             input.addEventListener("input", () => {
 
@@ -273,11 +225,8 @@ class EfeitoFotoeletrico {
                     format(this.params[key]);
 
                 this.draw();
-
             });
-
         };
-
 
         bindSlider(
             "foto-f",
@@ -297,13 +246,7 @@ class EfeitoFotoeletrico {
             v => v.toFixed(1)
         );
 
-
-        // ----------------------------------------------------
         // Pausar e retomar
-        // ----------------------------------------------------
-
-        this.paused = false;
-
         this.controlsContainer
             .querySelector("#foto-pause")
             .addEventListener("click", event => {
@@ -314,14 +257,9 @@ class EfeitoFotoeletrico {
                     this.paused
                         ? "Retomar animação"
                         : "Pausar animação";
-
             });
 
-
-        // ----------------------------------------------------
         // Reiniciar partículas
-        // ----------------------------------------------------
-
         this.controlsContainer
             .querySelector("#foto-reset")
             .addEventListener("click", () => {
@@ -334,11 +272,8 @@ class EfeitoFotoeletrico {
                 this.ultimaEmissao = 0;
 
                 this.draw();
-
             });
-
     }
-
 
     // ========================================================
     // TEXTO
@@ -350,24 +285,15 @@ class EfeitoFotoeletrico {
 
         ctx.save();
 
-        ctx.fillStyle =
-            options.color ?? "#222";
-
-        ctx.font =
-            options.font ?? "14px Arial";
-
-        ctx.textAlign =
-            options.align ?? "left";
-
-        ctx.textBaseline =
-            options.baseline ?? "alphabetic";
+        ctx.fillStyle = options.color ?? "#222";
+        ctx.font = options.font ?? "14px Arial";
+        ctx.textAlign = options.align ?? "left";
+        ctx.textBaseline = options.baseline ?? "alphabetic";
 
         ctx.fillText(text, x, y);
 
         ctx.restore();
-
     }
-
 
     // ========================================================
     // SETA DA LUZ INCIDENTE
@@ -399,43 +325,30 @@ class EfeitoFotoeletrico {
         ctx.lineWidth = 2;
 
         ctx.beginPath();
-
         ctx.moveTo(a.x, a.y);
         ctx.lineTo(b.x, b.y);
-
         ctx.stroke();
 
         const head = 12;
 
         ctx.beginPath();
-
         ctx.moveTo(b.x, b.y);
 
         ctx.lineTo(
-            b.x - head * Math.cos(
-                angle - Math.PI / 6
-            ),
-            b.y - head * Math.sin(
-                angle - Math.PI / 6
-            )
+            b.x - head * Math.cos(angle - Math.PI / 6),
+            b.y - head * Math.sin(angle - Math.PI / 6)
         );
 
         ctx.lineTo(
-            b.x - head * Math.cos(
-                angle + Math.PI / 6
-            ),
-            b.y - head * Math.sin(
-                angle + Math.PI / 6
-            )
+            b.x - head * Math.cos(angle + Math.PI / 6),
+            b.y - head * Math.sin(angle + Math.PI / 6)
         );
 
         ctx.closePath();
         ctx.fill();
 
         ctx.restore();
-
     }
-
 
     // ========================================================
     // DESENHO DOS ELÉTRONS
@@ -448,8 +361,7 @@ class EfeitoFotoeletrico {
         const cx = this.px(x);
         const cy = this.py(y);
 
-        const r =
-            radius * this.canvas.width / 10;
+        const r = radius * this.canvas.width / 10;
 
         ctx.beginPath();
 
@@ -477,9 +389,7 @@ class EfeitoFotoeletrico {
         ctx.textBaseline = "middle";
 
         ctx.fillText("−", cx, cy + 0.5);
-
     }
-
 
     // ========================================================
     // CENA FÍSICA
@@ -488,35 +398,41 @@ class EfeitoFotoeletrico {
     drawScene() {
 
         const ctx = this.ctx;
-
         const w = this.canvas.width;
-        const h = this.canvas.height;
 
-        ctx.clearRect(0, 0, w, h);
+        // Limpa somente a região da cena superior
+        ctx.clearRect(0, 0, w, this.sceneHeight);
 
+        ctx.save();
+
+        // Impede a cena de desenhar sobre o gráfico
+        ctx.beginPath();
+        ctx.rect(0, 0, w, this.sceneHeight);
+        ctx.clip();
+
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, w, this.sceneHeight);
 
         // Título
-
         this.drawText(
             "Efeito fotoelétrico",
             w / 2,
-            28,
+            this.py(5.95),
             {
                 font: "bold 20px Arial",
                 align: "center"
             }
         );
 
-
-        // ----------------------------------------------------
         // Superfície metálica
-        // ----------------------------------------------------
-
         const metalX = this.px(0.5);
         const metalY = this.py(1.2);
 
-        const metalW = this.px(9.5) - this.px(0.5);
-        const metalH = this.py(0.55) - this.py(1.2);
+        const metalW =
+            this.px(9.5) - this.px(0.5);
+
+        const metalH =
+            this.py(0.55) - this.py(1.2);
 
         ctx.fillStyle = "silver";
         ctx.strokeStyle = "dimgray";
@@ -536,7 +452,6 @@ class EfeitoFotoeletrico {
             metalH
         );
 
-
         this.drawText(
             "Superfície metálica",
             this.px(5),
@@ -544,16 +459,8 @@ class EfeitoFotoeletrico {
             { align: "center" }
         );
 
-
-        // ----------------------------------------------------
         // Elétrons no metal
-        // ----------------------------------------------------
-
-        for (
-            let i = 0;
-            i < this.N_METAL;
-            i++
-        ) {
+        for (let i = 0; i < this.N_METAL; i++) {
 
             const x = 1 + i;
 
@@ -562,14 +469,9 @@ class EfeitoFotoeletrico {
                 0.88,
                 0.075
             );
-
         }
 
-
-        // ----------------------------------------------------
         // Luz incidente
-        // ----------------------------------------------------
-
         this.drawArrow(
             7.6,
             4.7,
@@ -588,107 +490,63 @@ class EfeitoFotoeletrico {
             }
         );
 
-
-        // ----------------------------------------------------
         // Estado físico
-        // ----------------------------------------------------
-
-        const f =
-            this.params.frequencia * 1e15;
-
+        const f = this.params.frequencia * 1e15;
         const phi = this.params.phi;
-
-        const intensidade =
-            this.params.intensidade;
+        const intensidade = this.params.intensidade;
 
         const fc = phi / this.h;
-
-        const Kmax =
-            this.energiaCinetica(f, phi);
+        const Kmax = this.energiaCinetica(f, phi);
 
         const emissao =
             f > fc &&
             Kmax > 0 &&
             intensidade > 0;
 
-
         this.drawText(
             emissao
                 ? "EMISSÃO DE FOTOELÉTRONS"
                 : "SEM EMISSÃO DE FOTOELÉTRONS",
-
             this.px(0.55),
             this.py(5.55),
-
             {
-                color: emissao
-                    ? "darkgreen"
-                    : "firebrick",
-
+                color: emissao ? "darkgreen" : "firebrick",
                 font: "bold 15px Arial"
             }
         );
 
-
         this.drawText(
             `f = ${f.toExponential(2)} Hz | ` +
             `fc = ${fc.toExponential(2)} Hz | ` +
-            `Kmáx = ${Kmax.toFixed(2)} eV`,
-
+            `Kmax = ${Kmax.toFixed(2)} eV`,
             this.px(0.55),
             this.py(5.15),
-
             { font: "12px Arial" }
         );
 
-
-        // ----------------------------------------------------
         // Fotoelétrons ejetados
-        // ----------------------------------------------------
-
         for (const p of this.particulas) {
 
             if (!p.ativa) continue;
 
-            const idade =
-                this.tempo - p.nascimento;
+            const idade = this.tempo - p.nascimento;
 
             if (idade > p.vida) continue;
 
-            const x =
-                p.x0 + p.vx * idade;
-
-            const y =
-                p.y0 + p.vy * idade;
+            const x = p.x0 + p.vx * idade;
+            const y = p.y0 + p.vy * idade;
 
             if (
                 x >= 0.2 &&
                 y >= 1.2 &&
                 y <= 5.8
             ) {
-
-                this.drawElectron(
-                    x,
-                    y,
-                    0.13
-                );
-
+                this.drawElectron(x, y, 0.13);
             }
-
         }
 
-
-        // Gráfico da energia
-
-        this.drawEnergyGraph(
-            phi,
-            fc,
-            f,
-            Kmax
-        );
-
+        ctx.restore();
     }
-
 
     // ========================================================
     // GRÁFICO DA ENERGIA CINÉTICA
@@ -698,31 +556,25 @@ class EfeitoFotoeletrico {
 
         const ctx = this.ctx;
 
+        // O gráfico começa abaixo da região física.
         const gx = 80;
-        const gy = 365;
-        const gw = 1060;
+        const gy = this.sceneHeight + 18;
+        const gw = this.canvas.width - 140;
         const gh = 145;
 
         ctx.save();
 
+        // Fundo branco independente
         ctx.fillStyle = "white";
-
         ctx.fillRect(
-            gx,
-            gy,
-            gw,
-            gh
+            gx - 2,
+            gy - 16,
+            gw + 4,
+            gh + 55
         );
 
         ctx.strokeStyle = "#ddd";
-
-        ctx.strokeRect(
-            gx,
-            gy,
-            gw,
-            gh
-        );
-
+        ctx.strokeRect(gx, gy, gw, gh);
 
         const xMax = 2.5e15;
         const yMax = 7;
@@ -733,63 +585,42 @@ class EfeitoFotoeletrico {
         const Y = value =>
             gy + gh - value / yMax * gh;
 
-
         // Grade horizontal
-
-        ctx.strokeStyle =
-            "rgba(0,0,0,0.13)";
-
+        ctx.strokeStyle = "rgba(0,0,0,0.13)";
         ctx.lineWidth = 1;
 
-        for (
-            let k = 0;
-            k <= 7;
-            k++
-        ) {
+        for (let k = 0; k <= 7; k++) {
 
             ctx.beginPath();
-
-            ctx.moveTo(
-                gx,
-                Y(k)
-            );
-
-            ctx.lineTo(
-                gx + gw,
-                Y(k)
-            );
-
+            ctx.moveTo(gx, Y(k));
+            ctx.lineTo(gx + gw, Y(k));
             ctx.stroke();
 
+            this.drawText(
+                String(k),
+                gx - 10,
+                Y(k) + 4,
+                {
+                    font: "10px Arial",
+                    align: "right",
+                    color: "#555"
+                }
+            );
         }
 
+        // Grade vertical
+        for (let k = 0; k <= 2.5; k += 0.5) {
 
-        // Grade vertical e marcações
-
-        for (
-            let k = 0;
-            k <= 2.5;
-            k += 0.5
-        ) {
+            const x = X(k * 1e15);
 
             ctx.beginPath();
-
-            ctx.moveTo(
-                X(k * 1e15),
-                gy
-            );
-
-            ctx.lineTo(
-                X(k * 1e15),
-                gy + gh
-            );
-
+            ctx.moveTo(x, gy);
+            ctx.lineTo(x, gy + gh);
             ctx.stroke();
-
 
             this.drawText(
                 k.toFixed(1),
-                X(k * 1e15),
+                x,
                 gy + gh + 14,
                 {
                     font: "10px Arial",
@@ -797,24 +628,14 @@ class EfeitoFotoeletrico {
                     color: "#555"
                 }
             );
-
         }
 
-
-        // ----------------------------------------------------
         // Curva Kmax = max(hf - phi, 0)
-        // ----------------------------------------------------
-
         ctx.beginPath();
 
-        for (
-            let i = 0;
-            i <= 300;
-            i++
-        ) {
+        for (let i = 0; i <= 500; i++) {
 
-            const freq =
-                xMax * i / 300;
+            const freq = xMax * i / 500;
 
             const energy = Math.max(
                 this.h * freq - phi,
@@ -822,63 +643,31 @@ class EfeitoFotoeletrico {
             );
 
             if (i === 0) {
-
-                ctx.moveTo(
-                    X(freq),
-                    Y(energy)
-                );
-
+                ctx.moveTo(X(freq), Y(energy));
             } else {
-
-                ctx.lineTo(
-                    X(freq),
-                    Y(energy)
-                );
-
+                ctx.lineTo(X(freq), Y(energy));
             }
-
         }
 
         ctx.strokeStyle = "#1976d2";
         ctx.lineWidth = 2.5;
         ctx.stroke();
 
-
-        // ----------------------------------------------------
         // Frequência de corte
-        // ----------------------------------------------------
-
         ctx.save();
 
         ctx.setLineDash([7, 5]);
-
         ctx.strokeStyle = "red";
 
         ctx.beginPath();
-
-        ctx.moveTo(
-            X(fc),
-            gy
-        );
-
-        ctx.lineTo(
-            X(fc),
-            gy + gh
-        );
-
+        ctx.moveTo(X(fc), gy);
+        ctx.lineTo(X(fc), gy + gh);
         ctx.stroke();
 
         ctx.restore();
 
-
-        // ----------------------------------------------------
         // Ponto da frequência selecionada
-        // ----------------------------------------------------
-
-        if (
-            f >= 0 &&
-            f <= xMax
-        ) {
+        if (f >= 0 && f <= xMax) {
 
             ctx.beginPath();
 
@@ -892,82 +681,93 @@ class EfeitoFotoeletrico {
 
             ctx.fillStyle = "#ef6c00";
             ctx.fill();
-
         }
 
-
         // Eixos
-
         ctx.strokeStyle = "#555";
 
         ctx.beginPath();
-
         ctx.moveTo(gx, gy);
-
-        ctx.lineTo(
-            gx,
-            gy + gh
-        );
-
-        ctx.lineTo(
-            gx + gw,
-            gy + gh
-        );
-
+        ctx.lineTo(gx, gy + gh);
+        ctx.lineTo(gx + gw, gy + gh);
         ctx.stroke();
 
-
-        // Títulos
-
+        // Títulos dos eixos
         this.drawText(
-            "Energia cinética máxima Kmax (eV)",
-            gx + gw / 2,
-            gy - 9,
-            {
-                font: "bold 13px Arial",
-                align: "center"
-            }
-        );
-
-
-        this.drawText(
-            "Frequência (10¹⁵ Hz)",
-            gx + gw / 2,
-            gy + gh + 30,
+            "Kmax (eV)",
+            gx - 42,
+            gy + gh / 2,
             {
                 font: "12px Arial",
                 align: "center"
             }
         );
 
-
         this.drawText(
-            "7",
-            gx - 10,
-            Y(7) + 4,
+            "Frequência (Hz)",
+            gx + gw / 2,
+            gy + gh + 35,
             {
-                font: "10px Arial",
-                align: "right",
-                color: "#555"
+                font: "12px Arial",
+                align: "center"
             }
         );
 
+        // Notação científica do eixo x
+        this.drawText(
+            "×10¹⁵",
+            gx + gw,
+            gy + gh + 14,
+            {
+                font: "11px Arial",
+                align: "right"
+            }
+        );
+
+        // Legenda
+        const lx = gx + 8;
+        const ly = gy + 8;
+
+        ctx.fillStyle = "white";
+        ctx.strokeStyle = "#ccc";
+
+        ctx.fillRect(lx, ly, 178, 40);
+        ctx.strokeRect(lx, ly, 178, 40);
+
+        ctx.strokeStyle = "#1976d2";
+        ctx.lineWidth = 2.5;
+
+        ctx.beginPath();
+        ctx.moveTo(lx + 8, ly + 12);
+        ctx.lineTo(lx + 32, ly + 12);
+        ctx.stroke();
 
         this.drawText(
-            "0",
-            gx - 10,
-            Y(0) + 4,
-            {
-                font: "10px Arial",
-                align: "right",
-                color: "#555"
-            }
+            "Kmax = hf − φ",
+            lx + 39,
+            ly + 16,
+            { font: "12px Arial" }
+        );
+
+        ctx.strokeStyle = "red";
+        ctx.setLineDash([6, 4]);
+
+        ctx.beginPath();
+        ctx.moveTo(lx + 8, ly + 29);
+        ctx.lineTo(lx + 32, ly + 29);
+        ctx.stroke();
+
+        ctx.setLineDash([]);
+
+        this.drawText(
+            "Frequência de corte",
+            lx + 39,
+            ly + 33,
+            { font: "12px Arial" }
         );
 
         ctx.restore();
-
     }
-
 
     // ========================================================
     // ATUALIZAÇÃO DAS PARTÍCULAS
@@ -975,27 +775,17 @@ class EfeitoFotoeletrico {
 
     atualizarParticulas() {
 
-        const f =
-            this.params.frequencia * 1e15;
-
+        const f = this.params.frequencia * 1e15;
         const phi = this.params.phi;
-
-        const intensidade =
-            this.params.intensidade;
+        const intensidade = this.params.intensidade;
 
         const fc = phi / this.h;
-
-        const Kmax =
-            this.energiaCinetica(f, phi);
-
+        const Kmax = this.energiaCinetica(f, phi);
 
         const emissao =
             f > fc &&
             Kmax > 0 &&
             intensidade > 0;
-
-
-        // Sem emissão
 
         if (!emissao) {
 
@@ -1004,80 +794,50 @@ class EfeitoFotoeletrico {
             );
 
             return;
-
         }
 
-
-        // Taxa visual de emissão
-
-        const taxa =
-            intensidade * 0.22;
-
+        const taxa = intensidade * 0.22;
 
         if (
             this.tempo - this.ultimaEmissao >=
             1 / Math.max(taxa, 0.05)
         ) {
 
-            const p =
-                this.particulas[this.indice];
+            const p = this.particulas[this.indice];
 
             p.ativa = true;
-
             p.x0 = this.random(5.7, 6.8);
             p.y0 = 1.28;
 
-
             // Direção para cima e para a esquerda
-
             const angulo = this.random(
                 115 * Math.PI / 180,
                 155 * Math.PI / 180
             );
 
-
             // Velocidade visual ilustrativa
-
             const velocidade =
                 0.45 + 0.38 * Math.sqrt(Kmax);
 
-
-            p.vx =
-                velocidade * Math.cos(angulo);
-
-            p.vy =
-                velocidade * Math.sin(angulo);
-
+            p.vx = velocidade * Math.cos(angulo);
+            p.vy = velocidade * Math.sin(angulo);
 
             p.nascimento = this.tempo;
-
             p.vida = this.random(2.2, 3.6);
 
-
-            this.indice =
-                (this.indice + 1) % this.N;
-
-            this.ultimaEmissao =
-                this.tempo;
-
+            this.indice = (this.indice + 1) % this.N;
+            this.ultimaEmissao = this.tempo;
         }
 
-
         // Movimento retilíneo uniforme
-
         for (const p of this.particulas) {
 
             if (!p.ativa) continue;
 
-            const idade =
-                this.tempo - p.nascimento;
+            const idade = this.tempo - p.nascimento;
 
-            const x =
-                p.x0 + p.vx * idade;
-
-            const y =
-                p.y0 + p.vy * idade;
-
+            const x = p.x0 + p.vx * idade;
+            const y = p.y0 + p.vy * idade;
 
             if (
                 idade > p.vida ||
@@ -1085,15 +845,10 @@ class EfeitoFotoeletrico {
                 y < 1.2 ||
                 y > 5.8
             ) {
-
                 p.ativa = false;
-
             }
-
         }
-
     }
-
 
     // ========================================================
     // DESENHO PRINCIPAL
@@ -1101,10 +856,27 @@ class EfeitoFotoeletrico {
 
     draw() {
 
+        const ctx = this.ctx;
+
+        ctx.clearRect(
+            0,
+            0,
+            this.canvas.width,
+            this.canvas.height
+        );
+
+        // Desenha primeiro a cena superior
         this.drawScene();
 
-    }
+        // Depois desenha o gráfico na região inferior
+        const f = this.params.frequencia * 1e15;
+        const phi = this.params.phi;
 
+        const fc = phi / this.h;
+        const Kmax = this.energiaCinetica(f, phi);
+
+        this.drawEnergyGraph(phi, fc, f, Kmax);
+    }
 
     // ========================================================
     // ANIMAÇÃO
@@ -1115,47 +887,29 @@ class EfeitoFotoeletrico {
         const animar = timestamp => {
 
             if (this.ultimoFrame === 0) {
-
                 this.ultimoFrame = timestamp;
-
             }
 
-
-            const decorrido =
-                timestamp - this.ultimoFrame;
-
+            const decorrido = timestamp - this.ultimoFrame;
 
             if (decorrido >= this.interval) {
 
                 if (!this.paused) {
-
                     this.tempo += this.dt;
-
                     this.atualizarParticulas();
-
                 }
 
                 this.draw();
 
-
                 this.ultimoFrame =
-                    timestamp -
-                    (decorrido % this.interval);
-
+                    timestamp - (decorrido % this.interval);
             }
 
-
-            this.frame =
-                requestAnimationFrame(animar);
-
+            this.frame = requestAnimationFrame(animar);
         };
 
-
-        this.frame =
-            requestAnimationFrame(animar);
-
+        this.frame = requestAnimationFrame(animar);
     }
-
 
     // ========================================================
     // ATUALIZAR PARÂMETROS EXTERNAMENTE
@@ -1169,8 +923,5 @@ class EfeitoFotoeletrico {
         };
 
         this.draw();
-
     }
-
 }
-
