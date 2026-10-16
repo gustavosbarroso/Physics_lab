@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="pt-BR">
 
@@ -12,13 +13,17 @@
     <title>Efeito Fotoelétrico</title>
 
     <style>
-        /* RESET */
+        /* =====================================================
+           RESET
+           ===================================================== */
 
         * {
             box-sizing: border-box;
         }
 
-        /* PÁGINA */
+        /* =====================================================
+           PÁGINA
+           ===================================================== */
 
         html,
         body {
@@ -34,7 +39,10 @@
             overflow-x: hidden;
         }
 
-        /* CANVAS */
+        /* =====================================================
+           CANVAS
+           Proporção interna: 1200 × 740
+           ===================================================== */
 
         canvas {
             display: block;
@@ -45,7 +53,7 @@
             );
 
             height: auto;
-            aspect-ratio: 1200 / 550;
+            aspect-ratio: 1200 / 740;
 
             margin: 20px auto;
 
@@ -53,7 +61,9 @@
             background: white;
         }
 
-        /* CONTROLES */
+        /* =====================================================
+           CONTROLES
+           ===================================================== */
 
         .foto-controls {
             width: min(
@@ -130,7 +140,9 @@
             background: #eee;
         }
 
-        /* CELULAR */
+        /* =====================================================
+           CELULAR
+           ===================================================== */
 
         @media (max-width: 600px) {
             canvas {
@@ -179,36 +191,40 @@
 
 <body>
 
-    <!-- CANVAS -->
+    <!-- =====================================================
+         CANVAS DA SIMULAÇÃO
+         A cena física fica acima do gráfico de energia.
+         ===================================================== -->
 
     <canvas
         id="canvas"
         width="1200"
-        height="550">
+        height="740">
     </canvas>
 
-    <!-- CLASSE DA SIMULAÇÃO -->
+    <!-- =====================================================
+         CLASSE DA SIMULAÇÃO
+         ===================================================== -->
 
     <script src="EfeitoFotoeletrico.js"></script>
 
-    <!-- INICIALIZAÇÃO -->
+    <!-- =====================================================
+         INICIALIZAÇÃO
+         ===================================================== -->
 
     <script>
-        const canvas =
-            document.getElementById("canvas");
+        const canvas = document.getElementById("canvas");
 
-        const simulacao =
-            new EfeitoFotoeletrico(
-                canvas,
-                {
-                    frequencia: 1.2,
-                    phi: 4.1,
-                    intensidade: 5.0
-                }
-            );
+        const simulacao = new EfeitoFotoeletrico(
+            canvas,
+            {
+                frequencia: 1.2,
+                phi: 4.1,
+                intensidade: 5.0
+            }
+        );
     </script>
 
 </body>
-
 </html>
-
+```
