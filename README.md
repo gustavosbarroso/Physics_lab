@@ -176,6 +176,13 @@ Gerador Senoidal de Corrente alternada.
 
 **[▶ Abrir simulação](https://gustavosbarroso.github.io/Physics_lab/GeradorAC/)**
 
+### XX. [Gerador AC](https://gustavosbarroso.github.io/Physics_lab/Efeito_fotoeletrico/)
+
+<img width="1197" height="546" alt="image" src="https://github.com/user-attachments/assets/21f4980f-b263-47c2-94a4-fdf05da23a74" />
+
+Simulação de efeito fotoelétrico sob uma placa metálica em que se controla a frequência dos fótons emitidos, a frequência de corte para a qual há ejeção de fotoelétrons e a intensidade da luz, que aumenta a quantidade elétrons ejetados.
+
+**[▶ Abrir simulação](https://gustavosbarroso.github.io/Physics_lab/Efeito_fotoeletrico/)**
 ---
 
 ## 📄 LICENÇA
