@@ -716,7 +716,7 @@ class EfeitoFotoeletrico {
         // Notação científica do eixo x
         this.drawText(
             "×10¹⁵",
-            gx + gw + 2,
+            gx + gw + 35,
             gy + gh + 14,
             {
                 font: "11px Arial",
