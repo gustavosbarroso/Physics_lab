@@ -630,6 +630,19 @@ class EfeitoFotoeletrico {
             );
         }
 
+        // ====================================================
+        // ALTERAÇÃO: recorta a curva e os elementos internos
+        // para que não ultrapassem os limites da malha.
+        // Isso reproduz o recorte automático dos eixos
+        // utilizado pelo Matplotlib.
+        // ====================================================
+
+        ctx.save();
+
+        ctx.beginPath();
+        ctx.rect(gx, gy, gw, gh);
+        ctx.clip();
+
         // Curva Kmax = max(hf - phi, 0)
         ctx.beginPath();
 
@@ -682,6 +695,10 @@ class EfeitoFotoeletrico {
             ctx.fillStyle = "#ef6c00";
             ctx.fill();
         }
+
+        // ALTERAÇÃO: encerra o recorte antes de desenhar
+        // os eixos, títulos e a legenda.
+        ctx.restore();
 
         // Eixos
         ctx.strokeStyle = "#555";
@@ -925,3 +942,4 @@ class EfeitoFotoeletrico {
         this.draw();
     }
 }
+```
