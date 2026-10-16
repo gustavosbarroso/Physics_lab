@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Efeito Fotoelétrico</title>
+
+    <style>
+        /* RESET */
+
+        * {
+            box-sizing: border-box;
+        }
+
+        /* PÁGINA */
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            min-height: 100%;
+            background: white;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            overflow-x: hidden;
+        }
+
+        /* CANVAS */
+
+        canvas {
+            display: block;
+
+            width: min(
+                1200px,
+                calc(100vw - 20px)
+            );
+
+            height: auto;
+            aspect-ratio: 1200 / 550;
+
+            margin: 20px auto;
+
+            border: 1px solid #ccc;
+            background: white;
+        }
+
+        /* CONTROLES */
+
+        .foto-controls {
+            width: min(
+                900px,
+                calc(100vw - 20px)
+            );
+
+            margin: 20px auto 30px;
+            font-family: Arial, sans-serif;
+        }
+
+        .foto-controls h2 {
+            margin-top: 10px;
+            margin-bottom: 15px;
+            font-size: 24px;
+        }
+
+        .foto-controls h3 {
+            margin-top: 25px;
+            margin-bottom: 15px;
+            font-size: 19px;
+        }
+
+        .control {
+            width: 100%;
+            margin-bottom: 17px;
+        }
+
+        .control label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .control-label {
+            flex: 0 0 190px;
+        }
+
+        .control input[type="range"] {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .control span:last-child {
+            flex: 0 0 65px;
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .hint {
+            color: #555;
+            font-size: 13px;
+            line-height: 1.45;
+        }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        button {
+            border: 1px solid #bbb;
+            border-radius: 6px;
+            background: #f7f7f7;
+            padding: 9px 15px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        button:hover {
+            background: #eee;
+        }
+
+        /* CELULAR */
+
+        @media (max-width: 600px) {
+            canvas {
+                width: calc(100vw - 20px);
+                margin: 10px auto;
+            }
+
+            .foto-controls {
+                width: calc(100vw - 20px);
+                margin: 15px auto 25px;
+            }
+
+            .foto-controls h2 {
+                font-size: 20px;
+            }
+
+            .foto-controls h3 {
+                font-size: 17px;
+            }
+
+            .control {
+                margin-bottom: 18px;
+            }
+
+            .control label {
+                gap: 8px;
+                flex-wrap: wrap;
+            }
+
+            .control-label {
+                flex: 0 0 100%;
+                font-size: 14px;
+            }
+
+            .control input[type="range"] {
+                flex: 1 1 65%;
+            }
+
+            .control span:last-child {
+                flex: 0 0 55px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- CANVAS -->
+
+    <canvas
+        id="canvas"
+        width="1200"
+        height="550">
+    </canvas>
+
+    <!-- CLASSE DA SIMULAÇÃO -->
+
+    <script src="EfeitoFotoeletrico.js"></script>
+
+    <!-- INICIALIZAÇÃO -->
+
+    <script>
+        const canvas =
+            document.getElementById("canvas");
+
+        const simulacao =
+            new EfeitoFotoeletrico(
+                canvas,
+                {
+                    frequencia: 1.2,
+                    phi: 4.1,
+                    intensidade: 5.0
+                }
+            );
+    </script>
+
+</body>
+
+</html>
