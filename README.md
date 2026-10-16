@@ -183,6 +183,7 @@ Gerador Senoidal de Corrente alternada.
 Simulação de efeito fotoelétrico sob uma placa metálica em que se controla a frequência dos fótons emitidos, a frequência de corte para a qual há ejeção de fotoelétrons e a intensidade da luz, que aumenta a quantidade elétrons ejetados.
 
 **[▶ Abrir simulação](https://gustavosbarroso.github.io/Physics_lab/Efeito_fotoeletrico/)**
+
 ---
 
 ## 📄 LICENÇA
