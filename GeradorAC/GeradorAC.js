@@ -96,7 +96,7 @@ class GeradorAC {
     // Python:
     //
     // def ddp(N, A, B, w, t):
-    //     return N * A * B * np.sin(w * t)
+    //     return -N * A * B * w* np.sin(w * t)
     // =========================================================
 
     ddp(N, A, B, w, t) {
