@@ -417,7 +417,7 @@ class EfeitoFotoeletrico {
         this.drawText(
             "Efeito fotoelétrico",
             w / 2,
-            this.py(5.95),
+            this.py(5.80),
             {
                 font: "bold 20px Arial",
                 align: "center"
