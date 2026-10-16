@@ -102,9 +102,10 @@ class GeradorAC {
     ddp(N, A, B, w, t) {
 
         return (
-            N *
+            -N *
             A *
             B *
+            w *
             Math.sin(
                 w * t
             )
