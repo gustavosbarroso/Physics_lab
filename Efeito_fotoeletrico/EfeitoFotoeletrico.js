@@ -942,4 +942,4 @@ class EfeitoFotoeletrico {
         this.draw();
     }
 }
-```
+
