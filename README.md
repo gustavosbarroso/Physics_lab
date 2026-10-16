@@ -176,7 +176,7 @@ Gerador Senoidal de Corrente alternada.
 
 **[▶ Abrir simulação](https://gustavosbarroso.github.io/Physics_lab/GeradorAC/)**
 
-### XX. [Gerador AC](https://gustavosbarroso.github.io/Physics_lab/Efeito_fotoeletrico/)
+### XX. [Efeito fotoelétrico](https://gustavosbarroso.github.io/Physics_lab/Efeito_fotoeletrico/)
 
 <img width="1197" height="546" alt="image" src="https://github.com/user-attachments/assets/21f4980f-b263-47c2-94a4-fdf05da23a74" />
 
