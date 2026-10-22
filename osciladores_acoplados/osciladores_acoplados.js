@@ -548,16 +548,16 @@ class CoupledOscillators {
             {
                 name: "x1_0",
                 label: "x₁₀ (m)",
-                min: -2.0,
-                max: 2.0,
+                min: -1.2,
+                max: 1.2,
                 step: 0.1
             },
 
             {
                 name: "x2_0",
                 label: "x₂₀ (m)",
-                min: -2.0,
-                max: 2.0,
+                min: -1.2,
+                max: 1.2,
                 step: 0.1
             }
 
