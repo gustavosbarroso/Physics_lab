@@ -470,16 +470,16 @@ class SimplePendulum {
             {
                 name: "theta0",
                 label: "θ₀ (rad)",
-                min: -3.0,
-                max: 3.0,
+                min: -1.5,
+                max: 1.5,
                 step: 0.01
             },
 
             {
                 name: "omega0",
                 label: "ω₀ (rad/s)",
-                min: -10,
-                max: 10,
+                min: -5,
+                max: 5,
                 step: 0.1
             }
 
