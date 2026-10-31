@@ -478,8 +478,8 @@ class SimplePendulum {
             {
                 name: "omega0",
                 label: "ω₀ (rad/s)",
-                min: -5,
-                max: 5,
+                min: -1.5,
+                max: 1.5,
                 step: 0.1
             }
 
