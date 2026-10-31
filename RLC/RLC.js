@@ -2046,15 +2046,18 @@ class RLCircuit {
                 this.current[index] || 0;
 
 
+            // ALTERAÇÃO 1:
+            // Remove a velocidade mínima artificial.
+
             const speed =
-                0.5 +
                 Math.abs(current) * 2;
 
 
+            // ALTERAÇÃO 2:
+            // A direção é zero quando a corrente é zero.
+
             const direction =
-                Math.sign(
-                    current || 1
-                );
+                Math.sign(current);
 
 
             for (
